@@ -1,0 +1,60 @@
+[tools]
+# Programming languages
+node = "24"
+python = "3.13"
+rust = { version = "1.96.0", targets = "wasm32-unknown-unknown" }
+
+# JavaScript and TypeScript tooling
+# https://github.com/pnpm/pnpm - fast, disk-efficient JavaScript package manager
+"npm:pnpm" = "11"
+# https://github.com/oven-sh/bun - JavaScript runtime, package manager, and bundler
+bun = "latest"
+
+# Python tooling
+# https://github.com/astral-sh/uv - fast Python package and virtualenv manager
+uv = "latest"
+# https://github.com/astral-sh/ruff - fast Python linter and formatter
+ruff = "latest"
+# https://github.com/astral-sh/ty - Python type checker
+ty = "latest"
+
+# Rust tooling
+# https://github.com/cargo-bins/cargo-binstall - installs Rust binaries from prebuilt releases
+cargo-binstall = "latest"
+# https://github.com/wasm-bindgen/wasm-bindgen - Rust and JavaScript WebAssembly bindings
+"cargo:wasm-bindgen-cli" = "0.2.123"
+
+# Shell tooling
+# https://github.com/koalaman/shellcheck - static analysis for shell scripts
+shellcheck = "latest"
+# https://github.com/mvdan/sh - shell parser, formatter, and interpreter
+shfmt = "latest"
+
+# Search and code analysis tools
+# https://github.com/BurntSushi/ripgrep - fast recursive text search
+ripgrep = "latest"
+# https://github.com/sharkdp/fd - fast, user-friendly file search
+fd = "latest"
+# https://github.com/ast-grep/ast-grep - AST-based code search and rewrite
+ast-grep = "latest"
+
+# Media tools
+# https://github.com/FFmpeg/FFmpeg - audio and video processing toolkit
+ffmpeg = "latest"
+
+# Productivity and file-format tools
+# https://github.com/jqlang/jq - command-line JSON processor
+jq = "latest"
+# https://github.com/tamasfe/taplo - TOML formatter and language server
+taplo = "latest"
+# https://github.com/crate-ci/typos - source-code spell checker
+typos = "latest"
+
+[settings]
+idiomatic_version_file_enable_tools = ["node", "python", "rust"]
+
+[settings.node]
+corepack = true
+
+[settings.python]
+uv_venv_auto = "source"

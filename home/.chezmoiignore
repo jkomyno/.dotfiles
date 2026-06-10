@@ -2,6 +2,8 @@
 # home/README.md as ~/README.md because home/ is the source root.
 README.md
 
+{{ template "chezmoiignore.d/common" . }}
+
 # macOS arm64 is the only active target today.
 # Linux can share this tree later without introducing server/client profiles.
 {{ if not (and (eq .chezmoi.os "darwin") (eq .chezmoi.arch "arm64")) -}}

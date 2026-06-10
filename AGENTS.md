@@ -12,6 +12,14 @@
 - `.agents/skills/` contains local agent skills and their workflow notes.
 - `skills-lock.json` records installed skill metadata.
 
+## Tool Ownership
+
+- Put language runtimes and CLI developer tools in `home/dot_mise/config.toml`.
+- `home/dot_config/exact_mise/symlink_config.toml.tmpl` exposes that file as `~/.config/mise/config.toml`.
+- Put GUI apps and fonts in `install/macos/common/nanobrew-casks.Brewfile`.
+- Keep `install/macos/common/nanobrew-formulae.Brewfile` empty unless a required package has no practical mise backend.
+- Do not duplicate a CLI between mise and nanobrew.
+
 ## Working Rules
 
 - Keep changes small and scoped to the user's request.
