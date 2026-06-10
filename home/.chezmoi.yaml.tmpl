@@ -1,0 +1,10 @@
+{{- $platform := "macos" -}}
+{{- if eq .chezmoi.os "linux" -}}
+{{-   $platform = "linux" -}}
+{{- end -}}
+# macOS arm64 is the active target.
+# Linux is intentionally one future profile.
+data:
+  platform: {{ $platform | quote }}
+  os: {{ .chezmoi.os | quote }}
+  arch: {{ .chezmoi.arch | quote }}

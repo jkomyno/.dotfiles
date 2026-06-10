@@ -1,0 +1,9 @@
+# Repository-only documentation. Without this ignore entry, chezmoi would apply
+# home/README.md as ~/README.md because home/ is the source root.
+README.md
+
+# macOS arm64 is the only active target today.
+# Linux can share this tree later without introducing server/client profiles.
+{{ if not (and (eq .chezmoi.os "darwin") (eq .chezmoi.arch "arm64")) -}}
+# No target-specific files to ignore yet.
+{{ end -}}

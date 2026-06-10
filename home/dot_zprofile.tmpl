@@ -1,0 +1,25 @@
+# Login-shell setup for the active macOS arm64 target.
+typeset -gU path
+
+if [ -d "${HOME}/.local/bin" ]; then
+  path=("${HOME}/.local/bin" $path)
+fi
+
+{{- if and (eq .chezmoi.os "darwin") (eq .chezmoi.arch "arm64") }}
+if [ -d /opt/homebrew/bin ]; then
+  path=(/opt/homebrew/bin $path)
+fi
+
+if [ -d /opt/homebrew/sbin ]; then
+  path=(/opt/homebrew/sbin $path)
+fi
+{{- else if eq .chezmoi.os "linux" }}
+# Linux support is intentionally unsplit for now.
+# Add Linux-specific login-shell setup here when this repo targets Linux.
+{{- else }}
+# Unsupported platform for now.
+{{- end }}
+
+if [ -d /opt/nanobrew/prefix/bin ]; then
+  path=(/opt/nanobrew/prefix/bin $path)
+fi

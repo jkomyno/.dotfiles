@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+{{/* Formulae are installed through nanobrew after the nb binary exists. */ -}}
+{{ if and (eq .chezmoi.os "darwin") (eq .chezmoi.arch "arm64") -}}
+DOTFILES_NANOBREW_FORMULAE_BUNDLE_CONTENT="$(cat <<'DOTFILES_NANOBREW_FORMULAE_EOF'
+{{ include "../install/macos/common/nanobrew-formulae.Brewfile" }}
+DOTFILES_NANOBREW_FORMULAE_EOF
+)"
+export DOTFILES_NANOBREW_FORMULAE_BUNDLE_CONTENT
+
+{{   include "../install/macos/common/nanobrew-formulae.sh" }}
+{{- end }}
