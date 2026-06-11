@@ -1,0 +1,20 @@
+# Ghostty configuration managed by chezmoi.
+# Edit in the dotfiles repo, then run `chezmoi apply`.
+# Reference: https://ghostty.org/docs/config/reference
+
+# Appearance
+theme = Catppuccin Macchiato
+font-family = Hack Nerd Font Mono
+font-size = 14
+cursor-style-blink = true
+
+# Window
+window-padding-balance = true
+quit-after-last-window-closed = true
+
+# macOS
+macos-option-as-alt = true
+
+# Allow programs (e.g. tmux, neovim) to use the system clipboard.
+clipboard-read = allow
+clipboard-write = allow
