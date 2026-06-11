@@ -24,6 +24,20 @@ cargo-binstall = "latest"
 # https://github.com/wasm-bindgen/wasm-bindgen - Rust and JavaScript WebAssembly bindings
 "cargo:wasm-bindgen-cli" = "0.2.123"
 
+# Dotfile management
+# https://github.com/twpayne/chezmoi - dotfile manager driving this repository
+chezmoi = "latest"
+
+# Git and GitHub tooling
+# https://github.com/cli/cli - GitHub's official command-line tool
+gh = "latest"
+# https://github.com/so-fancy/diff-so-fancy - human-friendly Git diff pager
+"npm:diff-so-fancy" = "latest"
+# https://github.com/git-lfs/git-lfs - Git extension for versioning large files
+git-lfs = "latest"
+# https://codeberg.org/mergiraf/mergiraf - syntax-aware Git merge driver
+"cargo:mergiraf" = "latest"
+
 # Shell tooling
 # https://github.com/koalaman/shellcheck - static analysis for shell scripts
 shellcheck = "latest"
