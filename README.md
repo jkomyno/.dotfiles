@@ -9,7 +9,7 @@ These dotfiles:
 - target macOS (Apple Silicon)
 - use [`mise`](https://mise.jdx.dev/) for language runtimes and CLI developer tools
 - use [`nanobrew`](https://github.com/justrach/nanobrew), a faster Homebrew alternative, for macOS apps, fonts, and exceptional formulae
-- include configurations for zsh, Git, GitHub CLI, mise, uv, and local AI agent skills
+- include configurations for zsh, Git, GitHub CLI, mise, uv, macOS preferences, and local AI agent skills
 
 The actual dotfiles exist under the [`home`](./home) directory specified in [`.chezmoiroot`](./.chezmoiroot).
 See [.chezmoiroot - chezmoi](https://www.chezmoi.io/reference/special-files-and-directories/chezmoiroot/) for more detail on the setting.
@@ -23,6 +23,8 @@ Git and GitHub configuration lives under [`home/dot_config/git`](./home/dot_conf
 [`install/macos/common/nanobrew-casks.Brewfile`](./install/macos/common/nanobrew-casks.Brewfile) owns GUI apps and fonts. [`install/macos/common/nanobrew-formulae.Brewfile`](./install/macos/common/nanobrew-formulae.Brewfile) should stay empty unless a required package has no practical mise backend.
 
 Do not install the same CLI in both mise and nanobrew.
+
+macOS user preferences live in [`install/macos/common/defaults.sh`](./install/macos/common/defaults.sh) and are applied through a `run_onchange_after` chezmoi hook. The script handles repeatable user-level defaults by default, including a Dock that shows only running applications; clearing saved Dock pins and sudo-backed power/login settings are explicit opt-ins. Per-device machine identity is set once by [`setup.sh`](./setup.sh), defaulting to `Alberto's MacBook Pro`.
 
 ## Bootstrap
 

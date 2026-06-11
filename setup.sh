@@ -10,6 +10,7 @@ readonly DOTFILES_REPO_URL="${DOTFILES_REPO_URL:-https://github.com/jkomyno/dotf
 readonly DOTFILES_BRANCH="${DOTFILES_BRANCH:-${BRANCH_NAME:-main}}"
 readonly CHEZMOI_BIN_DIR="${CHEZMOI_BIN_DIR:-${HOME}/.local/bin}"
 readonly SUDO_KEYCHAIN_SERVICE="dotfiles-bootstrap"
+readonly DEFAULT_DOTFILES_COMPUTER_NAME="Alberto's MacBook Pro"
 
 DOTFILES_LOGO="$(
   cat <<'LOGO'
@@ -123,6 +124,95 @@ keepalive_sudo() {
   esac
 }
 
+sanitize_local_hostname() {
+  local name="$1"
+
+  printf '%s' "${name}" |
+    tr '[:upper:]' '[:lower:]' |
+    tr -d "'" |
+    sed -E 's/[^a-z0-9]+/-/g; s/^-+//; s/-+$//; s/-+/-/g'
+}
+
+sanitize_netbios_name() {
+  local name="$1"
+
+  printf '%s' "${name}" |
+    tr '[:lower:]' '[:upper:]' |
+    tr -cd '[:alnum:]-' |
+    cut -c 1-15
+}
+
+current_scutil_name() {
+  local key="$1"
+
+  scutil --get "${key}" 2>/dev/null || true
+}
+
+set_scutil_name() {
+  local key="$1"
+  local value="$2"
+
+  [[ -n "${value}" ]] || return 0
+
+  if [[ "$(current_scutil_name "${key}")" == "${value}" ]]; then
+    log "${key} already set to ${value}"
+    return 0
+  fi
+
+  log "Setting ${key} to ${value}"
+  sudo -A scutil --set "${key}" "${value}"
+}
+
+configure_macos_computer_name() {
+  [[ "$(uname -s)" == "Darwin" ]] || return 0
+
+  # Machine identity is setup-time state. Keep it out of repeatable chezmoi
+  # defaults so a later apply cannot unexpectedly rename a Mac.
+  if [[ "${CI:-}" == "true" ]]; then
+    log "Skipping computer name setup in CI"
+    return 0
+  fi
+
+  if [[ -z "${SUDO_ASKPASS:-}" ]] && ! has_tty; then
+    log "Skipping computer name setup because sudo is unavailable without a TTY"
+    return 0
+  fi
+
+  if [[ -n "${DOTFILES_SKIP_COMPUTER_NAME:-}" ]]; then
+    log "Skipping computer name setup (DOTFILES_SKIP_COMPUTER_NAME is set)"
+    return 0
+  fi
+
+  local computer_name
+  local local_hostname
+  local netbios_name
+
+  computer_name="${DOTFILES_COMPUTER_NAME:-${DEFAULT_DOTFILES_COMPUTER_NAME}}"
+  local_hostname="${DOTFILES_LOCAL_HOSTNAME:-$(sanitize_local_hostname "${computer_name}")}"
+  netbios_name="${DOTFILES_NETBIOS_NAME:-$(sanitize_netbios_name "${local_hostname}")}"
+
+  [[ -n "${computer_name}" ]] || die "DOTFILES_COMPUTER_NAME cannot be empty"
+  [[ -n "${local_hostname}" ]] || die "DOTFILES_LOCAL_HOSTNAME cannot be empty"
+  [[ -n "${netbios_name}" ]] || die "DOTFILES_NETBIOS_NAME cannot be empty"
+
+  set_scutil_name ComputerName "${computer_name}"
+  set_scutil_name LocalHostName "${local_hostname}"
+
+  if [[ -n "${DOTFILES_HOST_NAME:-}" ]]; then
+    set_scutil_name HostName "${DOTFILES_HOST_NAME}"
+  fi
+
+  local current_netbios_name
+  current_netbios_name="$(defaults read /Library/Preferences/SystemConfiguration/com.apple.smb.server NetBIOSName 2>/dev/null || true)"
+  if [[ "${current_netbios_name}" == "${netbios_name}" ]]; then
+    log "NetBIOSName already set to ${netbios_name}"
+    return 0
+  fi
+
+  log "Setting NetBIOSName to ${netbios_name}"
+  sudo -A defaults write /Library/Preferences/SystemConfiguration/com.apple.smb.server NetBIOSName -string "${netbios_name}"
+}
+
 ensure_chezmoi() {
   mkdir -p "${CHEZMOI_BIN_DIR}"
   export PATH="${CHEZMOI_BIN_DIR}:${PATH}"
@@ -164,6 +254,7 @@ main() {
   require_command curl
 
   keepalive_sudo
+  configure_macos_computer_name
   run_chezmoi
 
   log "Done"
