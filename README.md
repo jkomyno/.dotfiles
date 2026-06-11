@@ -29,3 +29,29 @@ Do not install the same CLI in both mise and nanobrew.
 [`setup.sh`](./setup.sh) is intentionally a thin entrypoint: it installs or finds `chezmoi`, initializes this repository, and runs `chezmoi apply`.
 
 Machine provisioning lives in [`install`](./install) and is wired into chezmoi through `home/.chezmoiscripts`.
+
+## Testing Changes Safely
+
+Nothing touches `$HOME` until `chezmoi apply`, so preview every change first:
+
+```sh
+chezmoi diff                      # exact changes that apply would make
+chezmoi apply --dry-run --verbose # rehearse an apply without writing
+```
+
+To inspect the rendered output of a template or a target file without applying:
+
+```sh
+chezmoi execute-template < home/dot_config/exact_mise/symlink_config.toml.tmpl
+chezmoi cat ~/.config/mise/config.toml
+```
+
+To materialize the full deployed tree somewhere disposable (skipping `run_` scripts, which would otherwise execute for real):
+
+```sh
+chezmoi apply --destination /tmp/fakehome --exclude scripts
+```
+
+Note that `chezmoi apply` refuses to overwrite a target file that changed since the last apply unless given `--force`, which protects uncommitted edits in `$HOME`.
+
+For end-to-end bootstrap testing (`setup.sh`, `run_once_` scripts, Brewfiles, SSH keygen), use an isolated environment: a second macOS user account is the cheapest option, and a macOS VM via [Tart](https://tart.run) or UTM gives a true blank slate that can be snapshotted and retried.
