@@ -52,10 +52,6 @@ fd = "latest"
 # https://github.com/ast-grep/ast-grep - AST-based code search and rewrite
 ast-grep = "latest"
 
-# Media tools
-# https://github.com/FFmpeg/FFmpeg - audio and video processing toolkit
-ffmpeg = "latest"
-
 # Productivity and file-format tools
 # https://github.com/jqlang/jq - command-line JSON processor
 jq = "latest"
