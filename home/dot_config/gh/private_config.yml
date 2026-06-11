@@ -1,0 +1,16 @@
+# Non-secret GitHub CLI preferences. Authentication is stored by gh in the
+# system credential store and hosts.yml, which this repository must not manage.
+git_protocol: ssh
+editor:
+prompt: enabled
+prefer_editor_prompt: disabled
+pager:
+http_unix_socket:
+browser:
+color_labels: disabled
+accessible_colors: disabled
+accessible_prompter: disabled
+spinner: enabled
+aliases:
+    co: pr checkout
+version: "1"
