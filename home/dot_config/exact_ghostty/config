@@ -2,7 +2,7 @@
 # Edit in the dotfiles repo, then run `chezmoi apply`.
 # Reference: https://ghostty.org/docs/config/reference
 
-theme = dark:Flexoki Dark,light:Flexoki Light
+theme = Catppuccin Macchiato
 font-family = "Hack Nerd Font Mono"
 font-size = 16
 shell-integration = zsh
