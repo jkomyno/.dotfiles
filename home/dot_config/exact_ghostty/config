@@ -2,19 +2,30 @@
 # Edit in the dotfiles repo, then run `chezmoi apply`.
 # Reference: https://ghostty.org/docs/config/reference
 
-# Appearance
-theme = Catppuccin Macchiato
-font-family = Hack Nerd Font Mono
-font-size = 14
-cursor-style-blink = true
+theme = dark:Flexoki Dark,light:Flexoki Light
+font-family = "Hack Nerd Font Mono"
+font-size = 16
+shell-integration = zsh
+macos-titlebar-style = tabs
+confirm-close-surface = false
+window-save-state = always
 
-# Window
-window-padding-balance = true
-quit-after-last-window-closed = true
+# mouse
+mouse-hide-while-typing = true
+mouse-scroll-multiplier = 2
 
-# macOS
-macos-option-as-alt = true
+# keybinds
+keybind = cmd+s>r=reload_config
+keybind = cmd+s>x=close_surface
 
-# Allow programs (e.g. tmux, neovim) to use the system clipboard.
-clipboard-read = allow
-clipboard-write = allow
+# tabs
+keybind = cmd+t=new_tab
+keybind = cmd+j=previous_tab
+keybind = cmd+k=next_tab
+
+# splits
+keybind = cmd+s>j=goto_split:bottom
+keybind = cmd+s>k=goto_split:top
+keybind = cmd+s>h=goto_split:left
+keybind = cmd+s>l=goto_split:right
+keybind = shift+enter=text:\n
