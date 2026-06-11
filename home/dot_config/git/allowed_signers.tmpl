@@ -1,0 +1,10 @@
+{{- $composioGitEmail := env "COMPOSIO_GIT_EMAIL" | default "alberto@composio.dev" -}}
+{{- $signingKeyPath := includeTemplate "git/signing-key-path" . | trim -}}
+{{- if $signingKeyPath -}}
+{{- /* Keep only the key type and material; the key comment can carry a
+       different email than the principal and does not belong here. */ -}}
+{{- $signingKeyFields := output "cat" $signingKeyPath | trim | splitList " " -}}
+{{- if ge (len $signingKeyFields) 2 -}}
+{{ $composioGitEmail }} {{ index $signingKeyFields 0 }} {{ index $signingKeyFields 1 }}
+{{- end -}}
+{{- end }}
