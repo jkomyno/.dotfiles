@@ -50,6 +50,7 @@ nanobrew bundles under `../install/macos/common` own GUI apps, fonts, and only t
 | `dot_config/git/config-composio` | `~/.config/git/config-composio` | Composio-specific email for repositories under `~/work/composio/`; includes a generated local signing config when available. |
 | `dot_config/git/config-composio-signing.tmpl` | `~/.config/git/config-composio-signing` | Generated Composio SSH signing settings, rendered empty when no supported public signing key is present. |
 | `dot_config/git/ignore` | `~/.config/git/ignore` | Single global ignore file used by `core.excludesfile`. |
+| `dot_config/ripgrep/config` | `~/.config/ripgrep/config` | ripgrep defaults (hidden files on, `.git/` excluded, large-blob cap). Only honored because `.zshenv` exports `RIPGREP_CONFIG_PATH`. |
 | `dot_config/exact_mise/symlink_config.toml.tmpl` | `~/.config/mise/config.toml` | Creates a symlink to the repo-owned mise config. `exact_mise` keeps `~/.config/mise` limited to entries managed here. |
 | `dot_config/uv/symlink_uv.toml.tmpl` | `~/.config/uv/uv.toml` | Creates a symlink to the repo-owned uv config. |
 | `dot_mise/config.toml` | source-only | Global mise defaults for runtimes and CLI development tools. The common ignore template prevents this from also becoming `~/.mise/config.toml`. |
