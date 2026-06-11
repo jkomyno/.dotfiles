@@ -13,6 +13,17 @@ fi
 if [ -d /opt/homebrew/sbin ]; then
   path=(/opt/homebrew/sbin $path)
 fi
+
+# Command-line entrypoints shipped inside GUI app bundles.
+path=(
+  $path
+  "/Applications/Visual Studio Code.app/Contents/Resources/app/bin"(N-/)
+)
+
+# OrbStack command-line tools and shell integration.
+if [ -r "${HOME}/.orbstack/shell/init.zsh" ]; then
+  source "${HOME}/.orbstack/shell/init.zsh"
+fi
 {{- else if eq .chezmoi.os "linux" }}
 # Linux support is intentionally unsplit for now.
 # Add Linux-specific login-shell setup here when this repo targets Linux.

@@ -39,6 +39,8 @@ git-lfs = "latest"
 "cargo:mergiraf" = "latest"
 
 # Shell tooling
+# https://github.com/starship/starship - cross-shell prompt
+starship = "latest"
 # https://github.com/koalaman/shellcheck - static analysis for shell scripts
 shellcheck = "latest"
 # https://github.com/mvdan/sh - shell parser, formatter, and interpreter
@@ -49,6 +51,10 @@ shfmt = "latest"
 ripgrep = "latest"
 # https://github.com/sharkdp/fd - fast, user-friendly file search
 fd = "latest"
+# https://github.com/eza-community/eza - modern ls replacement
+eza = "latest"
+# https://github.com/junegunn/fzf - command-line fuzzy finder
+fzf = "latest"
 # https://github.com/ast-grep/ast-grep - AST-based code search and rewrite
 ast-grep = "latest"
 

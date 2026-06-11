@@ -1,2 +1,6 @@
 .mise
 .uv
+
+# fish stores universal variables here at runtime; it must survive applies of
+# the exact_fish directory and never be managed as repo state.
+.config/fish/fish_variables

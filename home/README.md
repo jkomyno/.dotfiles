@@ -32,7 +32,7 @@ nanobrew bundles under `../install/macos/common` own GUI apps, fonts, and only t
 | --- | --- | --- |
 | `.chezmoi.yaml.tmpl` | chezmoi config template | Sets small data values used while rendering templates. Today it records the active platform, OS, and architecture. |
 | `.chezmoiignore` | chezmoi ignore file | Keeps repository-only files out of `$HOME` and includes shared ignore patterns. |
-| `.chezmoitemplates/chezmoiignore.d/common` | ignore template | Shared ignore patterns for ported source-only trees such as `dot_mise` and `dot_uv`. |
+| `.chezmoitemplates/chezmoiignore.d/common` | ignore template | Shared ignore patterns for ported source-only trees such as `dot_mise` and `dot_uv`, plus runtime files like fish's `fish_variables` that exact directories must not remove. |
 | `.chezmoitemplates/git/signing-key-path` | shared template | Resolves the SSH public key used for Composio commit signing (`GIT_SSH_SIGNING_KEY`, then default key paths), re-evaluated on every apply. |
 | `.chezmoiscripts/common/run_once_before_01-generate-ssh-key.sh.tmpl` | one-time pre-apply script | Generates `~/.ssh/id_ed25519` when no supported SSH keypair exists yet. Skippable with `DOTFILES_SKIP_SSH_KEYGEN=1`. |
 | `.chezmoiscripts/common/run_once_after_02-install-mise.sh.tmpl` | one-time post-apply script | Installs a pinned standalone mise and the globally configured language tools after `~/.config/mise/config.toml` exists. |
@@ -51,12 +51,15 @@ nanobrew bundles under `../install/macos/common` own GUI apps, fonts, and only t
 | `dot_config/git/config-composio-signing.tmpl` | `~/.config/git/config-composio-signing` | Generated Composio SSH signing settings, rendered empty when no supported public signing key is present. |
 | `dot_config/git/ignore` | `~/.config/git/ignore` | Single global ignore file used by `core.excludesfile`. |
 | `dot_config/ripgrep/config` | `~/.config/ripgrep/config` | ripgrep defaults (hidden files on, `.git/` excluded, large-blob cap). Only honored because `.zshenv` exports `RIPGREP_CONFIG_PATH`. |
+| `dot_config/exact_fish/` | `~/.config/fish/` | Fish shell setup: `config.fish`, drop-in environment snippets under `conf.d/`, and one autoloaded function per file under `functions/`. The exact prefixes keep those directories limited to entries managed here; `fish_variables` survives via the shared ignore template. |
 | `dot_config/exact_mise/symlink_config.toml.tmpl` | `~/.config/mise/config.toml` | Creates a symlink to the repo-owned mise config. `exact_mise` keeps `~/.config/mise` limited to entries managed here. |
+| `dot_config/exact_zsh/` | `~/.config/zsh/` | Custom zsh aliases (one topic per file under `aliases.d/`, sourced by `.zshrc`) and functions (one per file under `functions/`, lazily autoloaded via `fpath`). |
+| `dot_config/starship.toml` | `~/.config/starship.toml` | Starship prompt configuration, shared by zsh and fish. |
 | `dot_config/uv/symlink_uv.toml.tmpl` | `~/.config/uv/uv.toml` | Creates a symlink to the repo-owned uv config. |
 | `dot_mise/config.toml` | source-only | Global mise defaults for runtimes and CLI development tools. The common ignore template prevents this from also becoming `~/.mise/config.toml`. |
-| `dot_zprofile.tmpl` | `~/.zprofile` | Login-shell setup for PATH entries such as `~/.local/bin`, Homebrew, and nanobrew. |
-| `dot_zshrc` | `~/.zshrc` | Interactive zsh setup that activates mise when the binary is available. |
-| `dot_zshenv` | `~/.zshenv` | Minimal zsh environment loaded by every zsh invocation. Keep this file cheap and side-effect-light. |
+| `dot_zprofile.tmpl` | `~/.zprofile` | Login-shell setup for PATH entries such as `~/.local/bin`, Homebrew, nanobrew, GUI app CLIs, and OrbStack integration. |
+| `dot_zshrc` | `~/.zshrc` | Interactive zsh setup: static PATH, eager uncached mise activation, cached starship/direnv init, zinit with deferred (turbo) plugins, and per-file aliases/functions from `~/.config/zsh`. |
+| `dot_zshenv` | `~/.zshenv` | Minimal zsh environment loaded by every zsh invocation: XDG dirs, `RIPGREP_CONFIG_PATH`, and cargo shims. Keep this file cheap and side-effect-light. |
 | `dot_uv/uv.toml` | source-only | uv defaults, currently keeping Python package resolution at least seven days behind newest releases. The common ignore template prevents this from also becoming `~/.uv/uv.toml`. |
 | `README.md` | ignored | Explains this source tree. It should not be applied to `~/README.md`. |
 
