@@ -64,6 +64,12 @@ ast-grep = "latest"
 # https://github.com/rtk-ai/rtk - rewrites agent shell commands into token-efficient equivalents;
 # required by the Claude Code PreToolUse hook in home/dot_claude/hooks/rtk-rewrite.sh
 "github:rtk-ai/rtk" = "latest"
+# https://github.com/sirmalloc/ccstatusline - Claude Code status line renderer;
+# wired up via statusLine in home/dot_claude/settings.json.tmpl, configured by home/dot_config/ccstatusline
+"npm:ccstatusline" = "latest"
+# https://github.com/ryoppippi/ccusage - Claude Code usage/cost reporter; feeds the
+# first status line via the custom-command widget in home/dot_config/ccstatusline/settings.json
+"npm:ccusage" = "latest"
 
 # Productivity and file-format tools
 # https://github.com/jqlang/jq - command-line JSON processor
