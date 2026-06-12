@@ -39,6 +39,8 @@ git-lfs = "latest"
 "cargo:mergiraf" = "latest"
 
 # Shell tooling
+# https://github.com/tmux/tmux - terminal multiplexer; config in home/dot_config/tmux
+tmux = "latest"
 # https://github.com/starship/starship - cross-shell prompt
 starship = "latest"
 # https://github.com/koalaman/shellcheck - static analysis for shell scripts
