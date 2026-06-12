@@ -1,6 +1,10 @@
 .mise
 .uv
 
+# Source-only storage for the Handy settings file; the deployed copy lives at
+# ~/Library/Application Support/com.pais.handy/settings_store.json as a symlink.
+.handy
+
 # fish stores universal variables here at runtime; it must survive applies of
 # the exact_fish directory and never be managed as repo state.
 .config/fish/fish_variables
