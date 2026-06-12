@@ -58,6 +58,11 @@ fzf = "latest"
 # https://github.com/ast-grep/ast-grep - AST-based code search and rewrite
 ast-grep = "latest"
 
+# AI agent tooling
+# https://github.com/rtk-ai/rtk - rewrites agent shell commands into token-efficient equivalents;
+# required by the Claude Code PreToolUse hook in home/dot_claude/hooks/rtk-rewrite.sh
+"ubi:rtk-ai/rtk" = "latest"
+
 # Productivity and file-format tools
 # https://github.com/jqlang/jq - command-line JSON processor
 jq = "latest"
