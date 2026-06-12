@@ -24,6 +24,16 @@ Git and GitHub configuration lives under [`home/dot_config/git`](./home/dot_conf
 
 Do not install the same CLI in both mise and nanobrew.
 
+## Agent Configuration
+
+Coding-agent configuration follows a shared-canonical-plus-adapters layout inspired by [shunk031/dotfiles](https://github.com/shunk031/dotfiles):
+
+- [`home/dot_agents`](./home/dot_agents) is the shared layer, deployed to `~/.agents`. `AGENTS.md` holds instructions common to every harness, and `skills/` holds both first-party skills and vendored third-party skills as real files. Each third-party skill is mapped to its upstream repository in [`exact_sync-skills/manifest.json`](./home/dot_agents/skills/exact_sync-skills/manifest.json); the `sync-skills` skill (inspired by dmmulroy's `sync-pocock-skills`) updates vendored copies from upstream while re-applying local modifications stored as patch files.
+- [`home/dot_claude`](./home/dot_claude) deploys Claude Code's global `settings.json`, `CLAUDE.md` (which imports `~/.agents/AGENTS.md`), `hooks/`, and per-skill symlinks from `~/.claude/skills/` into `~/.agents/skills/`.
+- [`home/dot_codex`](./home/dot_codex) deploys a curated `~/.codex/config.toml`, `AGENTS.md` (which defers to `~/.agents/AGENTS.md`), and the same per-skill symlinks.
+
+Only curated configuration is tracked. Runtime state in `~/.claude` (sessions, history, caches) and `~/.codex` (the `[projects.*]` trust list, `rules/`, sqlite databases) stays unmanaged; chezmoi never touches files it does not list, and none of these directories use `exact_` at the top level. Skill directories not listed in this repository (for example one-off installs by other tooling) are left alone; only the per-skill `exact_` directories are pruned on apply. To take a previously installed skill under management, vendor it via `sync-skills` instead of editing the deployed copy.
+
 macOS user preferences live in [`install/macos/common/defaults.sh`](./install/macos/common/defaults.sh) and are applied through a `run_onchange_after` chezmoi hook. The script handles repeatable user-level defaults by default, including a Dock that shows only running applications; clearing saved Dock pins and sudo-backed power/login settings are explicit opt-ins. Per-device machine identity is set once by [`setup.sh`](./setup.sh), defaulting to `Alberto's MacBook Pro`.
 
 ## Bootstrap
