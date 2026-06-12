@@ -1,0 +1,15 @@
+# Curated Codex CLI configuration. Codex appends machine-local state to the
+# deployed ~/.codex/config.toml at runtime (per-project [projects.*] trust
+# entries, [notice.*] migrations, [tui.*] flags); that state is intentionally
+# not tracked here and will show up as drift in `chezmoi diff`.
+model = "gpt-5.5"
+model_reasoning_effort = "xhigh"
+personality = "pragmatic"
+service_tier = "fast"
+
+[features]
+rmcp_client = true
+terminal_resize_reflow = true
+memories = true
+mentions_v2 = true
+prevent_idle_sleep = true
