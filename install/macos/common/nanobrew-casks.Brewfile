@@ -12,6 +12,7 @@ cask "google-chrome"
 # Core apps
 cask "discord"
 cask "ghostty"
+cask "handy"
 cask "notunes"
 cask "orbstack"
 cask "qbittorrent"
