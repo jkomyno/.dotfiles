@@ -23,6 +23,10 @@ ty = "latest"
 cargo-binstall = "latest"
 # https://github.com/wasm-bindgen/wasm-bindgen - Rust and JavaScript WebAssembly bindings
 "cargo:wasm-bindgen-cli" = "0.2.123"
+# https://github.com/EmbarkStudios/cargo-deny - lints Rust dependency graphs: advisories, licenses, bans, sources
+"cargo:cargo-deny" = "latest"
+# https://github.com/rustsec/rustsec - audits Cargo.lock against the RustSec advisory database
+"cargo:cargo-audit" = "latest"
 
 # Dotfile management
 # https://github.com/twpayne/chezmoi - dotfile manager driving this repository
