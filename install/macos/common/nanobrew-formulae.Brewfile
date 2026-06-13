@@ -12,3 +12,9 @@ brew "fish"
 # Lives here instead of mise: the mise ffmpeg plugin builds from source,
 # which is impractically slow and fragile on macOS.
 brew "ffmpeg"
+
+# Machine learning
+# https://github.com/microsoft/onnxruntime - cross-platform inference engine for ONNX models.
+# Lives here instead of mise: it is a native library (shared objects and headers)
+# consumed by other tools, not a versioned CLI, so mise has no backend for it.
+brew "onnxruntime"
