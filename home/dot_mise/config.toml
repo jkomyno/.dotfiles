@@ -77,6 +77,10 @@ ast-grep = "latest"
 # first status line via the custom-command widget in home/dot_config/ccstatusline/settings.json
 "npm:ccusage" = "latest"
 
+# Local LLM tooling
+# https://github.com/ollama/ollama - run large language models locally; `ollama serve` hosts the API
+ollama = "latest"
+
 # Productivity and file-format tools
 # https://github.com/jqlang/jq - command-line JSON processor
 jq = "latest"
