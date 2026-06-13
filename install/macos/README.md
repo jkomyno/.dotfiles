@@ -11,7 +11,7 @@ The active target is Apple Silicon macOS. The current first-run order is:
 5. nanobrew formulae from `install/macos/common/nanobrew-formulae.Brewfile`
 6. macOS preferences from `install/macos/common/defaults.sh`
 
-After chezmoi applies managed files, the common mise hook installs the pinned standalone mise binary and globally configured development tools from `home/dot_mise/config.toml`, exposed as `~/.config/mise/config.toml`.
+After chezmoi applies managed files, the common mise hook installs the pinned standalone mise binary and globally configured development tools from `home/dot_mise/config.toml`, exposed as `~/.config/mise/config.toml`. A later common hook then pulls the ollama models declared in `install/common/ollama-models.sh`, starting a temporary `ollama serve` if none is already running.
 
 Tool ownership stays split by package class. mise owns language runtimes and command-line developer tools. nanobrew owns GUI apps and fonts through casks; its formula bundle should stay empty unless a required package has no practical mise backend.
 
