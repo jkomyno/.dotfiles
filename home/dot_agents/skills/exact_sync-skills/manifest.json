@@ -31,6 +31,10 @@
     "impeccable": {
       "repo": "https://github.com/pbakaus/impeccable.git",
       "path": ".claude/skills/impeccable"
+    },
+    "lfd-design": {
+      "repo": "https://github.com/elvisun/loss-function-development.git",
+      "path": "skills/lfd-design"
     }
   }
 }
