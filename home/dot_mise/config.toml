@@ -51,6 +51,8 @@ starship = "latest"
 shellcheck = "latest"
 # https://github.com/mvdan/sh - shell parser, formatter, and interpreter
 shfmt = "latest"
+# https://github.com/casey/just - command runner for project-local recipes (justfiles)
+just = "latest"
 
 # Search and code analysis tools
 # https://github.com/BurntSushi/ripgrep - fast recursive text search
