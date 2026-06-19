@@ -67,6 +67,9 @@ fzf = "latest"
 ast-grep = "latest"
 
 # AI agent tooling
+# https://github.com/earendil-works/pi (https://pi.dev) - Pi, a minimal extensible coding agent;
+# global config and skills wiring tracked in home/dot_pi
+"npm:@earendil-works/pi-coding-agent" = "latest"
 # https://github.com/rtk-ai/rtk - rewrites agent shell commands into token-efficient equivalents;
 # required by the Claude Code PreToolUse hook in home/dot_claude/hooks/rtk-rewrite.sh
 "github:rtk-ai/rtk" = "latest"
