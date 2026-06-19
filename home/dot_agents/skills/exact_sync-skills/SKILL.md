@@ -1,6 +1,7 @@
 ---
 name: sync-skills
-description: Sync vendored third-party skills against their upstream repositories, re-apply local patches, and flag new upstream skills. Use when the user says "sync skills", "update vendored skills", or "check for skill updates".
+description: Sync vendored third-party skills against their upstream repositories, re-apply local patches, and flag new upstream skills. Invoke explicitly with /sync-skills.
+disable-model-invocation: true
 ---
 
 # Sync Vendored Skills
@@ -60,7 +61,7 @@ Patches live in `patches/<skill_name>__<rel_path>.patch` with stable `upstream/.
 
 1. Add an entry to `manifest.json` with `repo` and `path` (the directory containing `SKILL.md`).
 2. Run `apply-upstream.sh <name> <upstream_skill_dir>` to vendor it under `exact_<name>/`.
-3. Add `symlink_<name>.tmpl` files to `home/dot_claude/skills/` and `home/dot_codex/skills/` (copy an existing one; they all point at `~/.agents/skills/<name>`).
+3. Add a `symlink_<name>.tmpl` file to `home/dot_claude/skills/` (copy an existing one; they all point at `~/.agents/skills/<name>`). Codex needs no symlink: it scans `~/.agents/skills/` natively.
 
 ### 5. Verify and summarise
 

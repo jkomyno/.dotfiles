@@ -1,6 +1,7 @@
 ---
 name: jk-review
 description: Review diffs, PRs, plans, or specs for correctness, architecture drift, missing tests, and scope creep. Use when changes are about to ship, when a plan needs sanity-checking before execution, or when a spec needs to be stress-tested. Returns a structured findings report grouped by severity.
+argument-hint: "[diff|pr|plan|spec] [target]"
 ---
 
 # jk-review
