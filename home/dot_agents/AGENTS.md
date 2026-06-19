@@ -8,6 +8,11 @@ These instructions apply to every coding agent on this machine (Claude Code, Cod
 - Write commit messages in Conventional Commits style (`feat:`, `fix:`, `chore:`, ...), imperative mood, small and scoped.
 - Prefer `rg` for searching over `grep -r` and `find`.
 
+## Local repository notes
+
+- If `AGENTS.local.md` exists at a repository's root, read it before starting work. It holds machine-local, untracked guidance: pointers to reference corpora under `~/.jk/ideas/<name>/`, environment quirks, and other context that must stay out of git history.
+- Never commit `AGENTS.local.md`, add it to a tracked `.gitignore`, or quote its contents in commits, PRs, or tracked files. It is hidden by the global gitignore; the `jk-cli` skill maintains it.
+
 ## Skills
 
 Shared skills live in `~/.agents/skills/`. Codex scans that directory natively; Claude Code reaches it through per-skill symlinks in `~/.claude/skills/`. Edit skills in the dotfiles repository, not in the deployed copies.

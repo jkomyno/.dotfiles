@@ -34,6 +34,8 @@ Coding-agent configuration follows a shared-canonical-plus-adapters layout inspi
 
 Only curated configuration is tracked. Runtime state in `~/.claude` (sessions, history, caches) and `~/.codex` (the `[projects.*]` trust list, `rules/`, sqlite databases) stays unmanaged; chezmoi never touches files it does not list, and none of these directories use `exact_` at the top level. Skill directories not listed in this repository (for example one-off installs by other tooling) are left alone; only the per-skill `exact_` directories are pruned on apply. To take a previously installed skill under management, vendor it via `sync-skills` instead of editing the deployed copy.
 
+Per-idea reference corpora (pinned shallow clones of upstream repositories, blog-post snapshots, and agent-written digests) live under `~/.jk/ideas/<name>` and are managed by the first-party `jk-cli` skill. Projects opt in through an `AGENTS.local.md` at the repository root — hidden by the global gitignore and read by every harness via the shared `AGENTS.md` — so reference material never appears in a project's git history. `~/.jk` is machine state owned by the `jk` CLI (the skill bootstraps `~/.jk/ideas` on first use); chezmoi does not manage it.
+
 macOS user preferences live in [`install/macos/common/defaults.sh`](./install/macos/common/defaults.sh) and are applied through a `run_onchange_after` chezmoi hook. The script handles repeatable user-level defaults by default, including a Dock that shows only running applications; clearing saved Dock pins and sudo-backed power/login settings are explicit opt-ins. Per-device machine identity is set once by [`setup.sh`](./setup.sh), defaulting to `Alberto's MacBook Pro`.
 
 ## Bootstrap
