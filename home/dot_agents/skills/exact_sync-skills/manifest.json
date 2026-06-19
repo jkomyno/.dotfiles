@@ -39,6 +39,18 @@
     "improve": {
       "repo": "https://github.com/shadcn/improve.git",
       "path": "skills/improve"
+    },
+    "grilling": {
+      "repo": "https://github.com/mattpocock/skills.git",
+      "path": "skills/productivity/grilling"
+    },
+    "domain-modeling": {
+      "repo": "https://github.com/mattpocock/skills.git",
+      "path": "skills/engineering/domain-modeling"
+    },
+    "grill-with-docs": {
+      "repo": "https://github.com/mattpocock/skills.git",
+      "path": "skills/engineering/grill-with-docs"
     }
   }
 }
