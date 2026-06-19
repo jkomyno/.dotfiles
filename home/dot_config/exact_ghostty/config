@@ -29,3 +29,10 @@ keybind = cmd+s>k=goto_split:top
 keybind = cmd+s>h=goto_split:left
 keybind = cmd+s>l=goto_split:right
 keybind = shift+enter=text:\n
+
+# scrollback (performable: the key passes through to the app when scrolling
+# is impossible, e.g. inside alternate-screen TUIs)
+keybind = performable:shift+up=scroll_page_lines:-3
+keybind = performable:shift+down=scroll_page_lines:3
+keybind = performable:cmd+shift+u=scroll_page_fractional:-0.5
+keybind = performable:cmd+shift+d=scroll_page_fractional:0.5
