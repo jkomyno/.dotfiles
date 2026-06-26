@@ -83,6 +83,9 @@ ast-grep = "latest"
 # Local LLM tooling
 # https://github.com/ollama/ollama - run large language models locally; `ollama serve` hosts the API
 ollama = "latest"
+# mlx-lm (`mlx_lm.server`, the MLX-first OpenAI-compatible local LLM runtime) is NOT a mise
+# tool: it is Apple-Silicon-only, so it is installed via `uv tool` by the guarded
+# install/common/mlx.sh provisioning script rather than this cross-platform manifest.
 
 # Productivity and file-format tools
 # https://github.com/jqlang/jq - command-line JSON processor
