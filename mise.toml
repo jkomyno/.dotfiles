@@ -9,6 +9,7 @@ includes = ["tasks"]
 "~/.claude/CLAUDE.md" = { source = "target/home/.claude/CLAUDE.md", mode = "symlink" }
 "~/.claude/hooks/block-claude-attribution.sh" = { source = "target/home/.claude/hooks/block-claude-attribution.sh", mode = "symlink" }
 "~/.claude/hooks/rtk-rewrite.sh" = { source = "target/home/.claude/hooks/rtk-rewrite.sh", mode = "symlink" }
+"~/.claude/settings.json" = { source = "target/home/.claude/settings.json", mode = "template" }
 "~/.codex/AGENTS.md" = { source = "target/home/.codex/AGENTS.md", mode = "symlink" }
 "~/.codex/config.toml" = { source = "target/home/.codex/config.toml", mode = "copy" }
 "~/.handy/settings_store.json" = { source = "target/home/.handy/settings_store.json", mode = "copy" }

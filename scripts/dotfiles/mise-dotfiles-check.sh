@@ -93,7 +93,7 @@ verify_rendered_template() {
   local expected_path
 
   expected_path="$(mktemp)"
-  if ! run_chezmoi_source execute-template < "${DOTFILES_ROOT}/${source_template}" > "${expected_path}"; then
+  if ! HOME="${check_home}" run_chezmoi_source execute-template < "${DOTFILES_ROOT}/${source_template}" > "${expected_path}"; then
     rm -f "${expected_path}"
     return 1
   fi
@@ -108,8 +108,23 @@ verify_rendered_template() {
   rm -f "${expected_path}"
 }
 
+verify_json() {
+  local target_rel="$1"
+
+  if ! have python3; then
+    return
+  fi
+
+  if ! python3 -m json.tool "${check_home}/${target_rel}" >/dev/null; then
+    error "rendered JSON is invalid: ${target_rel}"
+    return 1
+  fi
+}
+
 verify_dotfiles() {
   verify_rendered_template ".zprofile" "home/dot_zprofile.tmpl"
+  verify_rendered_template ".claude/settings.json" "home/dot_claude/settings.json.tmpl"
+  verify_json ".claude/settings.json"
   verify_symlink ".config/ccstatusline/settings.json" "target/home/.config/ccstatusline/settings.json"
   verify_symlink ".config/ghostty/config" "target/home/.config/ghostty/config"
   verify_symlink ".config/ghui/config.json" "target/home/.config/ghui/config.json"

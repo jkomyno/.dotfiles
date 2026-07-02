@@ -58,9 +58,9 @@ mise-managed, target-shaped dotfiles tree.
   checking that mirrored target files still match their current chezmoi
   sources.
 - Stage 3 capability probing is tracked by `just dotfiles-capabilities`.
-- Stage 3 has started with `.zprofile` as the first target-shaped
-  `mode = "template"` entry. Its rendered output is compared against the
-  current chezmoi template during `just dotfiles-check`.
+- Stage 3 has started with `.zprofile` and Claude settings as target-shaped
+  `mode = "template"` entries. Their rendered output is compared against the
+  current chezmoi templates during `just dotfiles-check`.
 
 Next migration step: keep expanding template coverage only after each rendered
 output is proved against a temporary HOME. Avoid Git signing, SSH, GitHub CLI

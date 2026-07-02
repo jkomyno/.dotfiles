@@ -1,0 +1,174 @@
+{
+  "attribution": {
+    "commit": "",
+    "pr": ""
+  },
+  "permissions": {
+    "allow": [
+      "Read(**)",
+      "Edit(**)",
+      "MultiEdit(**)",
+      "Write(**)",
+      "Glob(**)",
+      "Grep(**)",
+      "LS(**)",
+      "Agent(compound-engineering:*)",
+      "Skill(compound-engineering:*)",
+      "WebFetch",
+      "WebSearch",
+      "Bash(.venv*)",
+      "Bash(* --help *)",
+      "Bash(* --version)",
+      "Bash(awk)",
+      "Bash(basename *)",
+      "Bash(bun *)",
+      "Bash(bunx *)",
+      "Bash(cat *)",
+      "Bash(cd *)",
+      "Bash(chmod *)",
+      "Bash(ctm *)",
+      "Bash(curl *)",
+      "Bash(cut *)",
+      "Bash(dirname *)",
+      "Bash(docker *)",
+      "Bash(echo *)",
+      "Bash(env *)",
+      "Bash(gh api *)",
+      "Bash(gh issue *)",
+      "Bash(gh pr list *)",
+      "Bash(gh pr view *)",
+      "Bash(gh repo clone *)",
+      "Bash(gh repo list *)",
+      "Bash(gh repo view *)",
+      "Bash(gh run view *)",
+      "Bash(gh workflow *)",
+      "Bash(git *)",
+      "Bash(git commit *)",
+      "Bash(grep *)",
+      "Bash(jq *)",
+      "Bash(lalph *)",
+      "Bash(ls *)",
+      "Bash(lsof *)",
+      "Bash(make *)",
+      "Bash(mkdir *)",
+      "Bash(node *)",
+      "Bash(nox *)",
+      "Bash(npm *)",
+      "Bash(npx *)",
+      "Bash(pnpm *)",
+      "Bash(pnpx *)",
+      "Bash(pytest *)",
+      "Bash(python *)",
+      "Bash(python3 *)",
+      "Bash(realpath *)",
+      "Bash(ruff *)",
+      "Bash(sed *)",
+      "Bash(sed)",
+      "Bash(sort *)",
+      "Bash(source *)",
+      "Bash(timeout *)",
+      "Bash(tree *)",
+      "Bash(tsc *)",
+      "Bash(tsx *)",
+      "Bash(uniq *)",
+      "Bash(unset *)",
+      "Bash(uv *)",
+      "Bash(vhs:*)",
+      "Bash(wc *)",
+      "Bash(xargs *)",
+      "Bash(yarn *)",
+      "Bash(yq *)",
+      "mcp__ide__getDiagnostics",
+      "mcp__linear-server__get_*",
+      "mcp__plugin_compound-engineering_context7__query-docs",
+      "mcp__plugin_compound-engineering_context7__resolve-library-id"
+    ],
+    "ask": [
+      "Bash(rm -rf *)"
+    ],
+    "defaultMode": "acceptEdits",
+    "additionalDirectories": [
+      "{{ env.HOME }}/.better-coding-agents/resources/effect/code"
+    ]
+  },
+  "model": "claude-fable-5[1m]",
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "{{ env.HOME }}/.local/share/lattice/lattice-event-hook.sh"
+          }
+        ]
+      }
+    ],
+    "Notification": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "{{ env.HOME }}/.local/share/lattice/lattice-event-hook.sh"
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "{{ env.HOME }}/.local/share/lattice/lattice-event-hook.sh"
+          }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "{{ env.HOME }}/.local/share/lattice/lattice-event-hook.sh"
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "{{ env.HOME }}/.claude/hooks/rtk-rewrite.sh"
+          }
+        ]
+      },
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "{{ env.HOME }}/.claude/hooks/block-claude-attribution.sh"
+          }
+        ]
+      }
+    ]
+  },
+  "statusLine": {
+    "type": "command",
+    "command": "{{ env.HOME }}/.local/share/mise/shims/ccstatusline"
+  },
+  "enabledPlugins": {
+    "compound-engineering@every-marketplace": true,
+    "frontend-design@claude-plugins-official": true,
+    "interface-design@interface-design": true,
+    "rust-analyzer-lsp@claude-plugins-official": true
+  },
+  "effortLevel": "medium",
+  "fastMode": true,
+  "skipDangerousModePermissionPrompt": true
+}
