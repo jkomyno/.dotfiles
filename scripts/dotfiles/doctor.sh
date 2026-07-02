@@ -45,6 +45,7 @@ check_required_files() {
     "home/dot_mise/config.toml"
     "home/dot_mise/mise.lock"
     "home/dot_config/exact_mise/symlink_config.toml.tmpl"
+    "home/dot_config/exact_mise/symlink_mise.lock.tmpl"
     "target/home/.zshenv"
     "target/home/.zshrc"
     "target/home/.agents/AGENTS.md"
@@ -86,6 +87,8 @@ check_required_files() {
     "target/home/.config/ghostty/config"
     "target/home/.config/ghui/config.json"
     "target/home/.config/hunk/config.toml"
+    "target/home/.config/mise/config.toml"
+    "target/home/.config/mise/mise.lock"
     "target/home/.config/nvim/.gitignore"
     "target/home/.config/nvim/.neoconf.json"
     "target/home/.config/nvim/init.lua"
@@ -183,11 +186,16 @@ check_chezmoi() {
   fi
 
   pass "chezmoi is available"
-  if run_chezmoi_source execute-template < "${DOTFILES_ROOT}/home/dot_config/exact_mise/symlink_config.toml.tmpl" >/dev/null; then
-    pass "mise symlink template renders"
-  else
-    hard_fail "mise symlink template failed to render"
-  fi
+  local symlink_template
+  for symlink_template in \
+    "${DOTFILES_ROOT}/home/dot_config/exact_mise/symlink_config.toml.tmpl" \
+    "${DOTFILES_ROOT}/home/dot_config/exact_mise/symlink_mise.lock.tmpl"; do
+    if run_chezmoi_source execute-template < "${symlink_template}" >/dev/null; then
+      pass "${symlink_template#"${DOTFILES_ROOT}"/} renders"
+    else
+      hard_fail "${symlink_template#"${DOTFILES_ROOT}"/} failed to render"
+    fi
+  done
 
   local tmpl tmp
   local rendered=0

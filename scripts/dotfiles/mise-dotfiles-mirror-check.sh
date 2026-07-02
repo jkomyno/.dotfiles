@@ -46,6 +46,8 @@ readonly MIRROR_PAIRS=(
   "home/dot_config/git/config-composio|target/home/.config/git/config-composio"
   "home/dot_config/git/ignore|target/home/.config/git/ignore"
   "home/dot_config/exact_ghostty/config|target/home/.config/ghostty/config"
+  "home/dot_mise/config.toml|target/home/.config/mise/config.toml"
+  "home/dot_mise/mise.lock|target/home/.config/mise/mise.lock"
   "home/dot_config/exact_zsh/exact_aliases.d/clipboard.zsh|target/home/.config/zsh/aliases.d/clipboard.zsh"
   "home/dot_config/exact_zsh/exact_aliases.d/coffee.zsh|target/home/.config/zsh/aliases.d/coffee.zsh"
   "home/dot_config/exact_zsh/exact_aliases.d/gm.zsh|target/home/.config/zsh/aliases.d/gm.zsh"

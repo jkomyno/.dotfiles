@@ -43,6 +43,8 @@ includes = ["tasks"]
 "~/.config/ghostty/config" = { source = "target/home/.config/ghostty/config", mode = "symlink" }
 "~/.config/ghui/config.json" = { source = "target/home/.config/ghui/config.json", mode = "symlink" }
 "~/.config/hunk/config.toml" = { source = "target/home/.config/hunk/config.toml", mode = "symlink" }
+"~/.config/mise/config.toml" = { source = "target/home/.config/mise/config.toml", mode = "symlink" }
+"~/.config/mise/mise.lock" = { source = "target/home/.config/mise/mise.lock", mode = "symlink" }
 "~/.config/nvim/.gitignore" = { source = "target/home/.config/nvim/.gitignore", mode = "symlink" }
 "~/.config/nvim/.neoconf.json" = { source = "target/home/.config/nvim/.neoconf.json", mode = "symlink" }
 "~/.config/nvim/init.lua" = { source = "target/home/.config/nvim/init.lua", mode = "symlink" }

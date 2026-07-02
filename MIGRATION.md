@@ -50,18 +50,20 @@ mise-managed, target-shaped dotfiles tree.
   experimental `dotfiles` command, and `just dotfiles-spike` proves it against
   a temporary HOME.
 - Stage 2 has mirrored slices for Starship, ripgrep, Ghostty, hunk, ghui,
-  ccstatusline, tmux, Neovim, utility config, curated agent adapters, grouped
-  plain Git config, and the plain zsh/fish shell files. These now exist under
-  `target/home/...` and are mapped through root `[dotfiles]` entries.
+  ccstatusline, tmux, Neovim, utility config, curated agent adapters, global
+  mise config, grouped plain Git config, and the plain zsh/fish shell files.
+  These now exist under `target/home/...` and are mapped through root
+  `[dotfiles]` entries.
 - `just dotfiles-mirror-check` guards the temporary dual-source phase by
   checking that mirrored target files still match their current chezmoi
   sources.
 - Stage 3 capability probing is tracked by `just dotfiles-capabilities`.
 
-Next migration step: continue Stage 2 with additional individual plain files.
-Good candidates are remaining simple app config or a deliberate first template
-pass. Avoid Git signing, SSH, GitHub CLI private config, app-private symlink
-targets, and sensitive templates until they get a dedicated migration pass.
+Next migration step: start a deliberate first template pass with one low-risk
+file, then keep expanding template coverage only after each rendered output is
+proved against a temporary HOME. Avoid Git signing, SSH, GitHub CLI private
+config, app-private symlink targets, and sensitive templates until they get a
+dedicated migration pass.
 
 ### 0. Guardrails
 

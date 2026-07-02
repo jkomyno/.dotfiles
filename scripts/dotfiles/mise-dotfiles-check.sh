@@ -91,6 +91,8 @@ verify_dotfiles() {
   verify_symlink ".config/ghostty/config" "target/home/.config/ghostty/config"
   verify_symlink ".config/ghui/config.json" "target/home/.config/ghui/config.json"
   verify_symlink ".config/hunk/config.toml" "target/home/.config/hunk/config.toml"
+  verify_symlink ".config/mise/config.toml" "target/home/.config/mise/config.toml"
+  verify_symlink ".config/mise/mise.lock" "target/home/.config/mise/mise.lock"
   verify_symlink ".config/ripgrep/config" "target/home/.config/ripgrep/config"
   verify_symlink ".config/starship.toml" "target/home/.config/starship.toml"
   verify_symlink ".config/tmux/tmux.conf" "target/home/.config/tmux/tmux.conf"
