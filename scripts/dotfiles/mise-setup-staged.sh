@@ -171,11 +171,14 @@ configure_step_filters() {
     return 1
   fi
 
-  for ref in "${only_filters[@]}"; do
+  # ${arr[@]+"${arr[@]}"} keeps these empty-by-default arrays from tripping
+  # `set -u` on the stock macOS /bin/bash 3.2, where "${arr[@]}" on an empty
+  # array aborts with "unbound variable".
+  for ref in ${only_filters[@]+"${only_filters[@]}"}; do
     validate_step_ref "${ref}" || return 1
   done
 
-  for ref in "${skip_filters[@]}"; do
+  for ref in ${skip_filters[@]+"${skip_filters[@]}"}; do
     validate_step_ref "${ref}" || return 1
   done
 }

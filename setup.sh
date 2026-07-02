@@ -406,14 +406,17 @@ run_mise_setup() {
     setup_args+=(--force-dotfiles)
   fi
 
+  # Expand a possibly-empty array in a way that is safe under `set -u` on the
+  # stock macOS /bin/bash 3.2, where a bare "${arr[@]}" on an empty array aborts
+  # with "unbound variable". This is the shell a blank Mac runs setup.sh under.
   if [[ "${dotfiles_checkout_kind}" == "archive" ]]; then
-    run_mise_staged_setup "${setup_args[@]}" --until install:macos:command-line-tools
+    run_mise_staged_setup ${setup_args[@]+"${setup_args[@]}"} --until install:macos:command-line-tools
     promote_archive_checkout_to_git
-    run_mise_staged_setup "${setup_args[@]}" --from install:macos:homebrew
+    run_mise_staged_setup ${setup_args[@]+"${setup_args[@]}"} --from install:macos:homebrew
     return
   fi
 
-  run_mise_staged_setup "${setup_args[@]}"
+  run_mise_staged_setup ${setup_args[@]+"${setup_args[@]}"}
 }
 
 main() {
