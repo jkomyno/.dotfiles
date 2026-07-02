@@ -50,16 +50,18 @@ mise-managed, target-shaped dotfiles tree.
   experimental `dotfiles` command, and `just dotfiles-spike` proves it against
   a temporary HOME.
 - Stage 2 has mirrored slices for Starship, ripgrep, Ghostty, hunk, ghui,
-  ccstatusline, tmux, and the plain zsh/fish shell files. These now exist
-  under `target/home/...` and are mapped through root `[dotfiles]` entries.
+  ccstatusline, tmux, Neovim, and the plain zsh/fish shell files. These now
+  exist under `target/home/...` and are mapped through root `[dotfiles]`
+  entries.
 - `just dotfiles-mirror-check` guards the temporary dual-source phase by
   checking that mirrored target files still match their current chezmoi
   sources.
 - Stage 3 capability probing is tracked by `just dotfiles-capabilities`.
 
 Next migration step: continue Stage 2 with additional individual plain files.
-Good candidates are editor config or agent config. Avoid Git signing, SSH,
-GitHub CLI, and sensitive templates until they get a dedicated migration pass.
+Good candidates are curated agent config or simple root files. Avoid Git
+signing, SSH, GitHub CLI, and sensitive templates until they get a dedicated
+migration pass.
 
 ### 0. Guardrails
 
