@@ -123,6 +123,7 @@ check_required_files() {
     "scripts/dotfiles/mise-dotfiles-check.sh"
     "scripts/dotfiles/mise-dotfiles-mirror-check.sh"
     "scripts/dotfiles/mise-setup-staged.sh"
+    "scripts/dotfiles/mise-setup-staged-smoke.sh"
     "scripts/dotfiles/mise-tasks-check.sh"
     "scripts/dotfiles/git-signing-check.sh"
     "install/macos/common/nanobrew-casks.Brewfile"
@@ -278,6 +279,21 @@ check_mise_tasks() {
   fi
 }
 
+check_staged_setup_smoke() {
+  if ! mise_bin >/dev/null 2>&1; then
+    soft_fail "staged setup smoke test skipped because mise is missing"
+    return
+  fi
+
+  local output
+  if output="$("${SCRIPT_DIR}/mise-setup-staged-smoke.sh" 2>&1)"; then
+    pass "staged setup smoke test passed"
+  else
+    printf '%s\n' "${output}" >&2
+    hard_fail "staged setup smoke test failed"
+  fi
+}
+
 check_git_signing_generator() {
   if "${SCRIPT_DIR}/git-signing-check.sh" >/dev/null; then
     pass "Git SSH signing generator is valid"
@@ -320,6 +336,7 @@ main() {
   check_mise
   check_mise_dotfiles_mirrors
   check_mise_tasks
+  check_staged_setup_smoke
   check_git_signing_generator
   check_packages
 

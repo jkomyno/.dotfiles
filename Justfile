@@ -64,6 +64,10 @@ tasks-check:
 setup-plan *args:
     @scripts/dotfiles/mise-setup-staged.sh --plan {{args}}
 
+# Run the safe staged setup subset against a temporary HOME.
+setup-smoke:
+    @scripts/dotfiles/mise-setup-staged-smoke.sh
+
 # Validate generated Git SSH signing config in temporary homes.
 git-signing-check:
     @scripts/dotfiles/git-signing-check.sh
