@@ -84,6 +84,8 @@ main() {
   check_task_targets
   check_mise_tasks
   "${SCRIPT_DIR}/mise-setup-staged.sh" --check
+  "${SCRIPT_DIR}/mise-setup-staged.sh" --check --only install:common:git-signing >/dev/null
+  "${SCRIPT_DIR}/mise-setup-staged.sh" --plan --from install:common:mise --until install:common:git-signing >/dev/null
 }
 
 main "$@"

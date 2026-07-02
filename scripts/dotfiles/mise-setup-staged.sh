@@ -8,6 +8,12 @@ source "${SCRIPT_DIR}/lib.sh"
 
 mode="run"
 force_dotfiles="false"
+filter_from_index=1
+filter_until_index=0
+from_filter=""
+until_filter=""
+only_filters=()
+skip_filters=()
 
 setup_plan=(
   "task|install:common:ssh|home/.chezmoiscripts/common/run_once_before_01-generate-ssh-key.sh.tmpl|install/common/ssh.sh"
@@ -36,6 +42,10 @@ Options:
   --plan              Print the planned task order without running it.
   --check             Validate the staged setup plan without running it.
   --force-dotfiles    Pass --force to `mise dotfiles apply`.
+  --from STEP         Start at STEP, matched by step number or name.
+  --until STEP        Stop after STEP, matched by step number or name.
+  --only STEP         Run only STEP, matched by step number or name. Repeatable.
+  --skip STEP         Skip STEP, matched by step number or name. Repeatable.
   -h, --help          Show this help.
 
 By default this script runs installers and applies dotfiles to the current HOME.
@@ -55,6 +65,38 @@ parse_args() {
       --force-dotfiles)
         force_dotfiles="true"
         ;;
+      --from)
+        [[ $# -ge 2 ]] || {
+          error "--from requires a step number or name"
+          exit 2
+        }
+        from_filter="$2"
+        shift
+        ;;
+      --until)
+        [[ $# -ge 2 ]] || {
+          error "--until requires a step number or name"
+          exit 2
+        }
+        until_filter="$2"
+        shift
+        ;;
+      --only)
+        [[ $# -ge 2 ]] || {
+          error "--only requires a step number or name"
+          exit 2
+        }
+        only_filters+=("$2")
+        shift
+        ;;
+      --skip)
+        [[ $# -ge 2 ]] || {
+          error "--skip requires a step number or name"
+          exit 2
+        }
+        skip_filters+=("$2")
+        shift
+        ;;
       -h | --help)
         usage
         exit 0
@@ -67,6 +109,107 @@ parse_args() {
     esac
     shift
   done
+}
+
+step_ref_matches() {
+  local ref="$1"
+  local index="$2"
+  local name="$3"
+
+  [[ "${ref}" == "${index}" || "${ref}" == "${name}" ]]
+}
+
+step_index_for_ref() {
+  local ref="$1"
+  local index=1
+  local entry kind name hook source
+
+  for entry in "${setup_plan[@]}"; do
+    IFS='|' read -r kind name hook source <<<"${entry}"
+    if step_ref_matches "${ref}" "${index}" "${name}"; then
+      printf '%s\n' "${index}"
+      return 0
+    fi
+    index=$((index + 1))
+  done
+
+  return 1
+}
+
+validate_step_ref() {
+  local ref="$1"
+
+  if step_index_for_ref "${ref}" >/dev/null; then
+    return 0
+  fi
+
+  error "unknown setup step: ${ref}"
+  return 1
+}
+
+configure_step_filters() {
+  local ref
+
+  filter_until_index="${#setup_plan[@]}"
+
+  if [[ -n "${from_filter}" ]]; then
+    filter_from_index="$(step_index_for_ref "${from_filter}")" || {
+      error "unknown --from setup step: ${from_filter}"
+      return 1
+    }
+  fi
+
+  if [[ -n "${until_filter}" ]]; then
+    filter_until_index="$(step_index_for_ref "${until_filter}")" || {
+      error "unknown --until setup step: ${until_filter}"
+      return 1
+    }
+  fi
+
+  if ((filter_from_index > filter_until_index)); then
+    error "--from step must not come after --until step"
+    return 1
+  fi
+
+  for ref in "${only_filters[@]}"; do
+    validate_step_ref "${ref}" || return 1
+  done
+
+  for ref in "${skip_filters[@]}"; do
+    validate_step_ref "${ref}" || return 1
+  done
+}
+
+matches_any_step_ref() {
+  local index="$1"
+  local name="$2"
+  shift 2
+
+  local ref
+  for ref in "$@"; do
+    if step_ref_matches "${ref}" "${index}" "${name}"; then
+      return 0
+    fi
+  done
+
+  return 1
+}
+
+step_selected() {
+  local index="$1"
+  local name="$2"
+
+  ((index >= filter_from_index && index <= filter_until_index)) || return 1
+
+  if ((${#only_filters[@]} > 0)) && ! matches_any_step_ref "${index}" "${name}" "${only_filters[@]}"; then
+    return 1
+  fi
+
+  if ((${#skip_filters[@]} > 0)) && matches_any_step_ref "${index}" "${name}" "${skip_filters[@]}"; then
+    return 1
+  fi
+
+  return 0
 }
 
 run_repo_mise() {
@@ -94,10 +237,13 @@ print_plan() {
   printf '%-4s %-9s %-36s %s\n' "#" "kind" "name" "source/hook"
   for entry in "${setup_plan[@]}"; do
     IFS='|' read -r kind name hook source <<<"${entry}"
+    if ! step_selected "${index}" "${name}"; then
+      index=$((index + 1))
+      continue
+    fi
     printf '%-4s %-9s %-36s %s -> %s\n' "${index}" "${kind}" "${name}" "${hook}" "${source}"
     index=$((index + 1))
   done
-
 }
 
 registered_tasks() {
@@ -139,6 +285,7 @@ check_hook_mapping() {
 
 check_plan() {
   local actual_tasks
+  local index=1
   local kind name hook source
 
   actual_tasks="$(registered_tasks | sort)"
@@ -146,6 +293,10 @@ check_plan() {
 
   for entry in "${setup_plan[@]}"; do
     IFS='|' read -r kind name hook source <<<"${entry}"
+    if ! step_selected "${index}" "${name}"; then
+      index=$((index + 1))
+      continue
+    fi
     case "${kind}" in
       task)
         check_task_registered "${name}" "${actual_tasks}"
@@ -167,16 +318,22 @@ check_plan() {
         return 1
         ;;
     esac
+    index=$((index + 1))
   done
 
   run_repo_mise tasks validate --local --errors-only
 }
 
 run_plan() {
+  local index=1
   local kind name hook source
 
   for entry in "${setup_plan[@]}"; do
     IFS='|' read -r kind name hook source <<<"${entry}"
+    if ! step_selected "${index}" "${name}"; then
+      index=$((index + 1))
+      continue
+    fi
     case "${kind}" in
       task)
         log "Running ${name}"
@@ -191,11 +348,13 @@ run_plan() {
         return 1
         ;;
     esac
+    index=$((index + 1))
   done
 }
 
 main() {
   parse_args "$@"
+  configure_step_filters
 
   case "${mode}" in
     plan)
