@@ -52,6 +52,9 @@ mise-managed, target-shaped dotfiles tree.
 - Stage 2 has its first mirrored slices: Starship, ripgrep, Ghostty, hunk,
   ghui, ccstatusline, and tmux now exist under `target/home/.config/...` and
   are mapped through root `[dotfiles]` entries.
+- `just dotfiles-mirror-check` guards the temporary dual-source phase by
+  checking that mirrored target files still match their current chezmoi
+  sources.
 
 Next migration step: expand Stage 2 only after deciding how to handle directory
 overlays and templates. Good candidates are additional individual plain files.

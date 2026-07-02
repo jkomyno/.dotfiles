@@ -118,6 +118,7 @@ just versions           # check third-party mise versions and lock refreshes wit
 just sync-skills-check  # compare vendored agent skills with upstream
 just dotfiles-spike     # run the disposable mise dotfiles migration spike
 just dotfiles-check     # validate the mirrored mise dotfiles slice in a temporary HOME
+just dotfiles-mirror-check # check mirrored target files still match current sources
 ```
 
 Every recipe is backed by a plain script under [`scripts/dotfiles`](./scripts/dotfiles), so a fresh machine without `just` can run the same checks directly, for example:

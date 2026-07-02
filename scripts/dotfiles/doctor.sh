@@ -53,6 +53,7 @@ check_required_files() {
     "target/home/.config/starship.toml"
     "target/home/.config/tmux/tmux.conf"
     "scripts/dotfiles/mise-dotfiles-check.sh"
+    "scripts/dotfiles/mise-dotfiles-mirror-check.sh"
     "install/macos/common/nanobrew-casks.Brewfile"
     "install/macos/common/nanobrew-formulae.Brewfile"
     "home/dot_agents/skills/exact_sync-skills/SKILL.md"
@@ -161,6 +162,14 @@ check_mise() {
   fi
 }
 
+check_mise_dotfiles_mirrors() {
+  if "${SCRIPT_DIR}/mise-dotfiles-mirror-check.sh" >/dev/null; then
+    pass "target-shaped mise dotfiles mirrors match current sources"
+  else
+    hard_fail "target-shaped mise dotfiles mirrors differ from current sources"
+  fi
+}
+
 check_packages() {
   if "${SCRIPT_DIR}/packages.sh" --check-syntax >/dev/null; then
     pass "package bundles are valid and ownership is not duplicated"
@@ -192,6 +201,7 @@ main() {
   check_shell_syntax
   check_chezmoi
   check_mise
+  check_mise_dotfiles_mirrors
   check_packages
 
   printf '\nsummary: failures=%s warnings=%s\n' "${failures}" "${warnings}"

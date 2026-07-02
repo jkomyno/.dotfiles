@@ -47,3 +47,7 @@ system-files-spike:
 # Validate the repository mise dotfiles slice against a temporary HOME.
 dotfiles-check:
     @scripts/dotfiles/mise-dotfiles-check.sh
+
+# Check that target-shaped mirrors still match the current chezmoi sources.
+dotfiles-mirror-check:
+    @scripts/dotfiles/mise-dotfiles-mirror-check.sh
