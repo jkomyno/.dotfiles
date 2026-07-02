@@ -121,10 +121,26 @@ verify_json() {
   fi
 }
 
+verify_agent_skill_links() {
+  verify_symlink ".agents/skills" "target/home/.agents/skills"
+  verify_symlink ".claude/skills" "target/home/.agents/skills"
+
+  if [[ ! -f "${check_home}/.agents/skills/sync-skills/SKILL.md" ]]; then
+    error "canonical agent skills symlink does not expose sync-skills"
+    return 1
+  fi
+
+  if [[ ! -f "${check_home}/.claude/skills/sync-skills/SKILL.md" ]]; then
+    error "Claude skills symlink does not expose sync-skills"
+    return 1
+  fi
+}
+
 verify_dotfiles() {
   verify_rendered_template ".zprofile" "home/dot_zprofile.tmpl"
   verify_rendered_template ".claude/settings.json" "home/dot_claude/settings.json.tmpl"
   verify_json ".claude/settings.json"
+  verify_agent_skill_links
   verify_symlink ".config/ccstatusline/settings.json" "target/home/.config/ccstatusline/settings.json"
   verify_symlink ".config/ghostty/config" "target/home/.config/ghostty/config"
   verify_symlink ".config/ghui/config.json" "target/home/.config/ghui/config.json"

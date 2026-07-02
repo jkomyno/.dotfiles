@@ -137,6 +137,25 @@ check_required_files() {
   done
 }
 
+check_agent_skill_files() {
+  local source_dir
+  local skill
+  while IFS= read -r source_dir; do
+    skill="${source_dir##*/exact_}"
+    if [[ -f "${DOTFILES_ROOT}/home/dot_agents/skills/exact_${skill}/SKILL.md" ]]; then
+      pass "home/dot_agents/skills/exact_${skill}/SKILL.md exists"
+    else
+      hard_fail "home/dot_agents/skills/exact_${skill}/SKILL.md is missing"
+    fi
+
+    if [[ -f "${DOTFILES_ROOT}/target/home/.agents/skills/${skill}/SKILL.md" ]]; then
+      pass "target/home/.agents/skills/${skill}/SKILL.md exists"
+    else
+      hard_fail "target/home/.agents/skills/${skill}/SKILL.md is missing"
+    fi
+  done < <(find "${DOTFILES_ROOT}/home/dot_agents/skills" -maxdepth 1 -mindepth 1 -type d -name 'exact_*' | sort)
+}
+
 check_git() {
   if ! have git; then
     hard_fail "git is missing"
@@ -270,6 +289,7 @@ main() {
   printf 'system: os=%s arch=%s\n' "$(os_name)" "$(uname -m)"
 
   check_required_files
+  check_agent_skill_files
   check_git
   check_shell_syntax
   check_chezmoi

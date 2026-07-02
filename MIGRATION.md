@@ -50,10 +50,10 @@ mise-managed, target-shaped dotfiles tree.
   experimental `dotfiles` command, and `just dotfiles-spike` proves it against
   a temporary HOME.
 - Stage 2 has mirrored slices for Starship, ripgrep, Ghostty, hunk, ghui,
-  ccstatusline, tmux, Neovim, utility config, curated agent adapters, global
-  mise config, grouped plain Git config, and the plain zsh/fish shell files.
-  These now exist under `target/home/...` and are mapped through root
-  `[dotfiles]` entries.
+  ccstatusline, tmux, Neovim, utility config, curated agent adapters, shared
+  agent skills, global mise config, grouped plain Git config, and the plain
+  zsh/fish shell files. These now exist under `target/home/...` and are mapped
+  through root `[dotfiles]` entries.
 - `just dotfiles-mirror-check` guards the temporary dual-source phase by
   checking that mirrored target files still match their current chezmoi
   sources.
@@ -61,11 +61,14 @@ mise-managed, target-shaped dotfiles tree.
 - Stage 3 has started with `.zprofile` and Claude settings as target-shaped
   `mode = "template"` entries. Their rendered output is compared against the
   current chezmoi templates during `just dotfiles-check`.
+- `~/.agents/skills` and Claude's `~/.claude/skills` compatibility path are
+  modeled as directory symlinks to the same target-shaped skill source tree.
 
 Next migration step: keep expanding template coverage only after each rendered
-output is proved against a temporary HOME. Avoid Git signing, SSH, GitHub CLI
-private config, app-private symlink targets, and sensitive templates until they
-get a dedicated migration pass.
+output is proved against a temporary HOME, or start converting setup hooks into
+mise tasks. Avoid Git signing, SSH, GitHub CLI private config, app-private
+symlink targets, and sensitive templates until they get a dedicated migration
+pass.
 
 ### 0. Guardrails
 
@@ -140,6 +143,8 @@ Capability findings for `mise 2026.6.14`:
 - `mode = "template"` renders templates and can read environment values through
   `env.*`.
 - `mode = "symlink"` can point a target directory at a source directory.
+- Dotfile `source` paths are treated as literal paths; they do not render
+  Tera template expressions such as `{{ env.HOME }}`.
 - `mise dotfiles apply` refuses to overwrite existing whole-file targets unless
   `--force` is passed.
 - `mise dotfiles apply --force` replaces conflicting whole-file targets.

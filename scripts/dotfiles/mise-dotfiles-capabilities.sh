@@ -205,6 +205,50 @@ probe_conflicts() {
   pass "apply --force replaces conflicting whole-file targets"
 }
 
+probe_literal_sources() {
+  local mise_cmd="$1"
+  local probe_root
+  local probe_home
+  local output
+  local status
+
+  probe_root="$(mktemp -d)"
+  probe_home="$(mktemp -d)"
+  mkdir -p "${probe_home}/.agents/skills/demo"
+  printf 'demo\n' >"${probe_home}/.agents/skills/demo/SKILL.md"
+
+  cat >"${probe_root}/mise.toml" <<'TOML'
+[dotfiles]
+"~/.claude/skills/demo" = { source = "{{ env.HOME }}/.agents/skills/demo", mode = "symlink" }
+TOML
+
+  log "Probing whether dotfile source paths are templated"
+  set +e
+  output="$(
+    env \
+      HOME="${probe_home}" \
+      MISE_EXPERIMENTAL=true \
+      MISE_TRUSTED_CONFIG_PATHS="${probe_root}/mise.toml" \
+      "${mise_cmd}" -C "${probe_root}" dotfiles apply --yes 2>&1
+  )"
+  status=$?
+  set -e
+
+  rm -rf "${probe_root}" "${probe_home}"
+
+  if [[ ${status} -eq 0 ]]; then
+    error "dotfile source paths unexpectedly rendered templates"
+    return 1
+  fi
+
+  if [[ "${output}" != *'{{ env.HOME }}'* ]]; then
+    error "unexpected source-template probe output: ${output}"
+    return 1
+  fi
+
+  pass "dotfile source paths are treated as literal paths"
+}
+
 main() {
   parse_args "$@"
   trap cleanup EXIT
@@ -218,6 +262,7 @@ main() {
   write_capability_project
   probe_modes "${mise_cmd}"
   probe_conflicts "${mise_cmd}"
+  probe_literal_sources "${mise_cmd}"
 }
 
 main "$@"

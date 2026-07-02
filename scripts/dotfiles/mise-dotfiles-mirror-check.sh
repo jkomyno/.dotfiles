@@ -100,17 +100,23 @@ check_pair() {
   source_path="${DOTFILES_ROOT}/${source_rel}"
   target_path="${DOTFILES_ROOT}/${target_rel}"
 
-  if [[ ! -f "${source_path}" ]]; then
+  if [[ ! -e "${source_path}" ]]; then
     fail "missing source: ${source_rel}"
     return
   fi
 
-  if [[ ! -f "${target_path}" ]]; then
+  if [[ ! -e "${target_path}" ]]; then
     fail "missing mirror: ${target_rel}"
     return
   fi
 
-  if cmp -s "${source_path}" "${target_path}"; then
+  if [[ -d "${source_path}" && -d "${target_path}" ]]; then
+    if diff -qr "${source_path}" "${target_path}" >/dev/null; then
+      pass "${target_rel} mirrors ${source_rel}"
+    else
+      fail "${target_rel} differs from ${source_rel}"
+    fi
+  elif [[ -f "${source_path}" && -f "${target_path}" ]] && cmp -s "${source_path}" "${target_path}"; then
     pass "${target_rel} mirrors ${source_rel}"
   else
     fail "${target_rel} differs from ${source_rel}"
@@ -119,9 +125,16 @@ check_pair() {
 
 main() {
   local pair
+  local source_dir
+  local skill
   for pair in "${MIRROR_PAIRS[@]}"; do
     check_pair "${pair}"
   done
+
+  while IFS= read -r source_dir; do
+    skill="${source_dir##*/exact_}"
+    check_pair "home/dot_agents/skills/exact_${skill}|target/home/.agents/skills/${skill}"
+  done < <(find "${DOTFILES_ROOT}/home/dot_agents/skills" -maxdepth 1 -mindepth 1 -type d -name 'exact_*' | sort)
 
   if ((failures > 0)); then
     return 1
