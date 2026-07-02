@@ -13,6 +13,10 @@ readonly MISE_INSTALL_PATH="${MISE_INSTALL_PATH:-${DOTFILES_BIN_DIR}/mise}"
 readonly DOTFILES_ARCHIVE_URL="${DOTFILES_ARCHIVE_URL:-}"
 readonly DOTFILES_WORK_DIR="${DOTFILES_WORK_DIR:-${HOME}/work/me}"
 readonly DOTFILES_CHECKOUT_DIR="${DOTFILES_CHECKOUT_DIR:-${DOTFILES_WORK_DIR}/dotfiles}"
+# Optional GitHub token for bootstrapping a private repo. When set, the initial
+# clone and archive fetch authenticate with it; leave it empty for a public
+# repo. Falls back to the conventional GH_TOKEN / GITHUB_TOKEN names.
+readonly DOTFILES_GITHUB_TOKEN="${DOTFILES_GITHUB_TOKEN:-${GH_TOKEN:-${GITHUB_TOKEN:-}}}"
 readonly DEFAULT_DOTFILES_COMPUTER_NAME="Alberto's MacBook Pro"
 
 export DOTFILES_WORK_DIR
@@ -255,7 +259,15 @@ dotfiles_archive_url() {
   esac
 
   [[ "${repo_path}" == */* ]] || return 1
-  printf 'https://codeload.github.com/%s/tar.gz/refs/heads/%s\n' "${repo_path}" "${DOTFILES_BRANCH}"
+
+  if [[ -n "${DOTFILES_GITHUB_TOKEN}" ]]; then
+    # api.github.com honors a Bearer token for private repos and 302-redirects
+    # to a pre-signed codeload URL (curl -L follows and drops the auth header
+    # across the host boundary, which is what we want).
+    printf 'https://api.github.com/repos/%s/tarball/%s\n' "${repo_path}" "${DOTFILES_BRANCH}"
+  else
+    printf 'https://codeload.github.com/%s/tar.gz/refs/heads/%s\n' "${repo_path}" "${DOTFILES_BRANCH}"
+  fi
 }
 
 clone_dotfiles_checkout() {
@@ -268,7 +280,18 @@ clone_dotfiles_checkout() {
   fi
 
   log "Cloning dotfiles from ${DOTFILES_REPO_URL}#${DOTFILES_BRANCH} into ${DOTFILES_CHECKOUT_DIR}"
-  git clone --branch "${DOTFILES_BRANCH}" --single-branch "${DOTFILES_REPO_URL}" "${DOTFILES_CHECKOUT_DIR}"
+
+  # For a private HTTPS clone, pass the token as a one-shot Basic auth header via
+  # `-c` so it is used for this invocation only and never written to
+  # .git/config. The array is expanded 3.2-safely (empty when public).
+  local -a git_auth=()
+  if [[ -n "${DOTFILES_GITHUB_TOKEN}" && "${DOTFILES_REPO_URL}" == https://* ]]; then
+    local auth_basic
+    auth_basic="$(printf 'x-access-token:%s' "${DOTFILES_GITHUB_TOKEN}" | base64 | tr -d '\n')"
+    git_auth=(-c "http.extraHeader=Authorization: Basic ${auth_basic}")
+  fi
+
+  git ${git_auth[@]+"${git_auth[@]}"} clone --branch "${DOTFILES_BRANCH}" --single-branch "${DOTFILES_REPO_URL}" "${DOTFILES_CHECKOUT_DIR}"
 }
 
 download_dotfiles_archive() {
@@ -292,7 +315,11 @@ download_dotfiles_archive() {
   mkdir -p "${extract_dir}"
 
   log "Downloading dotfiles archive from ${archive_url}"
-  curl -fsSL "${archive_url}" -o "${archive_file}"
+  local -a curl_auth=()
+  if [[ -n "${DOTFILES_GITHUB_TOKEN}" ]]; then
+    curl_auth=(-H "Authorization: Bearer ${DOTFILES_GITHUB_TOKEN}")
+  fi
+  curl -fsSL ${curl_auth[@]+"${curl_auth[@]}"} "${archive_url}" -o "${archive_file}"
   tar -xzf "${archive_file}" -C "${extract_dir}" --strip-components 1
   mv "${extract_dir}" "${DOTFILES_CHECKOUT_DIR}"
   rm -rf "${tmp_dir}"

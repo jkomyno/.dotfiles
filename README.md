@@ -43,7 +43,19 @@ DOTFILES_WORK_DIR="$HOME/work/personal" /bin/bash -c "$(curl -fsSL https://raw.g
 DOTFILES_CHECKOUT_DIR="$HOME/src/dotfiles" /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/jkomyno/.dotfiles/main/setup.sh)"
 ```
 
-If this repository is private, the raw `curl` command and the initial git clone or archive fetch need read access. The clean path is to make the repository readable for bootstrap or provide a short-lived HTTPS credential for the first fetch, then switch the remote back to SSH after `gh auth login` and SSH-key upload have completed. For non-GitHub remotes without `git`, set `DOTFILES_ARCHIVE_URL` to a tarball URL.
+### Private repository
+
+While this repository is private, the unauthenticated one-liner above 404s. Provision a short-lived GitHub token (a fine-grained or classic PAT with read access to the repo) and export it before bootstrapping. `setup.sh` reads `DOTFILES_GITHUB_TOKEN` (or the conventional `GH_TOKEN` / `GITHUB_TOKEN`) and uses it for both the initial fetch of `setup.sh` and the clone/archive that follow:
+
+```sh
+export GH_TOKEN=github_pat_xxx
+/bin/bash -c "$(curl -fsSL \
+  -H "Authorization: Bearer $GH_TOKEN" \
+  -H "Accept: application/vnd.github.raw" \
+  https://api.github.com/repos/jkomyno/.dotfiles/contents/setup.sh)"
+```
+
+The token is used only for the bootstrap fetch and clone; it is passed to `git` as a one-shot header and never written to `.git/config`. `unset GH_TOKEN` afterward. Once `gh auth login` and SSH-key upload have completed the remote can move to SSH. Alternatively, making the repository public lets the plain one-liner at the top work with no token. For non-GitHub remotes without `git`, set `DOTFILES_ARCHIVE_URL` to a tarball URL.
 
 After setup finishes, open a new terminal so the managed shell environment is loaded, then run:
 
