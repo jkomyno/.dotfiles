@@ -112,10 +112,12 @@ Repeatable operator tasks live in the root [`Justfile`](./Justfile). After `setu
 
 ```sh
 just doctor             # non-mutating repository, chezmoi, package, and toolchain checks
-just status             # git status plus chezmoi target drift
+just status             # git status plus deployed-home drift when this checkout is installed
 just packages           # validate package ownership and report installed/missing macOS packages
 just versions           # check third-party mise versions and lock refreshes without writing
 just sync-skills-check  # compare vendored agent skills with upstream
+just dotfiles-spike     # run the disposable mise dotfiles migration spike
+just dotfiles-check     # validate the mirrored mise dotfiles slice in a temporary HOME
 ```
 
 Every recipe is backed by a plain script under [`scripts/dotfiles`](./scripts/dotfiles), so a fresh machine without `just` can run the same checks directly, for example:
@@ -139,6 +141,19 @@ To pull repo changes on an already-provisioned machine:
 ```sh
 chezmoi update
 ```
+
+This checkout may also be used as a planning or migration workspace before it
+has ever been applied to the current `$HOME`. In that case, deployed-home drift
+is not meaningful. `just status` and `just diff` skip the chezmoi comparison
+unless the active chezmoi source is this checkout's `home/` directory. To force
+the comparison for diagnostics:
+
+```sh
+DOTFILES_FORCE_CHEZMOI_DRIFT=1 just status
+DOTFILES_FORCE_CHEZMOI_DRIFT=1 just diff
+```
+
+The staged migration away from chezmoi is tracked in [`MIGRATION.md`](./MIGRATION.md).
 
 ## Testing Changes Safely
 

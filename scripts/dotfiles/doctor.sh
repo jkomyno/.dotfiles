@@ -3,7 +3,7 @@
 set -Eeuo pipefail
 
 SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd -P)"
-# shellcheck source=./lib.sh
+# shellcheck source=scripts/dotfiles/lib.sh
 source "${SCRIPT_DIR}/lib.sh"
 
 failures=0
@@ -38,12 +38,16 @@ check_command() {
 check_required_files() {
   local files=(
     ".chezmoiroot"
+    "mise.toml"
     "setup.sh"
     "README.md"
     "home/.chezmoiignore"
     "home/dot_mise/config.toml"
     "home/dot_mise/mise.lock"
     "home/dot_config/exact_mise/symlink_config.toml.tmpl"
+    "target/home/.config/starship.toml"
+    "target/home/.config/ripgrep/config"
+    "scripts/dotfiles/mise-dotfiles-check.sh"
     "install/macos/common/nanobrew-casks.Brewfile"
     "install/macos/common/nanobrew-formulae.Brewfile"
     "home/dot_agents/skills/exact_sync-skills/SKILL.md"
@@ -99,7 +103,7 @@ check_shell_syntax() {
   done < <(
     {
       printf '%s\n' "${DOTFILES_ROOT}/setup.sh"
-      find "${DOTFILES_ROOT}/install" "${DOTFILES_ROOT}/scripts" -type f -name '*.sh' 2>/dev/null
+      find "${DOTFILES_ROOT}/install" "${DOTFILES_ROOT}/scripts" "${DOTFILES_ROOT}/tasks" -type f -name '*.sh' 2>/dev/null
     } | sort -u
   )
   pass "bash syntax checked for ${count} scripts"

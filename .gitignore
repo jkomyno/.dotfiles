@@ -217,6 +217,14 @@ docs/_build/
 .pybuilder/
 target/
 
+# Dotfiles target-shaped source tree used by the mise migration.
+!target/
+!target/home/
+!target/home/.config/
+!target/home/.config/starship.toml
+!target/home/.config/ripgrep/
+!target/home/.config/ripgrep/config
+
 # Jupyter Notebook
 .ipynb_checkpoints
 

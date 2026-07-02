@@ -7,14 +7,14 @@ default:
 doctor:
     @scripts/dotfiles/doctor.sh
 
-# Show source git status plus deployed-home drift when chezmoi is available.
+# Show source git status plus deployed-home drift when this checkout is installed.
 status:
     @git status --short
-    @if command -v chezmoi >/dev/null 2>&1; then chezmoi --source "$PWD" status; else echo "chezmoi not installed"; fi
+    @scripts/dotfiles/chezmoi-drift.sh status
 
-# Show deployed-home diff when chezmoi is available.
+# Show deployed-home diff when this checkout is installed.
 diff:
-    @if command -v chezmoi >/dev/null 2>&1; then chezmoi --source "$PWD" diff; else echo "chezmoi not installed"; exit 1; fi
+    @scripts/dotfiles/chezmoi-drift.sh diff
 
 # Validate and report macOS package bundle ownership.
 packages:
@@ -35,3 +35,15 @@ sync-skills-check:
 # Benchmark interactive shell startup. Override with: just benchmark-shell zsh 20
 benchmark-shell shell="zsh" runs="10":
     @scripts/dotfiles/benchmark-shell.sh --shell "{{shell}}" --runs "{{runs}}"
+
+# Run the disposable mise dotfiles migration spike.
+dotfiles-spike:
+    @scripts/dotfiles/mise-dotfiles-spike.sh
+
+# Backward-compatible alias from the initial migration name.
+system-files-spike:
+    @just dotfiles-spike
+
+# Validate the repository mise dotfiles slice against a temporary HOME.
+dotfiles-check:
+    @scripts/dotfiles/mise-dotfiles-check.sh

@@ -1,0 +1,6 @@
+[task_config]
+includes = ["tasks"]
+
+[dotfiles]
+"~/.config/starship.toml" = { source = "target/home/.config/starship.toml", mode = "symlink" }
+"~/.config/ripgrep/config" = { source = "target/home/.config/ripgrep/config", mode = "symlink" }

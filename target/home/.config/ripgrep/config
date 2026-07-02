@@ -1,0 +1,9 @@
+# Read by ripgrep only when RIPGREP_CONFIG_PATH points here; .zshenv owns that.
+
+# Search hidden files and directories, but stay out of .git, which only the
+# default hidden-file filtering would otherwise exclude.
+--hidden
+--glob=!.git/
+
+# Skip really huge binary blobs.
+--max-filesize=5M
