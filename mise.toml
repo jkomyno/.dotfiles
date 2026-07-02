@@ -36,6 +36,10 @@ includes = ["tasks"]
 "~/.config/fish/functions/pt.fish" = { source = "target/home/.config/fish/functions/pt.fish", mode = "symlink" }
 "~/.config/fish/functions/tempd.fish" = { source = "target/home/.config/fish/functions/tempd.fish", mode = "symlink" }
 "~/.config/fish/functions/trash.fish" = { source = "target/home/.config/fish/functions/trash.fish", mode = "symlink" }
+"~/.config/git/attributes" = { source = "target/home/.config/git/attributes", mode = "symlink" }
+"~/.config/git/config" = { source = "target/home/.config/git/config", mode = "symlink" }
+"~/.config/git/config-composio" = { source = "target/home/.config/git/config-composio", mode = "symlink" }
+"~/.config/git/ignore" = { source = "target/home/.config/git/ignore", mode = "symlink" }
 "~/.config/ghostty/config" = { source = "target/home/.config/ghostty/config", mode = "symlink" }
 "~/.config/ghui/config.json" = { source = "target/home/.config/ghui/config.json", mode = "symlink" }
 "~/.config/hunk/config.toml" = { source = "target/home/.config/hunk/config.toml", mode = "symlink" }

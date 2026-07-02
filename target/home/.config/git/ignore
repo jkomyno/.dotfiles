@@ -1,0 +1,11 @@
+# macOS
+.DS_Store
+
+# Editor backup files
+*~
+
+# Local-only project state
+.claude/settings.local.json
+**/.claude/settings.local.json
+.envrc.local
+AGENTS.local.md

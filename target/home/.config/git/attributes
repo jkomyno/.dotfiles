@@ -1,0 +1,2 @@
+# Use mergiraf for syntax-aware merges when it is available.
+* merge=mergiraf
