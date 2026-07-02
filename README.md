@@ -64,7 +64,7 @@ The root [`setup.sh`](./setup.sh) is intentionally small:
 4. Installs or finds the pinned standalone `mise` binary.
 5. Runs the staged mise setup order from `scripts/dotfiles/mise-setup-staged.sh`.
 
-The staged setup path installs or checks Xcode Command Line Tools, Homebrew, nanobrew, GUI apps/fonts, exceptional formulae, applies the mise `[dotfiles]` entries, installs the configured mise toolchain, runs SSH/Git/GitHub setup, pulls Ollama models, installs MLX tooling, and applies repeatable macOS defaults.
+The staged setup path generates an SSH key (step 1), installs or checks Xcode Command Line Tools, Homebrew, nanobrew, GUI apps/fonts, exceptional formulae, applies the mise `[dotfiles]` entries, installs the configured mise toolchain, runs Git/GitHub setup, pulls Ollama models, installs MLX tooling, and applies repeatable macOS defaults last.
 
 Linux is not a full provisioning target yet. The shared dotfiles and diagnostics are expected to work, while macOS package/default hooks skip themselves until this repository grows a real Linux profile.
 

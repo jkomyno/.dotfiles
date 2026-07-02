@@ -2,7 +2,9 @@
 
 This directory contains macOS provisioning scripts used by the staged mise tasks in `tasks/install/macos`.
 
-The active target is Apple Silicon macOS. The current first-run order is:
+The active target is Apple Silicon macOS. These macOS-specific scripts run in
+this relative order within the full staged setup (see the complete step list in
+`MIGRATION.md`):
 
 1. Xcode Command Line Tools
 2. Homebrew
@@ -10,6 +12,10 @@ The active target is Apple Silicon macOS. The current first-run order is:
 4. nanobrew casks from `install/macos/common/nanobrew-casks.Brewfile`
 5. nanobrew formulae from `install/macos/common/nanobrew-formulae.Brewfile`
 6. macOS preferences from `install/macos/common/defaults.sh`
+
+Note that `defaults.sh` is the **last** step of the whole staged setup: it runs
+after the common mise, Git, GitHub, Ollama, and MLX tasks, not immediately after
+the formulae bundle.
 
 After `mise dotfiles apply` exposes the managed config as `~/.config/mise/config.toml`, the common mise task installs the configured development tools from `target/home/.config/mise/config.toml`. Later common tasks pull the Ollama models declared in `install/common/ollama-models.sh`, starting a temporary `ollama serve` if none is already running.
 
