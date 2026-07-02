@@ -144,6 +144,11 @@ git pull --ff-only
 MISE_EXPERIMENTAL=true mise dotfiles apply --yes
 ```
 
+`setup.sh` marks this repo's [`mise.toml`](./mise.toml) as trusted so these
+commands work directly. If mise ever reports the config is not trusted (for
+example on a machine provisioned before this was added), run `mise trust` once
+from the checkout.
+
 Historical migration notes are tracked in [`MIGRATION.md`](./MIGRATION.md).
 
 ## Testing Changes Safely

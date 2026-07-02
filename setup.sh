@@ -398,6 +398,16 @@ run_mise_setup() {
   run_mise_staged_setup ${setup_args[@]+"${setup_args[@]}"}
 }
 
+persist_repo_mise_trust() {
+  # Setup runs mise with an ephemeral MISE_TRUSTED_CONFIG_PATHS, which does not
+  # persist. Mark this repo's config trusted so post-setup maintenance commands
+  # (`just diff`, `mise dotfiles apply`, `mise dotfiles status`) work without a
+  # manual `mise trust`. Runs after the checkout is final (archive->git
+  # promotion included).
+  command -v mise >/dev/null 2>&1 || return 0
+  mise trust "${DOTFILES_CHECKOUT_DIR}/mise.toml" >/dev/null 2>&1 || true
+}
+
 main() {
   printf '%s\n' "${DOTFILES_LOGO}"
   require_command curl
@@ -406,6 +416,7 @@ main() {
   configure_macos_computer_name
 
   run_mise_setup
+  persist_repo_mise_trust
 
   log "Done"
 }
