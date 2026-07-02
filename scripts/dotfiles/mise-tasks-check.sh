@@ -21,6 +21,7 @@ expected_tasks=(
   "migration:dotfiles-capabilities"
   "migration:dotfiles-check"
   "migration:dotfiles-spike"
+  "setup:staged"
 )
 
 task_install_targets=(
@@ -78,6 +79,7 @@ check_mise_tasks() {
 main() {
   check_task_targets
   check_mise_tasks
+  "${SCRIPT_DIR}/mise-setup-staged.sh" --check
 }
 
 main "$@"

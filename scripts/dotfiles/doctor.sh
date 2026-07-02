@@ -122,6 +122,8 @@ check_required_files() {
     "scripts/dotfiles/mise-dotfiles-capabilities.sh"
     "scripts/dotfiles/mise-dotfiles-check.sh"
     "scripts/dotfiles/mise-dotfiles-mirror-check.sh"
+    "scripts/dotfiles/mise-setup-staged.sh"
+    "scripts/dotfiles/mise-tasks-check.sh"
     "install/macos/common/nanobrew-casks.Brewfile"
     "install/macos/common/nanobrew-formulae.Brewfile"
     "home/dot_agents/skills/exact_sync-skills/SKILL.md"

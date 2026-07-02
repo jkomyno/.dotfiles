@@ -66,12 +66,16 @@ mise-managed, target-shaped dotfiles tree.
 - Stage 4 has started with explicit mise task wrappers for the existing
   installer scripts under `install/`. `just tasks-check` validates task
   registration and dependency references without running installers.
+- Stage 4 now has a staged setup runner. `mise run setup:staged -- --plan`
+  and `just setup-plan` print the intended blank-machine order; `just
+  tasks-check` validates that order against the existing `.chezmoiscripts`
+  hook templates without running installers.
 
-Next migration step: add a staged setup task that runs the wrapper tasks in the
-intended blank-machine order, then compare that order against the existing
-`.chezmoiscripts` sequence before switching `setup.sh`. Avoid SSH key
-generation, Git signing templates, app-private symlink targets, and other
-sensitive templates until they get a dedicated migration pass.
+Next migration step: exercise the staged setup runner in an isolated macOS user
+account or VM, then decide whether to migrate the sensitive SSH/signing setup
+before switching `setup.sh`. Avoid SSH key generation, Git signing templates,
+app-private symlink targets, and other sensitive templates until they get a
+dedicated migration pass.
 
 ### 0. Guardrails
 
@@ -200,6 +204,25 @@ Current wrapper inventory:
 it generates local key material and should move only during the dedicated
 sensitive setup pass.
 
+Current staged setup order:
+
+1. `install:macos:command-line-tools`
+2. `install:macos:homebrew`
+3. `install:macos:nanobrew`
+4. `install:macos:nanobrew-casks`
+5. `install:macos:nanobrew-formulae`
+6. `mise dotfiles apply`
+7. `install:common:mise`
+8. `install:common:git`
+9. `install:common:gh`
+10. `install:common:ollama-models`
+11. `install:common:mlx`
+12. `install:macos:defaults`
+
+The staged setup runner invokes wrapper tasks with `mise run --skip-deps` in
+this explicit order, so the dependency graph remains useful for ad hoc task
+runs without making the full setup path repeat prerequisites.
+
 ### 5. Setup switch
 
 Switch `setup.sh` from installing/running chezmoi to installing/running mise.
@@ -236,6 +259,7 @@ git status --short
 just doctor
 just status
 just tasks-check
+just setup-plan
 ```
 
 Use deployed-home comparisons only on a machine where this checkout is the

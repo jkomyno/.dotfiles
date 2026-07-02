@@ -59,3 +59,7 @@ dotfiles-capabilities:
 # Validate mise task wrappers without running installers.
 tasks-check:
     @scripts/dotfiles/mise-tasks-check.sh
+
+# Print the staged mise setup order without running installers.
+setup-plan:
+    @scripts/dotfiles/mise-setup-staged.sh --plan
