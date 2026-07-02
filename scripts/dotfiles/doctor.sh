@@ -262,6 +262,19 @@ check_mise_dotfiles_mirrors() {
   fi
 }
 
+check_mise_tasks() {
+  if ! mise_bin >/dev/null 2>&1; then
+    soft_fail "mise task wrapper validation skipped because mise is missing"
+    return
+  fi
+
+  if "${SCRIPT_DIR}/mise-tasks-check.sh" >/dev/null; then
+    pass "mise task wrappers are valid"
+  else
+    hard_fail "mise task wrapper validation failed"
+  fi
+}
+
 check_packages() {
   if "${SCRIPT_DIR}/packages.sh" --check-syntax >/dev/null; then
     pass "package bundles are valid and ownership is not duplicated"
@@ -295,6 +308,7 @@ main() {
   check_chezmoi
   check_mise
   check_mise_dotfiles_mirrors
+  check_mise_tasks
   check_packages
 
   printf '\nsummary: failures=%s warnings=%s\n' "${failures}" "${warnings}"

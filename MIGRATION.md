@@ -63,12 +63,15 @@ mise-managed, target-shaped dotfiles tree.
   current chezmoi templates during `just dotfiles-check`.
 - `~/.agents/skills` and Claude's `~/.claude/skills` compatibility path are
   modeled as directory symlinks to the same target-shaped skill source tree.
+- Stage 4 has started with explicit mise task wrappers for the existing
+  installer scripts under `install/`. `just tasks-check` validates task
+  registration and dependency references without running installers.
 
-Next migration step: keep expanding template coverage only after each rendered
-output is proved against a temporary HOME, or start converting setup hooks into
-mise tasks. Avoid Git signing, SSH, GitHub CLI private config, app-private
-symlink targets, and sensitive templates until they get a dedicated migration
-pass.
+Next migration step: add a staged setup task that runs the wrapper tasks in the
+intended blank-machine order, then compare that order against the existing
+`.chezmoiscripts` sequence before switching `setup.sh`. Avoid SSH key
+generation, Git signing templates, app-private symlink targets, and other
+sensitive templates until they get a dedicated migration pass.
 
 ### 0. Guardrails
 
@@ -171,6 +174,32 @@ Acceptance:
 - Package installs and macOS defaults stay explicit, idempotent, and easy to
   dry-run where the underlying tool supports it.
 
+Current wrapper inventory:
+
+- `install:macos:command-line-tools` wraps
+  `install/macos/common/command_line_tools.sh`.
+- `install:macos:homebrew` depends on command-line tools and wraps
+  `install/macos/common/homebrew.sh`.
+- `install:macos:nanobrew` depends on Homebrew and wraps
+  `install/macos/common/nanobrew.sh`.
+- `install:macos:nanobrew-casks` depends on nanobrew and wraps
+  `install/macos/common/nanobrew-casks.sh`.
+- `install:macos:nanobrew-formulae` depends on nanobrew and wraps
+  `install/macos/common/nanobrew-formulae.sh`.
+- `install:macos:defaults` wraps
+  `install/macos/common/defaults.sh`.
+- `install:common:mise` wraps `install/common/mise.sh`.
+- `install:common:git` wraps `install/common/git.sh`.
+- `install:common:gh` depends on the Git migration task and wraps
+  `install/common/gh.sh`.
+- `install:common:ollama-models` depends on mise and wraps
+  `install/common/ollama-models.sh`.
+- `install:common:mlx` depends on mise and wraps `install/common/mlx.sh`.
+
+`install/common/ssh.sh` is intentionally not wrapped in this first task slice;
+it generates local key material and should move only during the dedicated
+sensitive setup pass.
+
 ### 5. Setup switch
 
 Switch `setup.sh` from installing/running chezmoi to installing/running mise.
@@ -206,6 +235,7 @@ Prefer these checks while the repo is not installed locally:
 git status --short
 just doctor
 just status
+just tasks-check
 ```
 
 Use deployed-home comparisons only on a machine where this checkout is the

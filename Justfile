@@ -55,3 +55,7 @@ dotfiles-mirror-check:
 # Probe mise dotfiles behavior in a disposable project and HOME.
 dotfiles-capabilities:
     @scripts/dotfiles/mise-dotfiles-capabilities.sh
+
+# Validate mise task wrappers without running installers.
+tasks-check:
+    @scripts/dotfiles/mise-tasks-check.sh
