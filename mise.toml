@@ -4,6 +4,9 @@ includes = ["tasks"]
 [dotfiles]
 "~/.zshenv" = { source = "target/home/.zshenv", mode = "symlink" }
 "~/.zshrc" = { source = "target/home/.zshrc", mode = "symlink" }
+"~/.handy/settings_store.json" = { source = "target/home/.handy/settings_store.json", mode = "copy" }
+"~/.local/bin/coffee" = { source = "target/home/.local/bin/coffee", mode = "symlink" }
+"~/.uv/uv.toml" = { source = "target/home/.uv/uv.toml", mode = "symlink" }
 "~/.config/ccstatusline/settings.json" = { source = "target/home/.config/ccstatusline/settings.json", mode = "symlink" }
 "~/.config/fish/config.fish" = { source = "target/home/.config/fish/config.fish", mode = "symlink" }
 "~/.config/fish/conf.d/00-paths.fish" = { source = "target/home/.config/fish/conf.d/00-paths.fish", mode = "symlink" }
