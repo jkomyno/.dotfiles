@@ -465,6 +465,26 @@ checksum = "sha256:334d05a6662576a84a78b771aee0749202eacabd87acbb9fd266e6a5466f7
 url = "https://github.com/rtk-ai/rtk/releases/download/v0.42.3/rtk-x86_64-pc-windows-msvc.zip"
 url_api = "https://api.github.com/repos/rtk-ai/rtk/releases/assets/439464987"
 
+[[tools.hunk]]
+version = "0.16.0"
+backend = "aqua:modem-dev/hunk"
+
+[tools.hunk."platforms.linux-arm64"]
+checksum = "sha256:7e2e64ecdefec7fb024a7772ea0bb620d4014203613e7bd4638043ad6be2eee3"
+url = "https://github.com/modem-dev/hunk/releases/download/v0.16.0/hunkdiff-linux-arm64.tar.gz"
+
+[tools.hunk."platforms.linux-x64"]
+checksum = "sha256:0dd80c7679265df72617877a02dafefd6ac6a834528e10257567642eb2c05ea6"
+url = "https://github.com/modem-dev/hunk/releases/download/v0.16.0/hunkdiff-linux-x64.tar.gz"
+
+[tools.hunk."platforms.macos-arm64"]
+checksum = "sha256:1143eb8bcbdf64cd1dea9d94cb2ed2757810c384b36477495b7045ef0492be96"
+url = "https://github.com/modem-dev/hunk/releases/download/v0.16.0/hunkdiff-darwin-arm64.tar.gz"
+
+[tools.hunk."platforms.macos-x64"]
+checksum = "sha256:d9dada9de5f1ab060a081082e272a3143af5f6992ce52cb46b7b211a26279f72"
+url = "https://github.com/modem-dev/hunk/releases/download/v0.16.0/hunkdiff-darwin-x64.tar.gz"
+
 [[tools.jq]]
 version = "1.8.1"
 backend = "aqua:jqlang/jq"
@@ -572,6 +592,22 @@ url = "https://github.com/casey/just/releases/download/1.52.0/just-1.52.0-x86_64
 checksum = "sha256:ac53a7da91a33e344042dbec11e4bf1e1ec1d65ca4b695fe71398206d2a1630d"
 url = "https://github.com/casey/just/releases/download/1.52.0/just-1.52.0-x86_64-pc-windows-msvc.zip"
 
+[[tools.neovim]]
+version = "0.12.3"
+backend = "vfox:mise-plugins/vfox-neovim"
+
+[tools.neovim."platforms.linux-arm64"]
+url = "https://github.com/neovim/neovim/releases/download/v0.12.3/nvim-linux-arm64.tar.gz"
+
+[tools.neovim."platforms.linux-x64"]
+url = "https://github.com/neovim/neovim/releases/download/v0.12.3/nvim-linux-x86_64.tar.gz"
+
+[tools.neovim."platforms.macos-arm64"]
+url = "https://github.com/neovim/neovim/releases/download/v0.12.3/nvim-macos-arm64.tar.gz"
+
+[tools.neovim."platforms.macos-x64"]
+url = "https://github.com/neovim/neovim/releases/download/v0.12.3/nvim-macos-x86_64.tar.gz"
+
 [[tools.node]]
 version = "24.13.0"
 backend = "core:node"
@@ -623,6 +659,10 @@ url = "https://nodejs.org/dist/v24.13.0/node-v24.13.0-win-x64.zip"
 [[tools."npm:@earendil-works/pi-coding-agent"]]
 version = "0.79.7"
 backend = "npm:@earendil-works/pi-coding-agent"
+
+[[tools."npm:@kitlangton/ghui"]]
+version = "0.7.1"
+backend = "npm:@kitlangton/ghui"
 
 [[tools."npm:ccstatusline"]]
 version = "2.2.19"

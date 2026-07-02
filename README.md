@@ -9,7 +9,7 @@ These dotfiles:
 - target macOS (Apple Silicon)
 - use [`mise`](https://mise.jdx.dev/) for language runtimes and CLI developer tools
 - use [`nanobrew`](https://github.com/justrach/nanobrew), a faster Homebrew alternative, for macOS apps, fonts, and exceptional formulae
-- include configurations for zsh, Git, GitHub CLI, Ghostty, tmux, mise, uv, macOS preferences, and local AI agent skills
+- include configurations for zsh, Git, GitHub CLI, Ghostty, tmux, Neovim/LazyVim, hunk, ghui, mise, uv, macOS preferences, and local AI agent skills
 
 The actual dotfiles exist under the [`home`](./home) directory specified in [`.chezmoiroot`](./.chezmoiroot).
 See [.chezmoiroot - chezmoi](https://www.chezmoi.io/reference/special-files-and-directories/chezmoiroot/) for more detail on the setting.

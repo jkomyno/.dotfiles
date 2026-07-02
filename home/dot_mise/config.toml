@@ -35,12 +35,16 @@ chezmoi = "latest"
 # Git and GitHub tooling
 # https://github.com/cli/cli - GitHub's official command-line tool
 gh = "latest"
+# https://github.com/kitlangton/ghui - GitHub pull request TUI
+"npm:@kitlangton/ghui" = "latest"
 # https://github.com/so-fancy/diff-so-fancy - human-friendly Git diff pager
 "npm:diff-so-fancy" = "latest"
 # https://github.com/git-lfs/git-lfs - Git extension for versioning large files
 git-lfs = "latest"
 # https://codeberg.org/mergiraf/mergiraf - syntax-aware Git merge driver
 "cargo:mergiraf" = "latest"
+# https://github.com/modem-dev/hunk - review-first terminal diff viewer
+hunk = "latest"
 
 # Shell tooling
 # https://github.com/tmux/tmux - terminal multiplexer; config in home/dot_config/tmux
@@ -63,6 +67,8 @@ fd = "latest"
 eza = "latest"
 # https://github.com/junegunn/fzf - command-line fuzzy finder
 fzf = "latest"
+# https://github.com/neovim/neovim - programmable terminal editor; config in home/dot_config/nvim
+neovim = "latest"
 # https://github.com/ast-grep/ast-grep - AST-based code search and rewrite
 ast-grep = "latest"
 
