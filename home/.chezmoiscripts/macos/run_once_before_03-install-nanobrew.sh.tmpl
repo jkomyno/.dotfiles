@@ -1,4 +1,0 @@
-{{/* nanobrew owns packages after its binary is installed; PATH is managed in dot_zprofile.tmpl. */ -}}
-{{ if and (eq .chezmoi.os "darwin") (eq .chezmoi.arch "arm64") -}}
-{{   include "../install/macos/common/nanobrew.sh" }}
-{{- end }}

@@ -30,10 +30,6 @@ cargo-binstall = "latest"
 # https://github.com/rustsec/rustsec - audits Cargo.lock against the RustSec advisory database
 "cargo:cargo-audit" = "latest"
 
-# Dotfile management
-# https://github.com/twpayne/chezmoi - dotfile manager driving this repository
-chezmoi = "latest"
-
 # Git and GitHub tooling
 # https://github.com/cli/cli - GitHub's official command-line tool
 gh = "latest"
@@ -49,7 +45,7 @@ git-lfs = "latest"
 hunk = "latest"
 
 # Shell tooling
-# https://github.com/tmux/tmux - terminal multiplexer; config in home/dot_config/tmux
+# https://github.com/tmux/tmux - terminal multiplexer; config in target/home/.config/tmux
 tmux = "latest"
 # https://github.com/starship/starship - cross-shell prompt
 starship = "latest"
@@ -69,23 +65,23 @@ fd = "latest"
 eza = "latest"
 # https://github.com/junegunn/fzf - command-line fuzzy finder
 fzf = "latest"
-# https://github.com/neovim/neovim - programmable terminal editor; config in home/dot_config/nvim
+# https://github.com/neovim/neovim - programmable terminal editor; config in target/home/.config/nvim
 neovim = "latest"
 # https://github.com/ast-grep/ast-grep - AST-based code search and rewrite
 ast-grep = "latest"
 
 # AI agent tooling
 # https://github.com/earendil-works/pi (https://pi.dev) - Pi, a minimal extensible coding agent;
-# global config and skills wiring tracked in home/dot_pi
+# global config and skills wiring tracked in target/home/.pi
 "npm:@earendil-works/pi-coding-agent" = "latest"
 # https://github.com/rtk-ai/rtk - rewrites agent shell commands into token-efficient equivalents;
-# required by the Claude Code PreToolUse hook in home/dot_claude/hooks/rtk-rewrite.sh
+# required by the Claude Code PreToolUse hook in target/home/.claude/hooks/rtk-rewrite.sh
 "github:rtk-ai/rtk" = "latest"
 # https://github.com/sirmalloc/ccstatusline - Claude Code status line renderer;
-# wired up via statusLine in home/dot_claude/settings.json.tmpl, configured by home/dot_config/ccstatusline
+# wired up via statusLine in target/home/.claude/settings.json, configured by target/home/.config/ccstatusline
 "npm:ccstatusline" = "latest"
 # https://github.com/ryoppippi/ccusage - Claude Code usage/cost reporter; feeds the
-# first status line via the custom-command widget in home/dot_config/ccstatusline/settings.json
+# first status line via the custom-command widget in target/home/.config/ccstatusline/settings.json
 "npm:ccusage" = "latest"
 
 # Local LLM tooling

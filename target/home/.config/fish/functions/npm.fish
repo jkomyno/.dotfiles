@@ -1,5 +1,5 @@
 # Block global npm installs: CLI tools are owned by mise (see CLAUDE.md
-# "Tool Ownership"). `mise use -g npm:<package>` edits the chezmoi-managed
+# "Tool Ownership"). `mise use -g npm:<package>` edits the managed
 # mise config, which symlinks back into the dotfiles repo.
 function npm -d "npm with a guard against global installs" --wraps npm
     if _node_global_install_blocked $argv

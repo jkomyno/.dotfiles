@@ -3,18 +3,17 @@ set shell := ["env", "LC_ALL=C", "LANG=C", "bash", "-euo", "pipefail", "-c"]
 default:
     @just --list
 
-# Run non-mutating repository, chezmoi, package, and toolchain diagnostics.
+# Run non-mutating repository, package, and toolchain diagnostics.
 doctor:
     @scripts/dotfiles/doctor.sh
 
-# Show source git status plus deployed-home drift when this checkout is installed.
+# Show source git status.
 status:
     @git status --short
-    @scripts/dotfiles/chezmoi-drift.sh status
 
-# Show deployed-home diff when this checkout is installed.
+# Show a mise dotfiles dry-run against the current HOME.
 diff:
-    @scripts/dotfiles/chezmoi-drift.sh diff
+    @MISE_EXPERIMENTAL=true mise -C "$PWD" dotfiles apply --dry-run
 
 # Validate and report macOS package bundle ownership.
 packages:
@@ -24,13 +23,13 @@ packages:
 versions:
     @scripts/dotfiles/versions.sh --check
 
-# Upgrade matching third-party mise versions and refresh home/dot_mise/mise.lock.
+# Upgrade matching third-party mise versions and refresh target/home/.config/mise/mise.lock.
 versions-update:
     @scripts/dotfiles/versions.sh --write
 
 # Check vendored third-party agent skills against upstream.
 sync-skills-check:
-    @bash home/dot_agents/skills/exact_sync-skills/scripts/sync.sh --keep-upstream
+    @bash target/home/.agents/skills/sync-skills/scripts/sync.sh --keep-upstream
 
 # Benchmark interactive shell startup. Override with: just benchmark-shell zsh 20
 benchmark-shell shell="zsh" runs="10":
@@ -47,10 +46,6 @@ system-files-spike:
 # Validate the repository mise dotfiles slice against a temporary HOME.
 dotfiles-check:
     @scripts/dotfiles/mise-dotfiles-check.sh
-
-# Check that target-shaped mirrors still match the current chezmoi sources.
-dotfiles-mirror-check:
-    @scripts/dotfiles/mise-dotfiles-mirror-check.sh
 
 # Probe mise dotfiles behavior in a disposable project and HOME.
 dotfiles-capabilities:

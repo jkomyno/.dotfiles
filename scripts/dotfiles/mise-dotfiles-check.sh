@@ -86,26 +86,37 @@ verify_symlink() {
   fi
 }
 
-verify_rendered_template() {
+verify_file_exists() {
   local target_rel="$1"
-  local source_template="$2"
-  local rendered_path="${check_home}/${target_rel}"
-  local expected_path
 
-  expected_path="$(mktemp)"
-  if ! HOME="${check_home}" run_chezmoi_source execute-template < "${DOTFILES_ROOT}/${source_template}" > "${expected_path}"; then
-    rm -f "${expected_path}"
+  if [[ ! -f "${check_home}/${target_rel}" ]]; then
+    error "expected file was not created: ${target_rel}"
     return 1
   fi
+}
 
-  if ! cmp -s "${expected_path}" "${rendered_path}"; then
-    error "rendered template ${target_rel} differs from ${source_template}"
-    diff -u "${expected_path}" "${rendered_path}" >&2 || true
-    rm -f "${expected_path}"
+verify_file_matches_source() {
+  local target_rel="$1"
+  local source="$2"
+
+  verify_file_exists "${target_rel}" || return 1
+
+  if ! cmp -s "${DOTFILES_ROOT}/${source}" "${check_home}/${target_rel}"; then
+    error "copied file ${target_rel} differs from ${source}"
+    diff -u "${DOTFILES_ROOT}/${source}" "${check_home}/${target_rel}" >&2 || true
     return 1
   fi
+}
 
-  rm -f "${expected_path}"
+verify_no_template_delimiters() {
+  local target_rel="$1"
+
+  verify_file_exists "${target_rel}" || return 1
+
+  if grep -Eq '\{\{|%\}' "${check_home}/${target_rel}"; then
+    error "rendered file still contains template delimiters: ${target_rel}"
+    return 1
+  fi
 }
 
 verify_json() {
@@ -137,10 +148,13 @@ verify_agent_skill_links() {
 }
 
 verify_dotfiles() {
-  verify_rendered_template ".zprofile" "home/dot_zprofile.tmpl"
-  verify_rendered_template ".claude/settings.json" "home/dot_claude/settings.json.tmpl"
+  verify_no_template_delimiters ".zprofile"
+  verify_no_template_delimiters ".claude/settings.json"
   verify_json ".claude/settings.json"
   verify_agent_skill_links
+  verify_file_matches_source "Library/Application Support/com.pais.handy/settings_store.json" "target/home/.handy/settings_store.json"
+  verify_file_matches_source ".config/gh/config.yml" "target/home/.config/gh/config.yml"
+  verify_file_matches_source ".ssh/config" "target/home/.ssh/config"
   verify_symlink ".config/ccstatusline/settings.json" "target/home/.config/ccstatusline/settings.json"
   verify_symlink ".config/ghostty/config" "target/home/.config/ghostty/config"
   verify_symlink ".config/ghui/config.json" "target/home/.config/ghui/config.json"

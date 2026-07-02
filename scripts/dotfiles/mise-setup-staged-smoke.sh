@@ -97,12 +97,15 @@ run_safe_staged_subset() {
 
 verify_smoke_home() {
   assert_exists "${smoke_home}/.zprofile"
+  assert_exists "${smoke_home}/.ssh/config"
+  assert_exists "${smoke_home}/.config/gh/config.yml"
   assert_exists "${smoke_home}/.config/mise/config.toml"
   assert_exists "${smoke_home}/.config/git/config"
   assert_exists "${smoke_home}/.config/git/config-composio"
   assert_exists "${smoke_home}/.config/git/ignore"
   assert_empty_file "${smoke_home}/.config/git/config-composio-signing"
   assert_empty_file "${smoke_home}/.config/git/allowed_signers"
+  assert_exists "${smoke_home}/Library/Application Support/com.pais.handy/settings_store.json"
   assert_absent "${smoke_home}/.gitconfig"
 }
 

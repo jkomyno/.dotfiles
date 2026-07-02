@@ -1,5 +1,5 @@
 # Ghostty configuration managed by the dotfiles repo.
-# During the migration, edit both the chezmoi source and target-shaped mirror.
+# Managed by this dotfiles repository through mise dotfiles.
 # Reference: https://ghostty.org/docs/config/reference
 
 theme = Catppuccin Macchiato

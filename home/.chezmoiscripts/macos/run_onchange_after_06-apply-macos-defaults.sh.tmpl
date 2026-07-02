@@ -1,4 +1,0 @@
-{{/* Apply user-level macOS preferences on first apply and whenever this script changes. */ -}}
-{{ if and (eq .chezmoi.os "darwin") (eq .chezmoi.arch "arm64") -}}
-{{   include "../install/macos/common/defaults.sh" }}
-{{- end }}

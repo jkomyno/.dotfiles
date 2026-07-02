@@ -11,8 +11,7 @@ fi
 # Slovo RAG web app (ADR-014): the fastest Apple-Silicon path for local answer synthesis,
 # run as an isolated local process. Installed via `uv tool` (isolated venv + shims in
 # ~/.local/bin) after mise provides uv, idempotently. MLX is Apple-Silicon-only, so this is
-# a no-op on any other platform. Wired up via
-# home/.chezmoiscripts/common/run_onchange_after_06-install-mlx.sh.tmpl
+# a no-op on any other platform. Wired up via the staged setup task.
 
 # Python packages providing console entry points to install as uv tools. mlx-lm ships
 # `mlx_lm.server`, `mlx_lm.generate`, `mlx_lm.chat`, and friends.
@@ -33,8 +32,8 @@ die() {
   exit 1
 }
 
-# Resolve how to invoke uv: an activated shim if present, else `mise exec`, since chezmoi
-# hooks run without mise activation on a freshly provisioned host.
+# Resolve how to invoke uv: an activated shim if present, else `mise exec`, since setup
+# tasks can run before shell activation on a fresh host.
 resolve_uv() {
   if command -v uv >/dev/null 2>&1; then
     UV_RUN=(uv)

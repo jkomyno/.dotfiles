@@ -12,8 +12,8 @@ log() {
 	printf '==> %s\n' "$*" >&2
 }
 
-# Mirrors the candidate order of .chezmoitemplates/git/signing-key-path so a
-# machine that already has a usable keypair is left untouched.
+# Mirrors install/common/git-signing.sh so a machine that already has a usable
+# keypair is left untouched.
 existing_keypair() {
 	local candidate
 

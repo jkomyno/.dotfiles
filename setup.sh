@@ -8,7 +8,9 @@ fi
 
 readonly DOTFILES_REPO_URL="${DOTFILES_REPO_URL:-https://github.com/jkomyno/.dotfiles}"
 readonly DOTFILES_BRANCH="${DOTFILES_BRANCH:-${BRANCH_NAME:-main}}"
-readonly CHEZMOI_BIN_DIR="${CHEZMOI_BIN_DIR:-${HOME}/.local/bin}"
+readonly DOTFILES_BIN_DIR="${DOTFILES_BIN_DIR:-${HOME}/.local/bin}"
+readonly MISE_INSTALL_PATH="${MISE_INSTALL_PATH:-${DOTFILES_BIN_DIR}/mise}"
+readonly DOTFILES_ARCHIVE_URL="${DOTFILES_ARCHIVE_URL:-}"
 readonly DOTFILES_WORK_DIR="${DOTFILES_WORK_DIR:-${HOME}/work/me}"
 readonly DOTFILES_CHECKOUT_DIR="${DOTFILES_CHECKOUT_DIR:-${DOTFILES_WORK_DIR}/dotfiles}"
 readonly SUDO_KEYCHAIN_SERVICE="dotfiles-bootstrap"
@@ -37,6 +39,8 @@ LOGO
 )"
 readonly DOTFILES_LOGO
 
+dotfiles_checkout_kind=""
+
 log() {
   printf '==> %s\n' "$*" >&2
 }
@@ -50,8 +54,14 @@ require_command() {
   command -v "$1" >/dev/null 2>&1 || die "missing required command: $1"
 }
 
-is_non_interactive() {
-  [[ "${CI:-}" == "true" || ! -t 0 ]]
+has_working_git() {
+  command -v git >/dev/null 2>&1 || return 1
+
+  if [[ "$(uname -s)" == "Darwin" ]] && ! xcode-select -p >/dev/null 2>&1; then
+    return 1
+  fi
+
+  git --version >/dev/null 2>&1
 }
 
 has_tty() {
@@ -171,8 +181,8 @@ set_scutil_name() {
 configure_macos_computer_name() {
   [[ "$(uname -s)" == "Darwin" ]] || return 0
 
-  # Machine identity is setup-time state. Keep it out of repeatable chezmoi
-  # defaults so a later apply cannot unexpectedly rename a Mac.
+  # Machine identity is setup-time state. Keep it out of repeatable defaults
+  # so a later apply cannot unexpectedly rename a Mac.
   if [[ "${CI:-}" == "true" ]]; then
     log "Skipping computer name setup in CI"
     return 0
@@ -218,23 +228,21 @@ configure_macos_computer_name() {
   sudo -A defaults write /Library/Preferences/SystemConfiguration/com.apple.smb.server NetBIOSName -string "${netbios_name}"
 }
 
-ensure_chezmoi() {
-  mkdir -p "${CHEZMOI_BIN_DIR}"
-  export PATH="${CHEZMOI_BIN_DIR}:${PATH}"
-
-  if command -v chezmoi >/dev/null 2>&1; then
-    command -v chezmoi
-    return
-  fi
-
-  log "Installing chezmoi"
-  sh -c "$(curl -fsLS get.chezmoi.io)" -- -b "${CHEZMOI_BIN_DIR}" >&2
-
-  [[ -x "${CHEZMOI_BIN_DIR}/chezmoi" ]] || die "chezmoi install did not create ${CHEZMOI_BIN_DIR}/chezmoi"
-  printf '%s\n' "${CHEZMOI_BIN_DIR}/chezmoi"
+checkout_is_git() {
+  [[ -d "${DOTFILES_CHECKOUT_DIR}/.git" ]]
 }
 
-prepare_dotfiles_checkout() {
+checkout_is_source_tree() {
+  [[ -f "${DOTFILES_CHECKOUT_DIR}/setup.sh" && -f "${DOTFILES_CHECKOUT_DIR}/mise.toml" && -d "${DOTFILES_CHECKOUT_DIR}/scripts/dotfiles" ]]
+}
+
+is_empty_dir() {
+  local path="$1"
+  [[ -d "${path}" ]] || return 1
+  [[ -z "$(find "${path}" -mindepth 1 -maxdepth 1 -print -quit)" ]]
+}
+
+prepare_dotfiles_parent() {
   local checkout_parent
   checkout_parent="$(dirname -- "${DOTFILES_CHECKOUT_DIR}")"
 
@@ -246,25 +254,166 @@ prepare_dotfiles_checkout() {
   fi
 }
 
-run_chezmoi() {
-  local chezmoi_cmd
-  chezmoi_cmd="$(ensure_chezmoi)"
-  prepare_dotfiles_checkout
-
-  local -a tty_args=()
-  if is_non_interactive; then
-    tty_args=("--no-tty")
+dotfiles_archive_url() {
+  if [[ -n "${DOTFILES_ARCHIVE_URL}" ]]; then
+    printf '%s\n' "${DOTFILES_ARCHIVE_URL}"
+    return
   fi
 
-  log "Initializing dotfiles from ${DOTFILES_REPO_URL}#${DOTFILES_BRANCH} into ${DOTFILES_CHECKOUT_DIR}"
-  "${chezmoi_cmd}" --source "${DOTFILES_CHECKOUT_DIR}" init "${DOTFILES_REPO_URL}" \
-    --branch "${DOTFILES_BRANCH}" \
-    --force \
-    --use-builtin-git true \
-    "${tty_args[@]}"
+  local repo_url="${DOTFILES_REPO_URL%.git}"
+  local repo_path=""
 
-  log "Applying dotfiles from ${DOTFILES_CHECKOUT_DIR}"
-  "${chezmoi_cmd}" --source "${DOTFILES_CHECKOUT_DIR}" apply "${tty_args[@]}"
+  case "${repo_url}" in
+    https://github.com/*)
+      repo_path="${repo_url#https://github.com/}"
+      ;;
+    git@github.com:*)
+      repo_path="${repo_url#git@github.com:}"
+      ;;
+    *)
+      return 1
+      ;;
+  esac
+
+  [[ "${repo_path}" == */* ]] || return 1
+  printf 'https://codeload.github.com/%s/tar.gz/refs/heads/%s\n' "${repo_path}" "${DOTFILES_BRANCH}"
+}
+
+clone_dotfiles_checkout() {
+  if [[ -e "${DOTFILES_CHECKOUT_DIR}" ]]; then
+    if is_empty_dir "${DOTFILES_CHECKOUT_DIR}"; then
+      rmdir "${DOTFILES_CHECKOUT_DIR}"
+    else
+      return 1
+    fi
+  fi
+
+  log "Cloning dotfiles from ${DOTFILES_REPO_URL}#${DOTFILES_BRANCH} into ${DOTFILES_CHECKOUT_DIR}"
+  git clone --branch "${DOTFILES_BRANCH}" --single-branch "${DOTFILES_REPO_URL}" "${DOTFILES_CHECKOUT_DIR}"
+}
+
+download_dotfiles_archive() {
+  local archive_url
+  archive_url="$(dotfiles_archive_url)" || {
+    die "git is unavailable and DOTFILES_REPO_URL cannot be converted to an archive URL; set DOTFILES_ARCHIVE_URL"
+  }
+
+  if [[ -e "${DOTFILES_CHECKOUT_DIR}" ]]; then
+    if is_empty_dir "${DOTFILES_CHECKOUT_DIR}"; then
+      rmdir "${DOTFILES_CHECKOUT_DIR}"
+    else
+      die "cannot download archive into non-empty checkout: ${DOTFILES_CHECKOUT_DIR}"
+    fi
+  fi
+
+  local tmp_dir archive_file extract_dir
+  tmp_dir="$(mktemp -d)"
+  archive_file="${tmp_dir}/dotfiles.tar.gz"
+  extract_dir="${tmp_dir}/extract"
+  mkdir -p "${extract_dir}"
+
+  log "Downloading dotfiles archive from ${archive_url}"
+  curl -fsSL "${archive_url}" -o "${archive_file}"
+  tar -xzf "${archive_file}" -C "${extract_dir}" --strip-components 1
+  mv "${extract_dir}" "${DOTFILES_CHECKOUT_DIR}"
+  rm -rf "${tmp_dir}"
+}
+
+prepare_dotfiles_checkout() {
+  prepare_dotfiles_parent
+
+  if checkout_is_git; then
+    dotfiles_checkout_kind="git"
+    log "Using existing git checkout at ${DOTFILES_CHECKOUT_DIR}"
+    return
+  fi
+
+  if checkout_is_source_tree; then
+    dotfiles_checkout_kind="source"
+    log "Using existing source tree at ${DOTFILES_CHECKOUT_DIR}"
+    return
+  fi
+
+  if has_working_git; then
+    clone_dotfiles_checkout || die "checkout path is not empty and is not a dotfiles source tree: ${DOTFILES_CHECKOUT_DIR}"
+    dotfiles_checkout_kind="git"
+    return
+  fi
+
+  download_dotfiles_archive
+  dotfiles_checkout_kind="archive"
+}
+
+ensure_mise() {
+  local install_script="${DOTFILES_CHECKOUT_DIR}/install/common/mise.sh"
+  [[ -f "${install_script}" ]] || die "missing mise installer: ${install_script}"
+
+  bash "${install_script}" --binary-only
+
+  local mise_cmd=""
+  if [[ -x "${MISE_INSTALL_PATH}" ]]; then
+    mise_cmd="${MISE_INSTALL_PATH}"
+  elif command -v mise >/dev/null 2>&1; then
+    mise_cmd="$(command -v mise)"
+  else
+    die "mise install did not create ${MISE_INSTALL_PATH}"
+  fi
+
+  MISE_EXPERIMENTAL=true "${mise_cmd}" dotfiles status --help >/dev/null 2>&1 ||
+    die "mise at ${mise_cmd} does not expose the experimental dotfiles command"
+
+  printf '%s\n' "${mise_cmd}"
+}
+
+run_mise_staged_setup() {
+  local setup_runner="${DOTFILES_CHECKOUT_DIR}/scripts/dotfiles/mise-setup-staged.sh"
+  [[ -f "${setup_runner}" ]] || die "missing staged setup runner: ${setup_runner}"
+
+  bash "${setup_runner}" "$@"
+}
+
+promote_archive_checkout_to_git() {
+  [[ "${dotfiles_checkout_kind}" == "archive" ]] || return 0
+
+  has_working_git || die "git is still unavailable after Command Line Tools setup"
+
+  local backup_dir
+  backup_dir="${DOTFILES_CHECKOUT_DIR}.archive.$(date +%Y%m%d%H%M%S)"
+
+  log "Replacing bootstrap archive with a git checkout"
+  mv "${DOTFILES_CHECKOUT_DIR}" "${backup_dir}"
+
+  if clone_dotfiles_checkout; then
+    rm -rf "${backup_dir}"
+    dotfiles_checkout_kind="git"
+    return
+  fi
+
+  rm -rf "${DOTFILES_CHECKOUT_DIR}"
+  mv "${backup_dir}" "${DOTFILES_CHECKOUT_DIR}"
+  die "failed to replace bootstrap archive with a git checkout"
+}
+
+run_mise_setup() {
+  prepare_dotfiles_checkout
+
+  local mise_cmd
+  mise_cmd="$(ensure_mise)"
+  export PATH="$(dirname -- "${mise_cmd}"):${PATH}"
+
+  local -a setup_args=()
+  if [[ "${DOTFILES_SETUP_FORCE_DOTFILES:-}" == "1" ]]; then
+    setup_args+=(--force-dotfiles)
+  fi
+
+  if [[ "${dotfiles_checkout_kind}" == "archive" ]]; then
+    run_mise_staged_setup "${setup_args[@]}" --until install:macos:command-line-tools
+    promote_archive_checkout_to_git
+    run_mise_staged_setup "${setup_args[@]}" --from install:macos:homebrew
+    return
+  fi
+
+  run_mise_staged_setup "${setup_args[@]}"
 }
 
 main() {
@@ -273,7 +422,8 @@ main() {
 
   keepalive_sudo
   configure_macos_computer_name
-  run_chezmoi
+
+  run_mise_setup
 
   log "Done"
 }

@@ -37,21 +37,14 @@ check_command() {
 
 check_required_files() {
   local files=(
-    ".chezmoiroot"
     "mise.toml"
     "setup.sh"
     "README.md"
-    "home/.chezmoiignore"
-    "home/dot_zprofile.tmpl"
-    "home/dot_mise/config.toml"
-    "home/dot_mise/mise.lock"
-    "home/dot_claude/settings.json.tmpl"
-    "home/dot_config/exact_mise/symlink_config.toml.tmpl"
-    "home/dot_config/exact_mise/symlink_mise.lock.tmpl"
     "target/home/.zprofile"
     "target/home/.zshenv"
     "target/home/.zshrc"
     "target/home/.agents/AGENTS.md"
+    "target/home/.agents/skills/sync-skills/SKILL.md"
     "target/home/.claude/CLAUDE.md"
     "target/home/.claude/hooks/block-claude-attribution.sh"
     "target/home/.claude/hooks/rtk-rewrite.sh"
@@ -61,6 +54,7 @@ check_required_files() {
     "target/home/.handy/settings_store.json"
     "target/home/.local/bin/coffee"
     "target/home/.pi/agent/settings.json"
+    "target/home/.ssh/config"
     "target/home/.uv/uv.toml"
     "target/home/.config/ccstatusline/settings.json"
     "target/home/.config/fish/config.fish"
@@ -84,6 +78,7 @@ check_required_files() {
     "target/home/.config/fish/functions/pt.fish"
     "target/home/.config/fish/functions/tempd.fish"
     "target/home/.config/fish/functions/trash.fish"
+    "target/home/.config/gh/config.yml"
     "target/home/.config/git/attributes"
     "target/home/.config/git/config"
     "target/home/.config/git/config-composio"
@@ -121,14 +116,12 @@ check_required_files() {
     "target/home/.config/zsh/session.d/tmux.zsh"
     "scripts/dotfiles/mise-dotfiles-capabilities.sh"
     "scripts/dotfiles/mise-dotfiles-check.sh"
-    "scripts/dotfiles/mise-dotfiles-mirror-check.sh"
     "scripts/dotfiles/mise-setup-staged.sh"
     "scripts/dotfiles/mise-setup-staged-smoke.sh"
     "scripts/dotfiles/mise-tasks-check.sh"
     "scripts/dotfiles/git-signing-check.sh"
     "install/macos/common/nanobrew-casks.Brewfile"
     "install/macos/common/nanobrew-formulae.Brewfile"
-    "home/dot_agents/skills/exact_sync-skills/SKILL.md"
   )
   local file
 
@@ -141,23 +134,25 @@ check_required_files() {
   done
 }
 
+check_removed_home_tree_absent() {
+  if [[ -e "${DOTFILES_ROOT}/home" || -L "${DOTFILES_ROOT}/home" ]]; then
+    hard_fail "retired source tree still exists: home"
+  else
+    pass "retired source tree is absent"
+  fi
+}
+
 check_agent_skill_files() {
   local source_dir
   local skill
   while IFS= read -r source_dir; do
-    skill="${source_dir##*/exact_}"
-    if [[ -f "${DOTFILES_ROOT}/home/dot_agents/skills/exact_${skill}/SKILL.md" ]]; then
-      pass "home/dot_agents/skills/exact_${skill}/SKILL.md exists"
-    else
-      hard_fail "home/dot_agents/skills/exact_${skill}/SKILL.md is missing"
-    fi
-
-    if [[ -f "${DOTFILES_ROOT}/target/home/.agents/skills/${skill}/SKILL.md" ]]; then
+    skill="${source_dir##*/}"
+    if [[ -f "${source_dir}/SKILL.md" ]]; then
       pass "target/home/.agents/skills/${skill}/SKILL.md exists"
     else
       hard_fail "target/home/.agents/skills/${skill}/SKILL.md is missing"
     fi
-  done < <(find "${DOTFILES_ROOT}/home/dot_agents/skills" -maxdepth 1 -mindepth 1 -type d -name 'exact_*' | sort)
+  done < <(find "${DOTFILES_ROOT}/target/home/.agents/skills" -maxdepth 1 -mindepth 1 -type d | sort)
 }
 
 check_git() {
@@ -206,41 +201,9 @@ check_shell_syntax() {
   pass "bash syntax checked for ${count} scripts"
 }
 
-check_chezmoi() {
-  if ! chezmoi_bin >/dev/null 2>&1; then
-    soft_fail "chezmoi is missing; setup.sh will install it on a fresh machine"
-    return
-  fi
-
-  pass "chezmoi is available"
-  local symlink_template
-  for symlink_template in \
-    "${DOTFILES_ROOT}/home/dot_config/exact_mise/symlink_config.toml.tmpl" \
-    "${DOTFILES_ROOT}/home/dot_config/exact_mise/symlink_mise.lock.tmpl"; do
-    if run_chezmoi_source execute-template < "${symlink_template}" >/dev/null; then
-      pass "${symlink_template#"${DOTFILES_ROOT}"/} renders"
-    else
-      hard_fail "${symlink_template#"${DOTFILES_ROOT}"/} failed to render"
-    fi
-  done
-
-  local tmpl tmp
-  local rendered=0
-  while IFS= read -r tmpl; do
-    tmp="$(mktemp)"
-    if run_chezmoi_source execute-template < "${tmpl}" > "${tmp}" && env LC_ALL=C LANG=C bash -n "${tmp}"; then
-      rendered=$((rendered + 1))
-    else
-      hard_fail "rendered hook failed syntax check: ${tmpl#"${DOTFILES_ROOT}"/}"
-    fi
-    rm -f "${tmp}"
-  done < <(find "${DOTFILES_ROOT}/home/.chezmoiscripts" -type f -name '*.tmpl' | sort)
-  pass "rendered ${rendered} chezmoi hook templates"
-}
-
 check_mise() {
   if ! mise_bin >/dev/null 2>&1; then
-    soft_fail "mise is missing; setup.sh installs it after chezmoi applies the managed config"
+    soft_fail "mise is missing; setup.sh installs it before running staged setup"
     return
   fi
 
@@ -255,14 +218,6 @@ check_mise() {
     pass "source mise lock can be refreshed for ${DOTFILES_MISE_PLATFORMS}"
   else
     soft_fail "mise lock dry-run reported issues; rerun scripts/dotfiles/versions.sh for details"
-  fi
-}
-
-check_mise_dotfiles_mirrors() {
-  if "${SCRIPT_DIR}/mise-dotfiles-mirror-check.sh" >/dev/null; then
-    pass "target-shaped mise dotfiles mirrors match current sources"
-  else
-    hard_fail "target-shaped mise dotfiles mirrors differ from current sources"
   fi
 }
 
@@ -329,12 +284,11 @@ main() {
   printf 'system: os=%s arch=%s\n' "$(os_name)" "$(uname -m)"
 
   check_required_files
+  check_removed_home_tree_absent
   check_agent_skill_files
   check_git
   check_shell_syntax
-  check_chezmoi
   check_mise
-  check_mise_dotfiles_mirrors
   check_mise_tasks
   check_staged_setup_smoke
   check_git_signing_generator

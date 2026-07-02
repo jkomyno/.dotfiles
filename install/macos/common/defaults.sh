@@ -279,7 +279,7 @@ defaults_privileged() {
   fi
 
   # sudo needs either cached credentials or a TTY to prompt on. Skip instead
-  # of aborting the whole chezmoi apply in headless runs.
+  # of aborting the whole staged setup in headless runs.
   if ! sudo -n -v 2>/dev/null && ! [[ -r /dev/tty && -w /dev/tty ]]; then
     log "Skipping privileged defaults: sudo needs a password but no TTY is available"
     return 0
@@ -299,7 +299,7 @@ restart_affected_applications() {
   fi
 
   # Restart only the services directly affected by this script. Avoid killing
-  # terminals, browsers, and productivity apps during a chezmoi apply.
+  # terminals, browsers, and productivity apps during staged setup.
   local apps=(
     "cfprefsd"
     "Dock"

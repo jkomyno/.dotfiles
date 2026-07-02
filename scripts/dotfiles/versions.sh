@@ -15,11 +15,11 @@ usage() {
   cat <<'USAGE'
 Usage: scripts/dotfiles/versions.sh [--check|--write] [--bump] [--minimum-release-age AGE] [TOOL...]
 
-Maintain third-party tool versions declared in home/dot_mise/config.toml.
+Maintain third-party tool versions declared in target/home/.config/mise/config.toml.
 
 Modes:
   --check   Show outdated tools and verify the lockfile can be refreshed.
-  --write   Upgrade matching tools and refresh home/dot_mise/mise.lock.
+  --write   Upgrade matching tools and refresh target/home/.config/mise/mise.lock.
 
 By default, --write preserves configured ranges such as node = "24".
 Use --bump only when you intentionally want mise to change requested versions.
@@ -67,7 +67,7 @@ ensure_mise() {
 }
 
 check_versions() {
-  log "Checking mise tools from home/dot_mise/config.toml"
+  log "Checking mise tools from target/home/.config/mise/config.toml"
   run_source_mise outdated "${TOOL_ARGS[@]}" || {
     warn "mise outdated reported issues; this can happen before Node/npm-backed tools are installed"
   }

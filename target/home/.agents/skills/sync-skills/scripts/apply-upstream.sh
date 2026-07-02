@@ -27,12 +27,8 @@ fi
 
 [[ -d "$UPSTREAM_DIR" ]] || { echo "ERROR: upstream dir not found: $UPSTREAM_DIR" >&2; exit 1; }
 
-if [[ -d "$SKILLS_DIR/exact_$NAME" ]]; then
-  OUR_DIR="$SKILLS_DIR/exact_$NAME"
-elif [[ -d "$SKILLS_DIR/$NAME" ]]; then
-  OUR_DIR="$SKILLS_DIR/$NAME"
-else
-  OUR_DIR="$SKILLS_DIR/exact_$NAME"
+OUR_DIR="$SKILLS_DIR/$NAME"
+if [[ ! -d "$OUR_DIR" ]]; then
   echo "STATUS: installing new skill into $OUR_DIR"
 fi
 

@@ -33,7 +33,7 @@ require_gh() {
 
 # Only touch host-scoped settings, which live in the unmanaged hosts.yml.
 # `gh config set` without --host rewrites ~/.config/gh/config.yml (dropping
-# comments and ordering), which would fight with the chezmoi-managed file.
+# comments and ordering), which would fight with the managed config file.
 configure_gh() {
 	gh config set git_protocol ssh --host "${DEFAULT_GITHUB_HOST}" >/dev/null
 }
@@ -69,8 +69,8 @@ install_extension() {
 	fi
 }
 
-# Mirrors the candidate order of .chezmoitemplates/git/signing-key-path so
-# the key uploaded here is the one git is configured to sign with.
+# Mirrors install/common/git-signing.sh so the key uploaded here is the one
+# Git is configured to sign with.
 detect_signing_key() {
 	local candidate
 

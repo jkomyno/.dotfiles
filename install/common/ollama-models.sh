@@ -7,8 +7,8 @@ if [[ -n "${DOTFILES_DEBUG:-}" ]]; then
 fi
 
 # Ollama models to keep pulled on this machine. Add one entry per model.
-# Pulled idempotently after mise installs the ollama CLI; wired up via
-# home/.chezmoiscripts/common/run_onchange_after_05-pull-ollama-models.sh.tmpl
+# Pulled idempotently after mise installs the ollama CLI; wired up via the
+# staged setup task.
 readonly OLLAMA_MODELS=(
   # https://ollama.com/library/nomic-embed-text-v2-moe - multilingual text embeddings (v2 MoE)
   "nomic-embed-text-v2-moe"
@@ -36,7 +36,7 @@ cleanup() {
 }
 
 # Resolve how to invoke ollama: an activated shim if present, else `mise exec`,
-# since chezmoi hooks run without mise activation on a freshly provisioned host.
+# since setup tasks can run before shell activation on a fresh host.
 resolve_ollama() {
   if command -v ollama >/dev/null 2>&1; then
     OLLAMA_RUN=(ollama)

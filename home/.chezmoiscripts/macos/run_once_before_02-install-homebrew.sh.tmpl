@@ -1,4 +1,0 @@
-{{/* Homebrew is installed before package-manager experiments such as nanobrew. */ -}}
-{{ if and (eq .chezmoi.os "darwin") (eq .chezmoi.arch "arm64") -}}
-{{   include "../install/macos/common/homebrew.sh" }}
-{{- end }}

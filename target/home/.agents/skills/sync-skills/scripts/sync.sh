@@ -2,10 +2,10 @@
 # sync.sh — Deterministic portion of the vendored skills sync.
 #
 # Reads manifest.json (skill name -> upstream repo + path), shallow-clones each
-# unique upstream once, and compares every vendored skill in the chezmoi source
+# unique upstream once, and compares every vendored skill in the dotfiles source
 # tree against upstream after applying our patch files.
 #
-# Run this against the dotfiles SOURCE checkout (home/dot_agents/skills), not
+# Run this against the dotfiles SOURCE checkout (target/home/.agents/skills), not
 # the deployed ~/.agents/skills, so accepted changes land in git.
 #
 # Usage:
@@ -64,13 +64,9 @@ is_excluded() {
   [[ -f "$EXCLUDED_FILE" ]] && grep -qxF "$1" "$EXCLUDED_FILE" 2>/dev/null
 }
 
-# Vendored skill dirs in the chezmoi source carry an exact_ prefix; deployed
-# trees do not. Accept either so the script also works against ~/.agents/skills.
 our_skill_dir() {
   local name=$1
-  if [[ -d "$SKILLS_DIR/exact_$name" ]]; then
-    printf '%s' "$SKILLS_DIR/exact_$name"
-  elif [[ -d "$SKILLS_DIR/$name" ]]; then
+  if [[ -d "$SKILLS_DIR/$name" ]]; then
     printf '%s' "$SKILLS_DIR/$name"
   fi
 }

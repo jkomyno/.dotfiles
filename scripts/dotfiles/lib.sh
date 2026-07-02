@@ -19,7 +19,7 @@ dotfiles_repo_root() {
 }
 
 readonly DOTFILES_ROOT="${DOTFILES:-$(dotfiles_repo_root)}"
-readonly DOTFILES_MISE_DIR="${DOTFILES_ROOT}/home/dot_mise"
+readonly DOTFILES_MISE_DIR="${DOTFILES_ROOT}/target/home/.config/mise"
 readonly DOTFILES_MISE_CONFIG="${DOTFILES_MISE_DIR}/config.toml"
 readonly DOTFILES_MISE_PLATFORMS="${DOTFILES_MISE_PLATFORMS:-linux-x64,linux-arm64,macos-arm64,macos-x64}"
 readonly DOTFILES_MISE_MINIMUM_RELEASE_AGE="${DOTFILES_MISE_MINIMUM_RELEASE_AGE:-7d}"
@@ -64,22 +64,6 @@ mise_bin() {
   else
     return 1
   fi
-}
-
-chezmoi_bin() {
-  if have chezmoi; then
-    command -v chezmoi
-  elif [[ -x "${HOME}/.local/bin/chezmoi" ]]; then
-    printf '%s\n' "${HOME}/.local/bin/chezmoi"
-  else
-    return 1
-  fi
-}
-
-run_chezmoi_source() {
-  local chezmoi_cmd
-  chezmoi_cmd="$(chezmoi_bin)" || return 127
-  "${chezmoi_cmd}" --source "${DOTFILES_ROOT}" "$@"
 }
 
 run_source_mise() {

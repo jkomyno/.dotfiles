@@ -16,20 +16,20 @@ only_filters=()
 skip_filters=()
 
 setup_plan=(
-  "task|install:common:ssh|home/.chezmoiscripts/common/run_once_before_01-generate-ssh-key.sh.tmpl|install/common/ssh.sh"
-  "task|install:macos:command-line-tools|home/.chezmoiscripts/macos/run_once_before_01-install-command-line-tools.sh.tmpl|install/macos/common/command_line_tools.sh"
-  "task|install:macos:homebrew|home/.chezmoiscripts/macos/run_once_before_02-install-homebrew.sh.tmpl|install/macos/common/homebrew.sh"
-  "task|install:macos:nanobrew|home/.chezmoiscripts/macos/run_once_before_03-install-nanobrew.sh.tmpl|install/macos/common/nanobrew.sh"
-  "task|install:macos:nanobrew-casks|home/.chezmoiscripts/macos/run_once_before_04-install-nanobrew-casks.sh.tmpl|install/macos/common/nanobrew-casks.sh"
-  "task|install:macos:nanobrew-formulae|home/.chezmoiscripts/macos/run_once_before_05-install-nanobrew-formulae.sh.tmpl|install/macos/common/nanobrew-formulae.sh"
+  "task|install:common:ssh|install/common/ssh.sh|install/common/ssh.sh"
+  "task|install:macos:command-line-tools|install/macos/common/command_line_tools.sh|install/macos/common/command_line_tools.sh"
+  "task|install:macos:homebrew|install/macos/common/homebrew.sh|install/macos/common/homebrew.sh"
+  "task|install:macos:nanobrew|install/macos/common/nanobrew.sh|install/macos/common/nanobrew.sh"
+  "task|install:macos:nanobrew-casks|install/macos/common/nanobrew-casks.sh|install/macos/common/nanobrew-casks.sh"
+  "task|install:macos:nanobrew-formulae|install/macos/common/nanobrew-formulae.sh|install/macos/common/nanobrew-formulae.sh"
   "dotfiles|mise:dotfiles:apply|mise.toml|target/home"
-  "task|install:common:mise|home/.chezmoiscripts/common/run_once_after_02-install-mise.sh.tmpl|install/common/mise.sh"
-  "task|install:common:git|home/.chezmoiscripts/common/run_after_03-migrate-git-xdg.sh.tmpl|install/common/git.sh"
+  "task|install:common:mise|install/common/mise.sh|install/common/mise.sh"
+  "task|install:common:git|install/common/git.sh|install/common/git.sh"
   "task|install:common:git-signing|install/common/git-signing.sh|install/common/git-signing.sh"
-  "task|install:common:gh|home/.chezmoiscripts/common/run_after_04-setup-github.sh.tmpl|install/common/gh.sh"
-  "task|install:common:ollama-models|home/.chezmoiscripts/common/run_onchange_after_05-pull-ollama-models.sh.tmpl|install/common/ollama-models.sh"
-  "task|install:common:mlx|home/.chezmoiscripts/common/run_onchange_after_06-install-mlx.sh.tmpl|install/common/mlx.sh"
-  "task|install:macos:defaults|home/.chezmoiscripts/macos/run_onchange_after_06-apply-macos-defaults.sh.tmpl|install/macos/common/defaults.sh"
+  "task|install:common:gh|install/common/gh.sh|install/common/gh.sh"
+  "task|install:common:ollama-models|install/common/ollama-models.sh|install/common/ollama-models.sh"
+  "task|install:common:mlx|install/common/mlx.sh|install/common/mlx.sh"
+  "task|install:macos:defaults|install/macos/common/defaults.sh|install/macos/common/defaults.sh"
 )
 
 usage() {
@@ -269,7 +269,7 @@ check_hook_mapping() {
   local include_path="../${source}"
 
   [[ -f "${hook_path}" ]] || {
-    error "missing hook template: ${hook}"
+    error "missing setup script: ${hook}"
     return 1
   }
 

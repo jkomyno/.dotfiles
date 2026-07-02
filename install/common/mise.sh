@@ -11,6 +11,7 @@ readonly MISE_BOOTSTRAP_VERSION="${MISE_BOOTSTRAP_VERSION:-${DEFAULT_MISE_BOOTST
 readonly MISE_INSTALL_PATH="${MISE_INSTALL_PATH:-${HOME}/.local/bin/mise}"
 readonly MISE_INSTALLER_URL="https://raw.githubusercontent.com/jdx/mise/refs/tags/${MISE_BOOTSTRAP_VERSION}/packaging/standalone/install.envsubst"
 readonly DEFAULT_MISE_MINIMUM_RELEASE_AGE="${MISE_MINIMUM_RELEASE_AGE:-7d}"
+install_tools="true"
 
 log() {
   printf '==> %s\n' "$*" >&2
@@ -19,6 +20,36 @@ log() {
 die() {
   printf 'error: %s\n' "$*" >&2
   exit 1
+}
+
+usage() {
+  cat <<'USAGE'
+Usage: install/common/mise.sh [options]
+
+Install the pinned standalone mise binary and, by default, the configured tools.
+
+Options:
+  --binary-only, --skip-tools  Install or update the mise binary only.
+  -h, --help                  Show this help.
+USAGE
+}
+
+parse_args() {
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      --binary-only | --skip-tools)
+        install_tools="false"
+        ;;
+      -h | --help)
+        usage
+        exit 0
+        ;;
+      *)
+        die "unknown option: $1"
+        ;;
+    esac
+    shift
+  done
 }
 
 installed_mise_version() {
@@ -56,13 +87,16 @@ install_configured_tools() {
 }
 
 main() {
+  parse_args "$@"
+
   [[ "$(uname -s)" == "Darwin" ]] || return 0
   [[ "$(uname -m)" == "arm64" ]] || die "only macOS arm64 is supported today"
 
   install_mise
+  [[ "${install_tools}" == "true" ]] || return 0
   install_configured_tools
 }
 
 if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
-  main
+  main "$@"
 fi

@@ -6,7 +6,7 @@ disable-model-invocation: true
 
 # Sync Vendored Skills
 
-Third-party skills are vendored into the dotfiles repository under `home/dot_agents/skills/exact_<name>/` and deployed by chezmoi to `~/.agents/skills/<name>/`. `manifest.json` in this skill's directory maps each vendored skill to its upstream repository and in-repo path. This skill keeps the vendored copies in sync with upstream while preserving deliberate local modifications as patch files.
+Third-party skills are vendored into the dotfiles repository under `target/home/.agents/skills/<name>/` and deployed by mise to `~/.agents/skills/<name>/`. `manifest.json` in this skill's directory maps each vendored skill to its upstream repository and in-repo path. This skill keeps the vendored copies in sync with upstream while preserving deliberate local modifications as patch files.
 
 Inspired by dmmulroy's `sync-pocock-skills`, generalized to many upstreams.
 
@@ -16,7 +16,7 @@ Always operate on the dotfiles **source checkout**, never on the deployed `~/.ag
 
 ```bash
 DOTFILES="${DOTFILES:-$HOME/work/me/dotfiles}"
-SYNC_ROOT="$DOTFILES/home/dot_agents/skills/exact_sync-skills"
+SYNC_ROOT="$DOTFILES/target/home/.agents/skills/sync-skills"
 bash "$SYNC_ROOT/scripts/sync.sh" --keep-upstream
 ```
 
@@ -63,22 +63,22 @@ Frontmatter values that should be preserved without turning into one-line text p
 ### 4. Add a new skill
 
 1. Add an entry to `manifest.json` with `repo` and `path` (the directory containing `SKILL.md`).
-2. Run `apply-upstream.sh <name> <upstream_skill_dir>` to vendor it under `exact_<name>/`.
-3. Add a `symlink_<name>.tmpl` file to `home/dot_claude/skills/` (copy an existing one; they all point at `~/.agents/skills/<name>`). Codex needs no symlink: it scans `~/.agents/skills/` natively.
+2. Run `apply-upstream.sh <name> <upstream_skill_dir>` to vendor it under `target/home/.agents/skills/<name>/`.
+3. No Claude-specific skill symlink is needed: mise points `~/.claude/skills` at the same canonical `~/.agents/skills` directory.
 
 ### 5. Verify and summarise
 
 1. Rerun `sync.sh` and confirm `UPSTREAM_CHANGES` is clean (or only intentionally-divergent entries remain).
 2. Confirm `UNPATCHED_PATTERNS` is empty or only contains intentionally accepted wording.
 3. Run `git -C "$DOTFILES" diff --stat` and read the per-skill diffs before reporting; separate metadata-only changes from instruction-body changes.
-4. Remind the user that deployed copies in `~/.agents/skills` update on the next `chezmoi apply`.
+4. Remind the user that deployed copies in `~/.agents/skills` update on the next `mise dotfiles apply`.
 
 Report: skills updated, patches created or re-applied, conflicts needing attention, new skills offered/excluded, and the net diff.
 
 ## File layout
 
 ```
-exact_sync-skills/
+sync-skills/
 ├── SKILL.md                  # This file
 ├── manifest.json             # skill name -> { repo, path }
 ├── scripts/

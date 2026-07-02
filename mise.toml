@@ -15,8 +15,10 @@ includes = ["tasks"]
 "~/.codex/AGENTS.md" = { source = "target/home/.codex/AGENTS.md", mode = "symlink" }
 "~/.codex/config.toml" = { source = "target/home/.codex/config.toml", mode = "copy" }
 "~/.handy/settings_store.json" = { source = "target/home/.handy/settings_store.json", mode = "copy" }
+"~/Library/Application Support/com.pais.handy/settings_store.json" = { source = "target/home/.handy/settings_store.json", mode = "copy" }
 "~/.local/bin/coffee" = { source = "target/home/.local/bin/coffee", mode = "symlink" }
 "~/.pi/agent/settings.json" = { source = "target/home/.pi/agent/settings.json", mode = "copy" }
+"~/.ssh/config" = { source = "target/home/.ssh/config", mode = "copy" }
 "~/.uv/uv.toml" = { source = "target/home/.uv/uv.toml", mode = "symlink" }
 "~/.config/ccstatusline/settings.json" = { source = "target/home/.config/ccstatusline/settings.json", mode = "symlink" }
 "~/.config/fish/config.fish" = { source = "target/home/.config/fish/config.fish", mode = "symlink" }
@@ -44,6 +46,7 @@ includes = ["tasks"]
 "~/.config/git/config" = { source = "target/home/.config/git/config", mode = "symlink" }
 "~/.config/git/config-composio" = { source = "target/home/.config/git/config-composio", mode = "symlink" }
 "~/.config/git/ignore" = { source = "target/home/.config/git/ignore", mode = "symlink" }
+"~/.config/gh/config.yml" = { source = "target/home/.config/gh/config.yml", mode = "copy" }
 "~/.config/ghostty/config" = { source = "target/home/.config/ghostty/config", mode = "symlink" }
 "~/.config/ghui/config.json" = { source = "target/home/.config/ghui/config.json", mode = "symlink" }
 "~/.config/hunk/config.toml" = { source = "target/home/.config/hunk/config.toml", mode = "symlink" }

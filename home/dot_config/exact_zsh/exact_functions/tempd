@@ -1,3 +1,0 @@
-# cd into a fresh temporary directory and print its path.
-# Autoloaded: this file is the function body.
-cd "$(mktemp -d)" && pwd

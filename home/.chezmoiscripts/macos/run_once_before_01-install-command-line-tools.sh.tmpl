@@ -1,4 +1,0 @@
-{{/* Keep hook logic thin; implementation lives in install/macos/common. */ -}}
-{{ if and (eq .chezmoi.os "darwin") (eq .chezmoi.arch "arm64") -}}
-{{   include "../install/macos/common/command_line_tools.sh" }}
-{{- end }}
