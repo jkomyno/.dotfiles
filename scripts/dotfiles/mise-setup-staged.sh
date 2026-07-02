@@ -10,6 +10,7 @@ mode="run"
 force_dotfiles="false"
 
 setup_plan=(
+  "task|install:common:ssh|home/.chezmoiscripts/common/run_once_before_01-generate-ssh-key.sh.tmpl|install/common/ssh.sh"
   "task|install:macos:command-line-tools|home/.chezmoiscripts/macos/run_once_before_01-install-command-line-tools.sh.tmpl|install/macos/common/command_line_tools.sh"
   "task|install:macos:homebrew|home/.chezmoiscripts/macos/run_once_before_02-install-homebrew.sh.tmpl|install/macos/common/homebrew.sh"
   "task|install:macos:nanobrew|home/.chezmoiscripts/macos/run_once_before_03-install-nanobrew.sh.tmpl|install/macos/common/nanobrew.sh"
@@ -22,10 +23,6 @@ setup_plan=(
   "task|install:common:ollama-models|home/.chezmoiscripts/common/run_onchange_after_05-pull-ollama-models.sh.tmpl|install/common/ollama-models.sh"
   "task|install:common:mlx|home/.chezmoiscripts/common/run_onchange_after_06-install-mlx.sh.tmpl|install/common/mlx.sh"
   "task|install:macos:defaults|home/.chezmoiscripts/macos/run_onchange_after_06-apply-macos-defaults.sh.tmpl|install/macos/common/defaults.sh"
-)
-
-sensitive_hook_exclusions=(
-  "home/.chezmoiscripts/common/run_once_before_01-generate-ssh-key.sh.tmpl|install/common/ssh.sh"
 )
 
 usage() {
@@ -100,13 +97,6 @@ print_plan() {
     index=$((index + 1))
   done
 
-  if [[ ${#sensitive_hook_exclusions[@]} -gt 0 ]]; then
-    printf '\nExcluded pending a sensitive setup pass:\n'
-    for entry in "${sensitive_hook_exclusions[@]}"; do
-      IFS='|' read -r hook source <<<"${entry}"
-      printf '  %s -> %s\n' "${hook}" "${source}"
-    done
-  fi
 }
 
 registered_tasks() {
@@ -144,14 +134,6 @@ check_hook_mapping() {
   fi
 }
 
-check_sensitive_exclusions() {
-  local hook source
-  for entry in "${sensitive_hook_exclusions[@]}"; do
-    IFS='|' read -r hook source <<<"${entry}"
-    check_hook_mapping "${hook}" "${source}"
-  done
-}
-
 check_plan() {
   local actual_tasks
   local kind name hook source
@@ -184,7 +166,6 @@ check_plan() {
     esac
   done
 
-  check_sensitive_exclusions
   run_repo_mise tasks validate --local --errors-only
 }
 

@@ -72,8 +72,8 @@ mise-managed, target-shaped dotfiles tree.
   hook templates without running installers.
 
 Next migration step: exercise the staged setup runner in an isolated macOS user
-account or VM, then decide whether to migrate the sensitive SSH/signing setup
-before switching `setup.sh`. Avoid SSH key generation, Git signing templates,
+account or VM, then decide whether to migrate the remaining Git signing
+templates before switching `setup.sh`. Avoid Git signing templates,
 app-private symlink targets, and other sensitive templates until they get a
 dedicated migration pass.
 
@@ -193,6 +193,7 @@ Current wrapper inventory:
 - `install:macos:defaults` wraps
   `install/macos/common/defaults.sh`.
 - `install:common:mise` wraps `install/common/mise.sh`.
+- `install:common:ssh` wraps `install/common/ssh.sh`.
 - `install:common:git` wraps `install/common/git.sh`.
 - `install:common:gh` depends on the Git migration task and wraps
   `install/common/gh.sh`.
@@ -200,24 +201,25 @@ Current wrapper inventory:
   `install/common/ollama-models.sh`.
 - `install:common:mlx` depends on mise and wraps `install/common/mlx.sh`.
 
-`install/common/ssh.sh` is intentionally not wrapped in this first task slice;
-it generates local key material and should move only during the dedicated
-sensitive setup pass.
+`install:common:ssh` is idempotent and can be skipped with
+`DOTFILES_SKIP_SSH_KEYGEN=1`. It is part of the staged setup order because the
+existing chezmoi hook already runs it before file apply on first setup.
 
 Current staged setup order:
 
-1. `install:macos:command-line-tools`
-2. `install:macos:homebrew`
-3. `install:macos:nanobrew`
-4. `install:macos:nanobrew-casks`
-5. `install:macos:nanobrew-formulae`
-6. `mise dotfiles apply`
-7. `install:common:mise`
-8. `install:common:git`
-9. `install:common:gh`
-10. `install:common:ollama-models`
-11. `install:common:mlx`
-12. `install:macos:defaults`
+1. `install:common:ssh`
+2. `install:macos:command-line-tools`
+3. `install:macos:homebrew`
+4. `install:macos:nanobrew`
+5. `install:macos:nanobrew-casks`
+6. `install:macos:nanobrew-formulae`
+7. `mise dotfiles apply`
+8. `install:common:mise`
+9. `install:common:git`
+10. `install:common:gh`
+11. `install:common:ollama-models`
+12. `install:common:mlx`
+13. `install:macos:defaults`
 
 The staged setup runner invokes wrapper tasks with `mise run --skip-deps` in
 this explicit order, so the dependency graph remains useful for ad hoc task
