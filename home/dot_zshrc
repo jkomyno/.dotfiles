@@ -74,7 +74,7 @@ fi
 source "${ZINIT_HOME}/zinit.zsh"
 
 # Completions — only rebuild the dump once per day, use the cache (-C) otherwise.
-# Must run before plugins so `compdef` exists when zinit replays it.
+# Must run before plugin declarations so `compdef` exists when zinit replays it.
 # The dump lives in the XDG cache dir; touch resets the daily clock because a
 # full compinit does not rewrite an unchanged dump.
 _zcompdump="${XDG_CACHE_HOME:-$HOME/.cache}/zsh/zcompdump"
@@ -88,37 +88,7 @@ else
 fi
 unset _zcompdump
 
-# zsh-autocomplete loads eagerly (it IS the interactive UX)
-zinit light marlonrichert/zsh-autocomplete
-
-# Everything below is deferred with turbo mode (wait lucid): it loads just
-# after the first prompt is shown, so it never delays startup.
-zinit ice wait lucid
-zinit light zsh-users/zsh-syntax-highlighting
-zinit ice wait lucid atload'_zsh_autosuggest_start'
-zinit light zsh-users/zsh-autosuggestions
-
-zinit ice wait lucid as"program" pick"bin/git-dsf"
-zinit load so-fancy/diff-so-fancy
-
-zinit ice wait lucid
-zinit snippet OMZL::git.zsh
-# OMZ git defines its own gm (git merge) and gbda (merge-only); re-apply our
-# versions after it loads (see aliases.d/gm.zsh for the full story)
-zinit ice wait lucid atload'_git_alias_overrides'
-zinit snippet OMZP::git
-zinit ice wait lucid
-zinit snippet OMZP::sudo
-zinit ice wait lucid
-zinit snippet OMZP::command-not-found
-
-# Third-party completions, also deferred (skipped when not installed)
-if [[ -s "$HOME/.bun/_bun" ]]; then
-  zinit ice wait lucid
-  zinit snippet "$HOME/.bun/_bun"
-fi
-
-zinit cdreplay -q
+source "$HOME/.config/zsh/plugins.zsh"
 
 # ----------------------------------------------------------------------------
 # History
@@ -181,3 +151,10 @@ autoload -Uz gbda trash tempd
 if [ -r "${HOME}/.zshrc.local" ]; then
   source "${HOME}/.zshrc.local"
 fi
+
+# Session integrations: optional behavior that may change terminal process
+# lifetime, sourced last so local overrides can opt in.
+for _session_file in "$HOME/.config/zsh/session.d"/*.zsh(N); do
+  source "$_session_file"
+done
+unset _session_file
