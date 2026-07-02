@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # apply-upstream.sh — Replace a vendored skill with its upstream copy, then
-# re-apply any local patches from the patches/ directory.
+# re-apply any local patches from the patches/ directory and configured
+# frontmatter overrides.
 #
 # Usage:
 #   bash apply-upstream.sh <skill_name> <upstream_skill_dir> [--skills-dir <dir>]
@@ -17,6 +18,7 @@ SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 SKILL_ROOT="$(dirname "$SCRIPT_DIR")"
 SKILLS_DIR="$(dirname "$SKILL_ROOT")"
 PATCHES_DIR="$SKILL_ROOT/patches"
+OVERRIDES_SCRIPT="$SCRIPT_DIR/apply-frontmatter-overrides.py"
 
 if [[ "${1:-}" == "--skills-dir" ]]; then
   [[ $# -ge 2 ]] || { echo "ERROR: --skills-dir needs a value" >&2; exit 2; }
@@ -51,5 +53,13 @@ for patch_file in "$PATCHES_DIR/${NAME}__"*.patch; do
     echo "PATCH_CONFLICT: $rel_path ($patch_file)"
   fi
 done
+
+if [[ -f "$OUR_DIR/SKILL.md" && -f "$OVERRIDES_SCRIPT" ]]; then
+  if command -v python3 >/dev/null 2>&1; then
+    python3 "$OVERRIDES_SCRIPT" "$NAME" "$OUR_DIR/SKILL.md" "$PATCHES_DIR"
+  elif [[ -f "$PATCHES_DIR/local-overrides.json" ]] && grep -q "\"$NAME\"" "$PATCHES_DIR/local-overrides.json"; then
+    echo "PATCH_CONFLICT: SKILL.md frontmatter overrides need python3"
+  fi
+fi
 
 echo "STATUS: apply complete for $NAME"

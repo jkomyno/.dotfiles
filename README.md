@@ -2,6 +2,74 @@
 
 Automated dotfiles management for my ([jkomyno](https://x.com/jkomyno)) personal development environment.
 
+## Start Here
+
+On a brand-new Apple Silicon Mac with only Terminal available, paste:
+
+```sh
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/jkomyno/.dotfiles/main/setup.sh)"
+```
+
+That command downloads [`setup.sh`](./setup.sh), installs `chezmoi` into `~/.local/bin` if needed, creates `~/work/me`, fetches this repository with chezmoi's built-in Git support, and applies the managed files. It does not require `git` to be installed first.
+
+By default, the repository checkout lands at:
+
+```sh
+~/work/me/dotfiles
+```
+
+The managed chezmoi source root is the `home` subdirectory inside that checkout because this repository uses [`.chezmoiroot`](./.chezmoiroot):
+
+```sh
+~/work/me/dotfiles/home
+```
+
+The managed files are applied from that source root into `$HOME`. Verify it at any time with `chezmoi source-path`.
+
+Useful first-run variants:
+
+```sh
+# Do not rename this Mac during bootstrap.
+DOTFILES_SKIP_COMPUTER_NAME=1 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/jkomyno/.dotfiles/main/setup.sh)"
+
+# Use a specific machine name.
+DOTFILES_COMPUTER_NAME="Alberto's MacBook Pro" /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/jkomyno/.dotfiles/main/setup.sh)"
+
+# Bootstrap a branch other than main.
+DOTFILES_BRANCH=my-branch /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/jkomyno/.dotfiles/main/setup.sh)"
+
+# Use a different parent directory.
+DOTFILES_WORK_DIR="$HOME/work/personal" /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/jkomyno/.dotfiles/main/setup.sh)"
+
+# Use an exact checkout directory.
+DOTFILES_CHECKOUT_DIR="$HOME/src/dotfiles" /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/jkomyno/.dotfiles/main/setup.sh)"
+```
+
+If this repository is private, the raw `curl` command and the later `chezmoi init` both need read access. The clean path is to make the repository readable for bootstrap or provide a short-lived HTTPS credential for the first fetch, then switch the remote back to SSH after `gh auth login` and SSH-key upload have completed.
+
+After setup finishes, open a new terminal so the managed shell environment is loaded, then run:
+
+```sh
+cd ~/work/me/dotfiles
+just doctor
+```
+
+`just doctor` checks the source checkout, rendered chezmoi templates, package ownership, and the mise lock refresh path.
+
+## What Setup Does
+
+The root [`setup.sh`](./setup.sh) is intentionally small:
+
+1. Requires `curl`.
+2. On macOS, keeps sudo alive for the first run and optionally sets the computer name.
+3. Installs or finds `chezmoi`.
+4. Runs `chezmoi init` with `--use-builtin-git true`.
+5. Runs `chezmoi apply`.
+
+The apply step runs the provisioning hooks under [`home/.chezmoiscripts`](./home/.chezmoiscripts). On macOS Apple Silicon, those hooks install Xcode Command Line Tools, Homebrew, nanobrew, GUI apps/fonts, exceptional formulae, the standalone mise binary, the configured mise toolchain, SSH/Git/GitHub setup, Ollama models, and repeatable macOS defaults.
+
+Linux is not a full provisioning target yet. The shared dotfiles and diagnostics are expected to work, while macOS package/default hooks skip themselves until this repository grows a real Linux profile.
+
 ## Overview
 
 These dotfiles:
@@ -38,11 +106,39 @@ Per-idea reference corpora (pinned shallow clones of upstream repositories, blog
 
 macOS user preferences live in [`install/macos/common/defaults.sh`](./install/macos/common/defaults.sh) and are applied through a `run_onchange_after` chezmoi hook. The script handles repeatable user-level defaults by default, including a Dock that shows only running applications; clearing saved Dock pins and sudo-backed power/login settings are explicit opt-ins. Per-device machine identity is set once by [`setup.sh`](./setup.sh), defaulting to `Alberto's MacBook Pro`.
 
-## Bootstrap
+## Maintenance
 
-[`setup.sh`](./setup.sh) is intentionally a thin entrypoint: it installs or finds `chezmoi`, initializes this repository, and runs `chezmoi apply`.
+Repeatable operator tasks live in the root [`Justfile`](./Justfile). After `setup.sh` has installed the managed mise toolchain, run:
 
-Machine provisioning lives in [`install`](./install) and is wired into chezmoi through `home/.chezmoiscripts`.
+```sh
+just doctor             # non-mutating repository, chezmoi, package, and toolchain checks
+just status             # git status plus chezmoi target drift
+just packages           # validate package ownership and report installed/missing macOS packages
+just versions           # check third-party mise versions and lock refreshes without writing
+just sync-skills-check  # compare vendored agent skills with upstream
+```
+
+Every recipe is backed by a plain script under [`scripts/dotfiles`](./scripts/dotfiles), so a fresh machine without `just` can run the same checks directly, for example:
+
+```sh
+bash scripts/dotfiles/doctor.sh
+bash scripts/dotfiles/versions.sh --check
+```
+
+Mutating maintenance commands are explicit:
+
+```sh
+just versions-update
+bash scripts/dotfiles/versions.sh --write
+```
+
+`versions-update` preserves configured version ranges such as `node = "24"` and refreshes [`home/dot_mise/mise.lock`](./home/dot_mise/mise.lock) for Linux and macOS, x64 and arm64. Use `scripts/dotfiles/versions.sh --write --bump` only when you intentionally want to change requested versions in [`home/dot_mise/config.toml`](./home/dot_mise/config.toml).
+
+To pull repo changes on an already-provisioned machine:
+
+```sh
+chezmoi update
+```
 
 ## Testing Changes Safely
 

@@ -3,6 +3,8 @@
 node = "24"
 python = "3.13"
 rust = { version = "1.96.0", targets = "wasm32-unknown-unknown" }
+erlang = "29.0.2"
+elixir = "1.20.2-otp-29"
 
 # JavaScript and TypeScript tooling
 # https://github.com/pnpm/pnpm - fast, disk-efficient JavaScript package manager

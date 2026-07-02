@@ -171,7 +171,30 @@ while IFS= read -r repo; do
   done < <(command find "$WORK_DIR/repos/$slug" -name SKILL.md ! -path '*/node_modules/*' ! -path '*/.git/*' | sort)
 done < <(jq -r '.skills[].repo' "$MANIFEST" | sort -u)
 
-# --- Section 3: Upstream clones for the agent to read ---
+# --- Section 3: Host-specific wording that needs local patches ---
+echo ""
+echo "=== UNPATCHED_PATTERNS ==="
+PATTERNS='Claude Code|CLAUDE\.md|sub.agent|subagent|Agent tool|spawn.*agent|subagent_type'
+while IFS=$'\t' read -r name repo path; do
+  our_path=$(our_skill_dir "$name")
+  [[ -n "$our_path" ]] || continue
+
+  while IFS= read -r file; do
+    rel_path="${file#"$our_path"/}"
+    patch_file="$PATCHES_DIR/${name}__${rel_path//\//__}.patch"
+    [[ -f "$patch_file" ]] && continue
+
+    matches=$(grep -niE "$PATTERNS" "$file" 2>/dev/null || true)
+    if [[ -n "$matches" ]]; then
+      echo "UNPATCHED: $name/$rel_path"
+      echo "$matches" | while IFS= read -r line; do
+        echo "  $line"
+      done
+    fi
+  done < <(command find "$our_path" \( -name "*.md" -o -name "*.sh" \) -type f | sort)
+done < <(jq -r '.skills | to_entries[] | [.key, .value.repo, .value.path] | @tsv' "$MANIFEST")
+
+# --- Section 4: Upstream clones for the agent to read ---
 echo ""
 echo "=== UPSTREAM_DIRS ==="
 while IFS= read -r repo; do

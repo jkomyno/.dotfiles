@@ -207,6 +207,21 @@ url = "https://github.com/twpayne/chezmoi/releases/download/v2.70.5/chezmoi_2.70
 checksum = "sha256:ebc29455dc9106e8d2d980708b45bd3120e44c7d5e6a06787ff307faaa0681a8"
 url = "https://github.com/twpayne/chezmoi/releases/download/v2.70.5/chezmoi_2.70.5_windows_amd64.zip"
 
+[[tools.elixir]]
+version = "1.20.2-otp-29"
+backend = "core:elixir"
+
+[tools.elixir."platforms.macos-arm64"]
+checksum = "blake3:edf9cb5e3fc0b6ea6dd264e54d5e85f52f417c629651c02b970fee29be39f1cb"
+url = "https://builds.hex.pm/builds/elixir/v1.20.2-otp-29.zip"
+
+[[tools.erlang]]
+version = "29.0.2"
+backend = "core:erlang"
+
+[tools.erlang."platforms.macos-arm64"]
+checksum = "blake3:8be6754791eab630b0d22c1dd94ff8eb8e4629a946051f75115ef7a9659bb61b"
+
 [[tools.eza]]
 version = "0.23.4"
 backend = "asdf:eza"

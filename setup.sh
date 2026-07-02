@@ -6,11 +6,16 @@ if [[ -n "${DOTFILES_DEBUG:-}" ]]; then
   set -x
 fi
 
-readonly DOTFILES_REPO_URL="${DOTFILES_REPO_URL:-https://github.com/jkomyno/dotfiles}"
+readonly DOTFILES_REPO_URL="${DOTFILES_REPO_URL:-https://github.com/jkomyno/.dotfiles}"
 readonly DOTFILES_BRANCH="${DOTFILES_BRANCH:-${BRANCH_NAME:-main}}"
 readonly CHEZMOI_BIN_DIR="${CHEZMOI_BIN_DIR:-${HOME}/.local/bin}"
+readonly DOTFILES_WORK_DIR="${DOTFILES_WORK_DIR:-${HOME}/work/me}"
+readonly DOTFILES_CHECKOUT_DIR="${DOTFILES_CHECKOUT_DIR:-${DOTFILES_WORK_DIR}/dotfiles}"
 readonly SUDO_KEYCHAIN_SERVICE="dotfiles-bootstrap"
 readonly DEFAULT_DOTFILES_COMPUTER_NAME="Alberto's MacBook Pro"
+
+export DOTFILES_WORK_DIR
+export DOTFILES_CHECKOUT_DIR
 
 DOTFILES_LOGO="$(
   cat <<'LOGO'
@@ -229,24 +234,37 @@ ensure_chezmoi() {
   printf '%s\n' "${CHEZMOI_BIN_DIR}/chezmoi"
 }
 
+prepare_dotfiles_checkout() {
+  local checkout_parent
+  checkout_parent="$(dirname -- "${DOTFILES_CHECKOUT_DIR}")"
+
+  mkdir -p "${DOTFILES_WORK_DIR}"
+  mkdir -p "${checkout_parent}"
+
+  if [[ -e "${DOTFILES_CHECKOUT_DIR}" && ! -d "${DOTFILES_CHECKOUT_DIR}" ]]; then
+    die "DOTFILES_CHECKOUT_DIR exists but is not a directory: ${DOTFILES_CHECKOUT_DIR}"
+  fi
+}
+
 run_chezmoi() {
   local chezmoi_cmd
   chezmoi_cmd="$(ensure_chezmoi)"
+  prepare_dotfiles_checkout
 
   local -a tty_args=()
   if is_non_interactive; then
     tty_args=("--no-tty")
   fi
 
-  log "Initializing dotfiles from ${DOTFILES_REPO_URL}#${DOTFILES_BRANCH}"
-  "${chezmoi_cmd}" init "${DOTFILES_REPO_URL}" \
+  log "Initializing dotfiles from ${DOTFILES_REPO_URL}#${DOTFILES_BRANCH} into ${DOTFILES_CHECKOUT_DIR}"
+  "${chezmoi_cmd}" --source "${DOTFILES_CHECKOUT_DIR}" init "${DOTFILES_REPO_URL}" \
     --branch "${DOTFILES_BRANCH}" \
     --force \
     --use-builtin-git true \
     "${tty_args[@]}"
 
-  log "Applying dotfiles"
-  "${chezmoi_cmd}" apply "${tty_args[@]}"
+  log "Applying dotfiles from ${DOTFILES_CHECKOUT_DIR}"
+  "${chezmoi_cmd}" --source "${DOTFILES_CHECKOUT_DIR}" apply "${tty_args[@]}"
 }
 
 main() {
