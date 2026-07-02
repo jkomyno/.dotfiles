@@ -13,7 +13,6 @@ readonly MISE_INSTALL_PATH="${MISE_INSTALL_PATH:-${DOTFILES_BIN_DIR}/mise}"
 readonly DOTFILES_ARCHIVE_URL="${DOTFILES_ARCHIVE_URL:-}"
 readonly DOTFILES_WORK_DIR="${DOTFILES_WORK_DIR:-${HOME}/work/me}"
 readonly DOTFILES_CHECKOUT_DIR="${DOTFILES_CHECKOUT_DIR:-${DOTFILES_WORK_DIR}/dotfiles}"
-readonly SUDO_KEYCHAIN_SERVICE="dotfiles-bootstrap"
 readonly DEFAULT_DOTFILES_COMPUTER_NAME="Alberto's MacBook Pro"
 
 export DOTFILES_WORK_DIR
@@ -73,14 +72,9 @@ cleanup_sudo_macos() {
     kill "${SUDO_KEEPALIVE_PID}" >/dev/null 2>&1 || true
   fi
 
-  if [[ -n "${SUDO_ASKPASS:-}" ]]; then
-    rm -f "${SUDO_ASKPASS}"
-  fi
-
-  /usr/bin/security delete-generic-password \
-    -s "${SUDO_KEYCHAIN_SERVICE}" \
-    -a "${USER}" \
-    >/dev/null 2>&1 || true
+  # Invalidate the cached sudo timestamp so elevated access does not outlive
+  # the bootstrap.
+  sudo -k >/dev/null 2>&1 || true
 }
 
 keepalive_sudo_macos() {
@@ -94,34 +88,19 @@ keepalive_sudo_macos() {
   fi
 
   log "Preparing sudo access"
-  local password
-  IFS= read -r -s -p "Password: " password </dev/tty
-  printf '\n' >/dev/tty
-
-  /usr/bin/security add-generic-password \
-    -U \
-    -s "${SUDO_KEYCHAIN_SERVICE}" \
-    -a "${USER}" \
-    -w "${password}" \
-    >/dev/null
-
-  SUDO_ASKPASS="$(mktemp)"
-  export SUDO_ASKPASS
-  cat >"${SUDO_ASKPASS}" <<ASKPASS
-#!/bin/sh
-/usr/bin/security find-generic-password -s "${SUDO_KEYCHAIN_SERVICE}" -a "${USER}" -w
-ASKPASS
-  chmod 700 "${SUDO_ASKPASS}"
+  # Prime sudo's own timestamp with a single interactive prompt, then keep it
+  # warm in the background. The password is never read into a shell variable,
+  # written to a temp file, or stored in the keychain, so it cannot leak via
+  # `set -x`, argv, or a readable credential at rest. Later privileged steps
+  # rely on sudo's per-tty timestamp cache, which the loop below refreshes.
+  if ! sudo -v; then
+    die "could not obtain sudo access"
+  fi
 
   trap cleanup_sudo_macos EXIT
 
-  if ! /usr/bin/sudo -A -k -v; then
-    cleanup_sudo_macos
-    die "incorrect sudo password"
-  fi
-
   while true; do
-    /usr/bin/sudo -A -v
+    sudo -n -v >/dev/null 2>&1 || exit
     sleep 60
     kill -0 "$$" >/dev/null 2>&1 || exit
   done >/dev/null 2>&1 &
@@ -175,7 +154,7 @@ set_scutil_name() {
   fi
 
   log "Setting ${key} to ${value}"
-  sudo -A scutil --set "${key}" "${value}"
+  sudo scutil --set "${key}" "${value}"
 }
 
 configure_macos_computer_name() {
@@ -188,7 +167,7 @@ configure_macos_computer_name() {
     return 0
   fi
 
-  if [[ -z "${SUDO_ASKPASS:-}" ]] && ! has_tty; then
+  if ! sudo -n -v 2>/dev/null && ! has_tty; then
     log "Skipping computer name setup because sudo is unavailable without a TTY"
     return 0
   fi
@@ -225,7 +204,7 @@ configure_macos_computer_name() {
   fi
 
   log "Setting NetBIOSName to ${netbios_name}"
-  sudo -A defaults write /Library/Preferences/SystemConfiguration/com.apple.smb.server NetBIOSName -string "${netbios_name}"
+  sudo defaults write /Library/Preferences/SystemConfiguration/com.apple.smb.server NetBIOSName -string "${netbios_name}"
 }
 
 checkout_is_git() {
