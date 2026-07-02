@@ -24,6 +24,7 @@ includes = ["tasks"]
 "~/.config/fish/config.fish" = { source = "target/home/.config/fish/config.fish", mode = "symlink" }
 "~/.config/fish/conf.d/00-paths.fish" = { source = "target/home/.config/fish/conf.d/00-paths.fish", mode = "symlink" }
 "~/.config/fish/conf.d/brew.fish" = { source = "target/home/.config/fish/conf.d/brew.fish", mode = "symlink" }
+"~/.config/fish/conf.d/macos-apps.fish" = { source = "target/home/.config/fish/conf.d/macos-apps.fish", mode = "symlink" }
 "~/.config/fish/conf.d/mise.fish" = { source = "target/home/.config/fish/conf.d/mise.fish", mode = "symlink" }
 "~/.config/fish/conf.d/ripgrep.fish" = { source = "target/home/.config/fish/conf.d/ripgrep.fish", mode = "symlink" }
 "~/.config/fish/conf.d/starship.fish" = { source = "target/home/.config/fish/conf.d/starship.fish", mode = "symlink" }

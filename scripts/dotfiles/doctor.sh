@@ -60,6 +60,7 @@ check_required_files() {
     "target/home/.config/fish/config.fish"
     "target/home/.config/fish/conf.d/00-paths.fish"
     "target/home/.config/fish/conf.d/brew.fish"
+    "target/home/.config/fish/conf.d/macos-apps.fish"
     "target/home/.config/fish/conf.d/mise.fish"
     "target/home/.config/fish/conf.d/ripgrep.fish"
     "target/home/.config/fish/conf.d/starship.fish"
