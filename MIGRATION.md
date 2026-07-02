@@ -55,6 +55,7 @@ mise-managed, target-shaped dotfiles tree.
 - `just dotfiles-mirror-check` guards the temporary dual-source phase by
   checking that mirrored target files still match their current chezmoi
   sources.
+- Stage 3 capability probing is tracked by `just dotfiles-capabilities`.
 
 Next migration step: expand Stage 2 only after deciding how to handle directory
 overlays and templates. Good candidates are additional individual plain files.
@@ -125,6 +126,17 @@ Acceptance:
 
 Replace chezmoi-specific file behavior with mise-native behavior or small
 scripts.
+
+Capability findings for `mise 2026.6.14`:
+
+- `mode = "symlink"` creates symlinks for files.
+- `mode = "copy"` creates regular files.
+- `mode = "template"` renders templates and can read environment values through
+  `env.*`.
+- `mode = "symlink"` can point a target directory at a source directory.
+- `mise dotfiles apply` refuses to overwrite existing whole-file targets unless
+  `--force` is passed.
+- `mise dotfiles apply --force` replaces conflicting whole-file targets.
 
 Acceptance:
 

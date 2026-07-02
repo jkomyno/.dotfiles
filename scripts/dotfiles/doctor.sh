@@ -52,6 +52,7 @@ check_required_files() {
     "target/home/.config/ripgrep/config"
     "target/home/.config/starship.toml"
     "target/home/.config/tmux/tmux.conf"
+    "scripts/dotfiles/mise-dotfiles-capabilities.sh"
     "scripts/dotfiles/mise-dotfiles-check.sh"
     "scripts/dotfiles/mise-dotfiles-mirror-check.sh"
     "install/macos/common/nanobrew-casks.Brewfile"

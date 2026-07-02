@@ -51,3 +51,7 @@ dotfiles-check:
 # Check that target-shaped mirrors still match the current chezmoi sources.
 dotfiles-mirror-check:
     @scripts/dotfiles/mise-dotfiles-mirror-check.sh
+
+# Probe mise dotfiles behavior in a disposable project and HOME.
+dotfiles-capabilities:
+    @scripts/dotfiles/mise-dotfiles-capabilities.sh

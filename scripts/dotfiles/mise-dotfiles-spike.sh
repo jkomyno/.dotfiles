@@ -18,7 +18,7 @@ Usage: scripts/dotfiles/mise-dotfiles-spike.sh [options]
 Run a disposable mise dotfiles spike against a temporary HOME.
 
 Options:
-  --install     Run `mise system install --yes` against the temporary HOME
+  --install     Run `mise dotfiles apply --yes` against the temporary HOME
                 after the dry-run succeeds.
   --keep-temp   Keep the temporary project and HOME directories for inspection.
   -h, --help    Show this help.
