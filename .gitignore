@@ -221,9 +221,19 @@ target/
 !target/
 !target/home/
 !target/home/.config/
+!target/home/.config/ccstatusline/
+!target/home/.config/ccstatusline/settings.json
+!target/home/.config/ghostty/
+!target/home/.config/ghostty/config
+!target/home/.config/ghui/
+!target/home/.config/ghui/config.json
+!target/home/.config/hunk/
+!target/home/.config/hunk/config.toml
 !target/home/.config/starship.toml
 !target/home/.config/ripgrep/
 !target/home/.config/ripgrep/config
+!target/home/.config/tmux/
+!target/home/.config/tmux/tmux.conf
 
 # Jupyter Notebook
 .ipynb_checkpoints
