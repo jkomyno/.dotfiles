@@ -72,6 +72,11 @@ verify() {
 }
 
 main() {
+  if [[ -n "${DOTFILES_SKIP_MLX:-}" ]]; then
+    log "Skipping mlx tooling (DOTFILES_SKIP_MLX is set)"
+    return 0
+  fi
+
   # MLX requires Apple Silicon; this is a no-op (not an error) anywhere else, so a future
   # Linux profile applies cleanly.
   [[ "$(uname -s)" == "Darwin" ]] || return 0

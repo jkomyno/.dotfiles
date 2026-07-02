@@ -32,6 +32,24 @@ setup_plan=(
   "task|install:macos:defaults|install/macos/common/defaults.sh|install/macos/common/defaults.sh"
 )
 
+# Steps allowed to fail without aborting the staged run. These pull optional
+# local-LLM assets over the network, so a flaky download must not block the
+# remaining setup (notably macOS defaults, which runs after them). They can also
+# be skipped outright via their own DOTFILES_SKIP_* env vars.
+optional_steps=(
+  "install:common:ollama-models"
+  "install:common:mlx"
+)
+
+step_is_optional() {
+  local name="$1"
+  local step
+  for step in "${optional_steps[@]}"; do
+    [[ "${step}" == "${name}" ]] && return 0
+  done
+  return 1
+}
+
 usage() {
   cat <<'USAGE'
 Usage: scripts/dotfiles/mise-setup-staged.sh [options]
@@ -340,7 +358,12 @@ run_plan() {
     case "${kind}" in
       task)
         log "Running ${name}"
-        run_repo_mise run --skip-tools --skip-deps --raw "${name}"
+        if step_is_optional "${name}"; then
+          run_repo_mise run --skip-tools --skip-deps --raw "${name}" ||
+            warn "optional step failed: ${name} (continuing)"
+        else
+          run_repo_mise run --skip-tools --skip-deps --raw "${name}"
+        fi
         ;;
       dotfiles)
         log "Applying mise dotfiles"

@@ -92,6 +92,11 @@ pull_models() {
 }
 
 main() {
+  if [[ -n "${DOTFILES_SKIP_OLLAMA_MODELS:-}" ]]; then
+    log "Skipping ollama model pulls (DOTFILES_SKIP_OLLAMA_MODELS is set)"
+    return 0
+  fi
+
   [[ "$(uname -s)" == "Darwin" ]] || return 0
   [[ "$(uname -m)" == "arm64" ]] || die "only macOS arm64 is supported today"
 
