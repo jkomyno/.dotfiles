@@ -2,6 +2,8 @@
 includes = ["tasks"]
 
 [dotfiles]
+"~/.zshenv" = { source = "target/home/.zshenv", mode = "symlink" }
+"~/.zshrc" = { source = "target/home/.zshrc", mode = "symlink" }
 "~/.config/ccstatusline/settings.json" = { source = "target/home/.config/ccstatusline/settings.json", mode = "symlink" }
 "~/.config/ghostty/config" = { source = "target/home/.config/ghostty/config", mode = "symlink" }
 "~/.config/ghui/config.json" = { source = "target/home/.config/ghui/config.json", mode = "symlink" }
@@ -9,3 +11,14 @@ includes = ["tasks"]
 "~/.config/ripgrep/config" = { source = "target/home/.config/ripgrep/config", mode = "symlink" }
 "~/.config/starship.toml" = { source = "target/home/.config/starship.toml", mode = "symlink" }
 "~/.config/tmux/tmux.conf" = { source = "target/home/.config/tmux/tmux.conf", mode = "symlink" }
+"~/.config/zsh/aliases.d/clipboard.zsh" = { source = "target/home/.config/zsh/aliases.d/clipboard.zsh", mode = "symlink" }
+"~/.config/zsh/aliases.d/coffee.zsh" = { source = "target/home/.config/zsh/aliases.d/coffee.zsh", mode = "symlink" }
+"~/.config/zsh/aliases.d/gm.zsh" = { source = "target/home/.config/zsh/aliases.d/gm.zsh", mode = "symlink" }
+"~/.config/zsh/aliases.d/ls.zsh" = { source = "target/home/.config/zsh/aliases.d/ls.zsh", mode = "symlink" }
+"~/.config/zsh/aliases.d/npm-guard.zsh" = { source = "target/home/.config/zsh/aliases.d/npm-guard.zsh", mode = "symlink" }
+"~/.config/zsh/aliases.d/pnpm.zsh" = { source = "target/home/.config/zsh/aliases.d/pnpm.zsh", mode = "symlink" }
+"~/.config/zsh/functions/gbda" = { source = "target/home/.config/zsh/functions/gbda", mode = "symlink" }
+"~/.config/zsh/functions/tempd" = { source = "target/home/.config/zsh/functions/tempd", mode = "symlink" }
+"~/.config/zsh/functions/trash" = { source = "target/home/.config/zsh/functions/trash", mode = "symlink" }
+"~/.config/zsh/plugins.zsh" = { source = "target/home/.config/zsh/plugins.zsh", mode = "symlink" }
+"~/.config/zsh/session.d/tmux.zsh" = { source = "target/home/.config/zsh/session.d/tmux.zsh", mode = "symlink" }
