@@ -58,12 +58,14 @@ mise-managed, target-shaped dotfiles tree.
   checking that mirrored target files still match their current chezmoi
   sources.
 - Stage 3 capability probing is tracked by `just dotfiles-capabilities`.
+- Stage 3 has started with `.zprofile` as the first target-shaped
+  `mode = "template"` entry. Its rendered output is compared against the
+  current chezmoi template during `just dotfiles-check`.
 
-Next migration step: start a deliberate first template pass with one low-risk
-file, then keep expanding template coverage only after each rendered output is
-proved against a temporary HOME. Avoid Git signing, SSH, GitHub CLI private
-config, app-private symlink targets, and sensitive templates until they get a
-dedicated migration pass.
+Next migration step: keep expanding template coverage only after each rendered
+output is proved against a temporary HOME. Avoid Git signing, SSH, GitHub CLI
+private config, app-private symlink targets, and sensitive templates until they
+get a dedicated migration pass.
 
 ### 0. Guardrails
 

@@ -2,6 +2,7 @@
 includes = ["tasks"]
 
 [dotfiles]
+"~/.zprofile" = { source = "target/home/.zprofile", mode = "template" }
 "~/.zshenv" = { source = "target/home/.zshenv", mode = "symlink" }
 "~/.zshrc" = { source = "target/home/.zshrc", mode = "symlink" }
 "~/.agents/AGENTS.md" = { source = "target/home/.agents/AGENTS.md", mode = "symlink" }

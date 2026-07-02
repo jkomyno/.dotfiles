@@ -86,7 +86,30 @@ verify_symlink() {
   fi
 }
 
+verify_rendered_template() {
+  local target_rel="$1"
+  local source_template="$2"
+  local rendered_path="${check_home}/${target_rel}"
+  local expected_path
+
+  expected_path="$(mktemp)"
+  if ! run_chezmoi_source execute-template < "${DOTFILES_ROOT}/${source_template}" > "${expected_path}"; then
+    rm -f "${expected_path}"
+    return 1
+  fi
+
+  if ! cmp -s "${expected_path}" "${rendered_path}"; then
+    error "rendered template ${target_rel} differs from ${source_template}"
+    diff -u "${expected_path}" "${rendered_path}" >&2 || true
+    rm -f "${expected_path}"
+    return 1
+  fi
+
+  rm -f "${expected_path}"
+}
+
 verify_dotfiles() {
+  verify_rendered_template ".zprofile" "home/dot_zprofile.tmpl"
   verify_symlink ".config/ccstatusline/settings.json" "target/home/.config/ccstatusline/settings.json"
   verify_symlink ".config/ghostty/config" "target/home/.config/ghostty/config"
   verify_symlink ".config/ghui/config.json" "target/home/.config/ghui/config.json"

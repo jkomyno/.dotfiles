@@ -1,0 +1,35 @@
+# Login-shell setup for the active macOS arm64 target.
+typeset -gU path
+
+if [ -d "${HOME}/.local/bin" ]; then
+  path=("${HOME}/.local/bin" $path)
+fi
+{%- if os() == "macos" and arch() == "arm64" %}
+if [ -d /opt/homebrew/bin ]; then
+  path=(/opt/homebrew/bin $path)
+fi
+
+if [ -d /opt/homebrew/sbin ]; then
+  path=(/opt/homebrew/sbin $path)
+fi
+
+# Command-line entrypoints shipped inside GUI app bundles.
+path=(
+  $path
+  "/Applications/Visual Studio Code.app/Contents/Resources/app/bin"(N-/)
+)
+
+# OrbStack command-line tools and shell integration.
+if [ -r "${HOME}/.orbstack/shell/init.zsh" ]; then
+  source "${HOME}/.orbstack/shell/init.zsh"
+fi
+{%- elif os() == "linux" %}
+# Linux support is intentionally unsplit for now.
+# Add Linux-specific login-shell setup here when this repo targets Linux.
+{%- else %}
+# Unsupported platform for now.
+{%- endif %}
+
+if [ -d /opt/nanobrew/prefix/bin ]; then
+  path=(/opt/nanobrew/prefix/bin $path)
+fi
