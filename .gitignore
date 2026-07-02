@@ -217,23 +217,9 @@ docs/_build/
 .pybuilder/
 target/
 
-# Dotfiles target-shaped source tree used by the mise migration.
-!target/
-!target/home/
-!target/home/.config/
-!target/home/.config/ccstatusline/
-!target/home/.config/ccstatusline/settings.json
-!target/home/.config/ghostty/
-!target/home/.config/ghostty/config
-!target/home/.config/ghui/
-!target/home/.config/ghui/config.json
-!target/home/.config/hunk/
-!target/home/.config/hunk/config.toml
-!target/home/.config/starship.toml
-!target/home/.config/ripgrep/
-!target/home/.config/ripgrep/config
-!target/home/.config/tmux/
-!target/home/.config/tmux/tmux.conf
+# The managed dotfiles source tree (target/home) is re-included at the very end
+# of this file, where a single blanket rescue can override every generic
+# language-project pattern above regardless of match order.
 
 # Jupyter Notebook
 .ipynb_checkpoints
@@ -344,3 +330,19 @@ Cargo.lock
 *.pdb
 
 # End of https://www.toptal.com/developers/gitignore/api/python,node,rust
+
+# ---------------------------------------------------------------------------
+# Managed dotfiles source tree — keep it fully tracked.
+#
+# The generic patterns above (target/, dist/, build/, lib/, out, var/, env/,
+# .cache, *.log, *.so, .env, node_modules/, __pycache__/, db.sqlite3, ...) are
+# meant for a language project at the repo root, but they also match paths
+# *inside* target/home and would silently drop any config whose name collides
+# with them. These rescues live last so last-match-wins re-includes the whole
+# tree: the directory rescue (**/) prevents an excluded intermediate dir from
+# blocking file re-inclusion. Nested .gitignore files (e.g. under
+# target/home/.config/nvim) still apply and keep their own intentional ignores.
+!target/
+!target/home/
+!target/home/**/
+!target/home/**
