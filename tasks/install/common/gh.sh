@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-#MISE depends=["install:common:git"]
+#MISE depends=["install:common:git", "install:common:git-signing"]
 #MISE description="Configure GitHub CLI host defaults, signing key, and extensions"
 
 set -Eeuo pipefail

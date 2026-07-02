@@ -9,6 +9,7 @@ source "${SCRIPT_DIR}/lib.sh"
 expected_tasks=(
   "install:common:gh"
   "install:common:git"
+  "install:common:git-signing"
   "install:common:mise"
   "install:common:mlx"
   "install:common:ollama-models"
@@ -28,6 +29,7 @@ expected_tasks=(
 task_install_targets=(
   "install/common/gh.sh"
   "install/common/git.sh"
+  "install/common/git-signing.sh"
   "install/common/mise.sh"
   "install/common/mlx.sh"
   "install/common/ollama-models.sh"

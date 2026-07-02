@@ -19,6 +19,7 @@ setup_plan=(
   "dotfiles|mise:dotfiles:apply|mise.toml|target/home"
   "task|install:common:mise|home/.chezmoiscripts/common/run_once_after_02-install-mise.sh.tmpl|install/common/mise.sh"
   "task|install:common:git|home/.chezmoiscripts/common/run_after_03-migrate-git-xdg.sh.tmpl|install/common/git.sh"
+  "task|install:common:git-signing|install/common/git-signing.sh|install/common/git-signing.sh"
   "task|install:common:gh|home/.chezmoiscripts/common/run_after_04-setup-github.sh.tmpl|install/common/gh.sh"
   "task|install:common:ollama-models|home/.chezmoiscripts/common/run_onchange_after_05-pull-ollama-models.sh.tmpl|install/common/ollama-models.sh"
   "task|install:common:mlx|home/.chezmoiscripts/common/run_onchange_after_06-install-mlx.sh.tmpl|install/common/mlx.sh"
@@ -128,6 +129,8 @@ check_hook_mapping() {
 
   if grep -Fq "${include_path}" "${hook_path}"; then
     info "hook maps ${hook} to ${source}"
+  elif [[ "${hook}" == "${source}" && -f "${hook_path}" ]]; then
+    info "script maps ${hook}"
   else
     error "hook ${hook} does not include ${include_path}"
     return 1

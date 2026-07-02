@@ -124,6 +124,7 @@ check_required_files() {
     "scripts/dotfiles/mise-dotfiles-mirror-check.sh"
     "scripts/dotfiles/mise-setup-staged.sh"
     "scripts/dotfiles/mise-tasks-check.sh"
+    "scripts/dotfiles/git-signing-check.sh"
     "install/macos/common/nanobrew-casks.Brewfile"
     "install/macos/common/nanobrew-formulae.Brewfile"
     "home/dot_agents/skills/exact_sync-skills/SKILL.md"
@@ -277,6 +278,14 @@ check_mise_tasks() {
   fi
 }
 
+check_git_signing_generator() {
+  if "${SCRIPT_DIR}/git-signing-check.sh" >/dev/null; then
+    pass "Git SSH signing generator is valid"
+  else
+    hard_fail "Git SSH signing generator validation failed"
+  fi
+}
+
 check_packages() {
   if "${SCRIPT_DIR}/packages.sh" --check-syntax >/dev/null; then
     pass "package bundles are valid and ownership is not duplicated"
@@ -311,6 +320,7 @@ main() {
   check_mise
   check_mise_dotfiles_mirrors
   check_mise_tasks
+  check_git_signing_generator
   check_packages
 
   printf '\nsummary: failures=%s warnings=%s\n' "${failures}" "${warnings}"

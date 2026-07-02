@@ -63,3 +63,7 @@ tasks-check:
 # Print the staged mise setup order without running installers.
 setup-plan:
     @scripts/dotfiles/mise-setup-staged.sh --plan
+
+# Validate generated Git SSH signing config in temporary homes.
+git-signing-check:
+    @scripts/dotfiles/git-signing-check.sh
