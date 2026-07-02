@@ -99,7 +99,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "{{ env.HOME }}/.local/share/lattice/lattice-event-hook.sh"
+            "command": "test -x \"{{ env.HOME }}/.local/share/lattice/lattice-event-hook.sh\" && exec \"{{ env.HOME }}/.local/share/lattice/lattice-event-hook.sh\" || true"
           }
         ]
       }
@@ -110,7 +110,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "{{ env.HOME }}/.local/share/lattice/lattice-event-hook.sh"
+            "command": "test -x \"{{ env.HOME }}/.local/share/lattice/lattice-event-hook.sh\" && exec \"{{ env.HOME }}/.local/share/lattice/lattice-event-hook.sh\" || true"
           }
         ]
       }
@@ -121,7 +121,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "{{ env.HOME }}/.local/share/lattice/lattice-event-hook.sh"
+            "command": "test -x \"{{ env.HOME }}/.local/share/lattice/lattice-event-hook.sh\" && exec \"{{ env.HOME }}/.local/share/lattice/lattice-event-hook.sh\" || true"
           }
         ]
       }
@@ -132,7 +132,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "{{ env.HOME }}/.local/share/lattice/lattice-event-hook.sh"
+            "command": "test -x \"{{ env.HOME }}/.local/share/lattice/lattice-event-hook.sh\" && exec \"{{ env.HOME }}/.local/share/lattice/lattice-event-hook.sh\" || true"
           }
         ]
       }
