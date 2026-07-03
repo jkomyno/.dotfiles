@@ -13,9 +13,6 @@ zinit light zsh-users/zsh-autosuggestions
 zinit ice lucid wait'0'
 zinit light joshskidmore/zsh-fzf-history-search
 
-zinit ice wait lucid as"program" pick"bin/git-dsf"
-zinit load so-fancy/diff-so-fancy
-
 zinit ice wait lucid
 zinit snippet OMZL::git.zsh
 
