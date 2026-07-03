@@ -231,9 +231,14 @@ update_self() {
   }
   local -a apply=(dotfiles apply)
   if [[ "${CHECK_ONLY}" == true ]]; then apply+=(--dry-run); else apply+=(--yes); fi
+  # A non-zero exit here is informational, not fatal: `--dry-run` returns non-zero
+  # when there are pending changes, and apply refuses to overwrite existing
+  # whole-file targets without --force. Warn and continue rather than abort — an
+  # already-provisioned machine almost always has such targets.
   MISE_EXPERIMENTAL=true \
     MISE_TRUSTED_CONFIG_PATHS="${DOTFILES_ROOT}/mise.toml${MISE_TRUSTED_CONFIG_PATHS:+:${MISE_TRUSTED_CONFIG_PATHS}}" \
-    "${mise_cmd}" -C "${DOTFILES_ROOT}" "${apply[@]}"
+    "${mise_cmd}" -C "${DOTFILES_ROOT}" "${apply[@]}" \
+    || warn "self: mise dotfiles reported pending changes or refused existing whole-file targets (use 'mise dotfiles apply --force' to overwrite them)"
 }
 
 run_component() {
@@ -247,14 +252,16 @@ run_component() {
     skills) update_skills ;;
     self) update_self ;;
     all)
-      # Order: refresh the repo, then tools, packages, agent plugins, skill
-      # report, and finally re-apply managed files to $HOME.
-      update_self
-      update_mise
-      update_casks
-      update_formulae
-      update_plugins
-      update_skills
+      # Update tools, packages, and agent plugins, report skill drift, then
+      # re-apply managed files to $HOME LAST so refreshed lockfiles/configs are
+      # deployed. Each component is fault-tolerant: one failure warns and the
+      # rest still run, so a single flaky layer never aborts the whole update.
+      update_mise || warn "update: mise component reported issues"
+      update_casks || warn "update: casks component reported issues"
+      update_formulae || warn "update: formulae component reported issues"
+      update_plugins || warn "update: plugins component reported issues"
+      update_skills || warn "update: skills component reported issues"
+      update_self || warn "update: self component reported issues"
       ;;
     *)
       error "unknown component: $1"
