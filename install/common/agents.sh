@@ -77,6 +77,7 @@ ROOT="$(repo_root)"
 DATA_FILE="${ROOT}/scripts/dotfiles/agent-plugins.json"
 
 CLAUDE=""
+FAILURES=0
 
 known_marketplaces() {
   "${CLAUDE}" plugin marketplace list --json 2>/dev/null | jq -r '.[].name' 2>/dev/null || true
@@ -104,7 +105,8 @@ sync_marketplaces() {
       case "${MODE}" in
         update)
           log "marketplace: updating ${name}"
-          "${CLAUDE}" plugin marketplace update "${name}" || warn "marketplace update failed: ${name}"
+          "${CLAUDE}" plugin marketplace update "${name}" \
+            || { warn "marketplace update failed: ${name}"; FAILURES=$((FAILURES + 1)); }
           ;;
         check) info "marketplace: ${name} present" ;;
         install) info "marketplace: ${name} already registered" ;;
@@ -114,7 +116,8 @@ sync_marketplaces() {
         check) info "marketplace: ${name} MISSING (would add ${source})" ;;
         *)
           log "marketplace: adding ${name} from ${source}"
-          "${CLAUDE}" plugin marketplace add "${source}" || warn "marketplace add failed: ${source}"
+          "${CLAUDE}" plugin marketplace add "${source}" \
+            || { warn "marketplace add failed: ${source}"; FAILURES=$((FAILURES + 1)); }
           ;;
       esac
     fi
@@ -131,7 +134,8 @@ sync_plugins() {
       case "${MODE}" in
         update)
           log "plugin: updating ${id}"
-          "${CLAUDE}" plugin update "${id}" || warn "plugin update failed: ${id}"
+          "${CLAUDE}" plugin update "${id}" \
+            || { warn "plugin update failed: ${id}"; FAILURES=$((FAILURES + 1)); }
           ;;
         check) info "plugin: ${id} installed" ;;
         install) info "plugin: ${id} already installed" ;;
@@ -141,7 +145,8 @@ sync_plugins() {
         check) info "plugin: ${id} MISSING (would install)" ;;
         *)
           log "plugin: installing ${id}"
-          "${CLAUDE}" plugin install "${id}" || warn "plugin install failed: ${id}"
+          "${CLAUDE}" plugin install "${id}" \
+            || { warn "plugin install failed: ${id}"; FAILURES=$((FAILURES + 1)); }
           ;;
       esac
     fi
@@ -171,6 +176,15 @@ main() {
 
   if [[ "${MODE}" != "check" ]]; then
     info "Restart Claude Code for plugin changes to take effect"
+  fi
+
+  # Absent jq/claude already returned 0 above (a fresh machine is expected to
+  # skip). A real command failure once claude is present is a genuine error:
+  # settings.json still enables these plugins, so report non-zero so callers can
+  # see the declared plugin state was not fully reproduced.
+  if [[ "${FAILURES}" -gt 0 ]]; then
+    warn "${FAILURES} Claude plugin operation(s) failed; declared plugin state not fully reproduced"
+    return 1
   fi
 }
 
