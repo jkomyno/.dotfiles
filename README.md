@@ -106,8 +106,11 @@ Do not install the same CLI in both mise and nanobrew.
 Coding-agent configuration follows a shared-canonical-plus-adapters layout inspired by [shunk031/dotfiles](https://github.com/shunk031/dotfiles):
 
 - [`target/home/.agents`](./target/home/.agents) is the shared layer, deployed to `~/.agents`. `AGENTS.md` holds instructions common to every harness, and `skills/` holds both first-party skills and vendored third-party skills as real files. Each third-party skill is mapped to its upstream repository in [`sync-skills/manifest.json`](./target/home/.agents/skills/sync-skills/manifest.json); the `sync-skills` skill (inspired by dmmulroy's `sync-pocock-skills`) updates vendored copies from upstream while re-applying local modifications stored as patch files.
-- [`target/home/.claude`](./target/home/.claude) deploys Claude Code's global `settings.json`, `CLAUDE.md` (which imports `~/.agents/AGENTS.md`), hooks, and a `~/.claude/skills` symlink into `~/.agents/skills`.
-- [`target/home/.codex`](./target/home/.codex) deploys a curated `~/.codex/config.toml` and `AGENTS.md` (which defers to `~/.agents/AGENTS.md`). Codex needs no skill symlinks: it scans `~/.agents/skills/` natively (its own `~/.codex/skills/` location is deprecated upstream).
+- [`target/home/.claude`](./target/home/.claude) deploys Claude Code's global `settings.json`, `CLAUDE.md` (which imports `~/.agents/AGENTS.md`), hooks, and a `~/.claude/skills` symlink into `~/.agents/skills`. The plugins that `settings.json` enables are made reproducible by [`install/common/agents.sh`](./install/common/agents.sh), which reads [`scripts/dotfiles/agent-plugins.json`](./scripts/dotfiles/agent-plugins.json) and registers each marketplace and installs each plugin. It runs during staged setup and on `just update plugins`, and skips gracefully when the `claude` CLI is not installed yet.
+- [`target/home/.codex`](./target/home/.codex) deploys a curated `~/.codex/config.toml` and `AGENTS.md` (which defers to `~/.agents/AGENTS.md`). The Codex CLI itself is provisioned via mise (`npm:@openai/codex`). Codex needs no skill symlinks: it scans `~/.agents/skills/` natively (its own `~/.codex/skills/` location is deprecated upstream).
+- [`target/home/.pi`](./target/home/.pi) deploys pi's `~/.pi/agent/settings.json`; the pi CLI is provisioned via mise (`npm:@earendil-works/pi-coding-agent`) and auto-discovers `~/.agents/skills`, so no per-skill wiring is needed.
+
+All three harnesses (Claude Code, Codex, pi) read the same first-party and vendored skills from `~/.agents/skills`. Skills delivered as Claude Code *plugins* are visible to Claude only; to expose one to Codex and pi, vendor it into `~/.agents/skills` via `sync-skills`.
 
 Only curated configuration is tracked. Runtime state in `~/.claude` (sessions, history, caches) and `~/.codex` (the `[projects.*]` trust list, `rules/`, sqlite databases) stays unmanaged; mise dotfiles only applies the explicit entries in [`mise.toml`](./mise.toml). Skill directories not listed in this repository (for example one-off installs by other tooling) are left alone. To take a previously installed skill under management, vendor it via `sync-skills` instead of editing the deployed copy.
 
@@ -148,6 +151,28 @@ bash scripts/dotfiles/versions.sh --write
 
 `versions-update` preserves configured version ranges such as `node = "24"` and refreshes [`target/home/.config/mise/mise.lock`](./target/home/.config/mise/mise.lock) for Linux and macOS, x64 and arm64. Use `scripts/dotfiles/versions.sh --write --bump` only when you intentionally want to change requested versions in [`target/home/.config/mise/config.toml`](./target/home/.config/mise/config.toml).
 
+### Updating everything
+
+One command updates every managed layer, or just one component:
+
+```sh
+just update              # mise tools, casks, formulae, Claude plugins, skills report, dotfiles apply
+just update-check        # non-mutating preview of the same
+
+just update mise         # upgrade mise-managed CLIs/runtimes and refresh the lockfile
+just update casks        # converge and upgrade GUI apps and fonts (nanobrew or Homebrew)
+just update plugins      # register Claude Code marketplaces and update enabled plugins
+just update skills       # report vendored agent-skill drift (apply with /sync-skills)
+just update codex        # upgrade just the Codex CLI (subset of `just update mise`)
+just update self         # git pull --ff-only, then re-apply mise dotfiles to $HOME
+```
+
+Like every recipe, the updater is backed by a plain script so a machine without
+`just` can run it directly: `bash scripts/dotfiles/update.sh [--check] [component ...]`.
+Mutations land in the dotfiles source checkout so they can be committed; only
+`self` touches `$HOME`, and `mise dotfiles apply` refuses to overwrite existing
+whole-file targets without `--force`.
+
 To pull repo changes on an already-provisioned machine:
 
 ```sh
@@ -182,3 +207,11 @@ MISE_EXPERIMENTAL=true mise dotfiles apply --dry-run
 Note that `mise dotfiles apply` refuses to overwrite existing whole-file targets unless given `--force`.
 
 For end-to-end bootstrap testing (`setup.sh`, staged setup tasks, Brewfiles, SSH keygen), use an isolated environment: a second macOS user account is the cheapest option, and a macOS VM via [Tart](https://tart.run) or UTM gives a true blank slate that can be snapshotted and retried.
+
+## License
+
+Released under the [MIT License](./LICENSE). These are personal dotfiles shared as a
+reference: they encode one person's preferences and machine identity, and are not
+affiliated with any tool they configure. Read what a script does before running it,
+and adapt rather than adopt wholesale — the bootstrap one-liner runs remote code and
+`setup.sh` changes system settings.

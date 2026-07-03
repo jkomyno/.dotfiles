@@ -10,7 +10,8 @@
 
 - `README.md` explains the intended dotfiles layout and setup assumptions.
 - `target/home/.agents/skills/` contains local agent skills and their workflow notes.
-- `skills-lock.json` records installed skill metadata.
+- `target/home/.agents/skills/sync-skills/manifest.json` maps each vendored third-party skill to its upstream; `sync-skills` keeps them current.
+- `scripts/dotfiles/update.sh` (`just update`) is the single interface for updating every managed layer.
 
 ## Tool Ownership
 
@@ -19,6 +20,7 @@
 - Put GUI apps and fonts in `install/macos/common/nanobrew-casks.Brewfile`.
 - Keep `install/macos/common/nanobrew-formulae.Brewfile` empty unless a required package has no practical mise backend.
 - Do not duplicate a CLI between mise and nanobrew.
+- Declare Claude Code marketplaces and plugins in `scripts/dotfiles/agent-plugins.json`; keep `settings.json` `enabledPlugins` ids in sync with it.
 
 ## Working Rules
 
