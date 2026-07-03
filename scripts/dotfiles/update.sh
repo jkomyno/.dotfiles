@@ -148,13 +148,20 @@ update_bundle() {
   fi
 
   log "${title}: converging bundle via ${pm}"
+  local rc=0
   case "${pm}" in
     nb)
-      nb bundle install "${bundle}"
-      nb upgrade 2>/dev/null || info "${title}: nanobrew upgrade unavailable; bundle converged only"
+      # Converge the (component-scoped) bundle, then upgrade only its packages.
+      # A bare `nb upgrade` would upgrade the whole nanobrew prefix, so a
+      # cask-only run must not touch formulae and vice versa.
+      nb bundle install "${bundle}" || { warn "${title}: nanobrew bundle did not converge"; rc=1; }
+      if [[ ${#names[@]} -gt 0 ]]; then
+        nb upgrade ${names[@]+"${names[@]}"} 2>/dev/null \
+          || info "${title}: nanobrew per-package upgrade unavailable; bundle converged only"
+      fi
       ;;
     brew)
-      brew bundle install --file="${bundle}" || warn "${title}: brew bundle reported issues"
+      brew bundle install --file="${bundle}" || { warn "${title}: brew bundle did not converge"; rc=1; }
       if [[ ${#names[@]} -gt 0 ]]; then
         local flag="--cask"
         [[ "${kind}" == "brew" ]] && flag="--formula"
@@ -174,6 +181,9 @@ update_bundle() {
       fi
       ;;
   esac
+  # Non-zero when the managed bundle did not converge, so `just update casks`
+  # signals failure; `all` still tolerates it via `update_casks || warn`.
+  return "${rc}"
 }
 
 update_casks() {
