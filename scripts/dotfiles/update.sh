@@ -12,8 +12,11 @@
 #   self      git pull --ff-only, then re-apply mise dotfiles to $HOME.
 #   all       Everything above in a safe order (default).
 #
-# Every mutation lands in the dotfiles SOURCE checkout so it can be committed;
-# `self` is the only component that touches $HOME (via `mise dotfiles apply`).
+# Each component mutates its own store, not just tracked files: `mise` upgrades
+# installed tools and refreshes the source lockfile, `casks`/`formulae` update
+# installed apps, `plugins` updates Claude's plugin state under $HOME, `skills`
+# only reports. Only `self` re-applies managed dotfiles to $HOME (via
+# `mise dotfiles apply`, which won't overwrite whole-file targets without --force).
 #
 # Usage:
 #   scripts/dotfiles/update.sh [--check] [COMPONENT ...]

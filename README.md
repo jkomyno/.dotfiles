@@ -169,8 +169,10 @@ just update self         # git pull --ff-only, then re-apply mise dotfiles to $H
 
 Like every recipe, the updater is backed by a plain script so a machine without
 `just` can run it directly: `bash scripts/dotfiles/update.sh [--check] [component ...]`.
-Mutations land in the dotfiles source checkout so they can be committed; only
-`self` touches `$HOME`, and `mise dotfiles apply` refuses to overwrite existing
+Each component updates its own store: `mise` upgrades installed tools and refreshes
+the tracked lockfile, `casks`/`formulae` update installed apps, `plugins` updates
+Claude's plugin state, and `skills` only reports. Only `self` re-applies managed
+dotfiles to `$HOME`, and `mise dotfiles apply` refuses to overwrite existing
 whole-file targets without `--force`.
 
 To pull repo changes on an already-provisioned machine:

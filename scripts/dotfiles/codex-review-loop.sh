@@ -7,13 +7,15 @@
 # then adversarially verifies each finding, fixes the real ones, and re-runs
 # until the findings converge to noise.
 #
-# Codex is invoked with --dangerously-bypass-approvals-and-sandbox so it can run
-# read-only analysis commands (git diff, shellcheck) without prompting. This is
-# safe only because the work under review is already committed on a branch and
-# therefore fully recoverable — treat the git branch as the external sandbox.
+# By default Codex runs with a read-only sandbox (-s read-only): it can read the
+# repo and run analysis (git diff, shellcheck) but cannot modify files, HOME
+# state, or credentials, even if a model command misfires. Pass --danger to use
+# --dangerously-bypass-approvals-and-sandbox instead (no sandbox, no prompts);
+# only do that on a committed branch you can fully recover. The run refuses to
+# start on a dirty working tree so uncommitted work is never at risk.
 #
 # Usage:
-#   scripts/dotfiles/codex-review-loop.sh [--base REF] [--out DIR] [--model M]
+#   scripts/dotfiles/codex-review-loop.sh [--base REF] [--out DIR] [--model M] [--danger]
 #
 # Outputs (under --out, default: a scratch dir printed at the end):
 #   findings.json   structured findings from Codex
@@ -29,9 +31,14 @@ source "${SCRIPT_DIR}/lib.sh"
 BASE_REF="main"
 OUT_DIR=""
 MODEL=""
+DANGER=false
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
+    --danger)
+      DANGER=true
+      shift
+      ;;
     --base)
       [[ $# -ge 2 ]] || {
         error "--base needs a value"
@@ -108,14 +115,14 @@ cat >"${SCHEMA_FILE}" <<'JSON'
       "items": {
         "type": "object",
         "additionalProperties": false,
-        "required": ["severity", "file", "summary", "detail"],
+        "required": ["severity", "file", "line", "summary", "detail", "suggestion"],
         "properties": {
           "severity": { "type": "string", "enum": ["critical", "high", "medium", "low", "nit"] },
           "file": { "type": "string" },
-          "line": { "type": "integer" },
+          "line": { "type": ["integer", "null"] },
           "summary": { "type": "string" },
           "detail": { "type": "string" },
-          "suggestion": { "type": "string" }
+          "suggestion": { "type": ["string", "null"] }
         }
       }
     }
@@ -148,35 +155,53 @@ changes are sound, return verdict "approve" with an empty findings array.
 Emit your result strictly per the provided JSON schema.
 PROMPT
 
+# Refuse to review a dirty tree: the sandbox default protects committed work,
+# and --danger must never run against uncommitted changes it could clobber.
+if [[ -n "$(git -C "${DOTFILES_ROOT}" status --porcelain 2>/dev/null)" ]]; then
+  error "working tree is dirty; commit or stash before reviewing (protects uncommitted work)"
+  exit 1
+fi
+
+# Never carry a previous run's outputs forward: a failed Codex run must not
+# leave stale findings behind when --out points at a reused directory.
+rm -f "${LAST_MSG_FILE}" "${FINDINGS_FILE}" "${OUT_DIR}/stdout.log"
+
 log "Running Codex review of HEAD vs ${BASE_REF} (output: ${OUT_DIR})"
 
 CODEX_ARGS=(
   exec
-  --dangerously-bypass-approvals-and-sandbox
   -C "${DOTFILES_ROOT}"
   --output-schema "${SCHEMA_FILE}"
   -o "${LAST_MSG_FILE}"
   --color never
 )
+if [[ "${DANGER}" == true ]]; then
+  warn "running Codex WITHOUT a sandbox (--dangerously-bypass-approvals-and-sandbox)"
+  CODEX_ARGS+=(--dangerously-bypass-approvals-and-sandbox)
+else
+  CODEX_ARGS+=(-s read-only)
+fi
 [[ -n "${MODEL}" ]] && CODEX_ARGS+=(-m "${MODEL}")
 
-# Codex writes the schema-shaped final message to LAST_MSG_FILE; capture stdout
-# (the human-readable stream) to the findings log too.
-if "${CODEX}" "${CODEX_ARGS[@]}" "$(cat "${PROMPT_FILE}")" >"${OUT_DIR}/stdout.log" 2>&1; then
+# Codex writes the schema-shaped final message to LAST_MSG_FILE. Redirect stdin
+# from /dev/null so a non-TTY invocation never blocks waiting on stdin.
+codex_ok=true
+if "${CODEX}" "${CODEX_ARGS[@]}" "$(cat "${PROMPT_FILE}")" </dev/null >"${OUT_DIR}/stdout.log" 2>&1; then
   log "Codex review completed"
 else
+  codex_ok=false
   warn "Codex exited non-zero; inspect ${OUT_DIR}/stdout.log"
 fi
 
-# The schema-constrained final message is the findings JSON.
-if [[ -s "${LAST_MSG_FILE}" ]]; then
-  if jq -e . "${LAST_MSG_FILE}" >/dev/null 2>&1; then
-    cp "${LAST_MSG_FILE}" "${FINDINGS_FILE}"
-    log "Findings: ${FINDINGS_FILE}"
-    jq -r '"verdict: \(.verdict)\nfindings: \(.findings | length)"' "${FINDINGS_FILE}" 2>/dev/null || true
-  else
-    warn "Codex final message was not valid JSON; see ${LAST_MSG_FILE}"
-  fi
+# Only publish findings from a successful run with valid schema output.
+if [[ "${codex_ok}" == true && -s "${LAST_MSG_FILE}" ]] && jq -e . "${LAST_MSG_FILE}" >/dev/null 2>&1; then
+  cp "${LAST_MSG_FILE}" "${FINDINGS_FILE}"
+  log "Findings: ${FINDINGS_FILE}"
+  jq -r '"verdict: \(.verdict)\nfindings: \(.findings | length)"' "${FINDINGS_FILE}" 2>/dev/null || true
+else
+  warn "no valid findings produced; see ${OUT_DIR}/stdout.log and ${LAST_MSG_FILE}"
+  printf '%s\n' "${OUT_DIR}"
+  exit 1
 fi
 
 printf '%s\n' "${OUT_DIR}"
