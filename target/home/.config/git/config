@@ -40,6 +40,7 @@
 	ci = commit --no-verify
 	civ = commit --verify
 	co = checkout
+	com = "!f() { branch=$(git symbolic-ref --quiet --short refs/remotes/origin/HEAD 2>/dev/null); branch=${branch#origin/}; if [ -z \"$branch\" ]; then if git show-ref --verify --quiet refs/heads/main || git show-ref --verify --quiet refs/remotes/origin/main; then branch=main; elif git show-ref --verify --quiet refs/heads/master || git show-ref --verify --quiet refs/remotes/origin/master; then branch=master; else echo \"git com: unable to determine primary branch\" >&2; return 1; fi; fi; git checkout \"$branch\"; }; f"
 	br = branch
 	rh = reset --hard HEAD~1
 	rs = reset --soft HEAD~1
