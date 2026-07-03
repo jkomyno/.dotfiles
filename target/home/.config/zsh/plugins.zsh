@@ -16,8 +16,8 @@ zinit light joshskidmore/zsh-fzf-history-search
 zinit ice wait lucid
 zinit snippet OMZL::git.zsh
 
-# OMZ git defines its own gm (git merge) and gbda (merge-only); re-apply our
-# versions after it loads (see aliases.d/gm.zsh for the full story).
+# OMZ git defines its own git shortcuts; re-apply ours after it loads (see
+# aliases.d/git-shortcuts.zsh for the full story).
 zinit ice wait lucid atload'_git_alias_overrides'
 zinit snippet OMZP::git
 

@@ -80,7 +80,7 @@ includes = ["tasks"]
 "~/.config/tmux/tmux.conf" = { source = "target/home/.config/tmux/tmux.conf", mode = "symlink" }
 "~/.config/zsh/aliases.d/clipboard.zsh" = { source = "target/home/.config/zsh/aliases.d/clipboard.zsh", mode = "symlink" }
 "~/.config/zsh/aliases.d/coffee.zsh" = { source = "target/home/.config/zsh/aliases.d/coffee.zsh", mode = "symlink" }
-"~/.config/zsh/aliases.d/gm.zsh" = { source = "target/home/.config/zsh/aliases.d/gm.zsh", mode = "symlink" }
+"~/.config/zsh/aliases.d/git-shortcuts.zsh" = { source = "target/home/.config/zsh/aliases.d/git-shortcuts.zsh", mode = "symlink" }
 "~/.config/zsh/aliases.d/ls.zsh" = { source = "target/home/.config/zsh/aliases.d/ls.zsh", mode = "symlink" }
 "~/.config/zsh/aliases.d/npm-guard.zsh" = { source = "target/home/.config/zsh/aliases.d/npm-guard.zsh", mode = "symlink" }
 "~/.config/zsh/aliases.d/pnpm.zsh" = { source = "target/home/.config/zsh/aliases.d/pnpm.zsh", mode = "symlink" }

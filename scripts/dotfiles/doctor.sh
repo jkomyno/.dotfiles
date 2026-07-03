@@ -106,7 +106,7 @@ check_required_files() {
     "target/home/.config/tmux/tmux.conf"
     "target/home/.config/zsh/aliases.d/clipboard.zsh"
     "target/home/.config/zsh/aliases.d/coffee.zsh"
-    "target/home/.config/zsh/aliases.d/gm.zsh"
+    "target/home/.config/zsh/aliases.d/git-shortcuts.zsh"
     "target/home/.config/zsh/aliases.d/ls.zsh"
     "target/home/.config/zsh/aliases.d/npm-guard.zsh"
     "target/home/.config/zsh/aliases.d/pnpm.zsh"
