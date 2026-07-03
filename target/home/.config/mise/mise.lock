@@ -159,12 +159,40 @@ backend = "cargo:mergiraf"
 version = "0.2.123"
 backend = "cargo:wasm-bindgen-cli"
 
+[[tools.delta]]
+version = "0.19.2"
+backend = "aqua:dandavison/delta"
+
+[tools.delta."platforms.linux-arm64"]
+checksum = "sha256:0bfce159a5cddd5feb3d6db4a616d883ff51253ce08ac7ec11cb1d208cfaab9e"
+url = "https://github.com/dandavison/delta/releases/download/0.19.2/delta-0.19.2-aarch64-unknown-linux-gnu.tar.gz"
+
+[tools.delta."platforms.linux-x64"]
+checksum = "sha256:f1ea01ca7728ce3462debc359f39dfc7cbbc1a63224b71fefabf92042864aa1b"
+url = "https://github.com/dandavison/delta/releases/download/0.19.2/delta-0.19.2-x86_64-unknown-linux-musl.tar.gz"
+
+[tools.delta."platforms.macos-arm64"]
+checksum = "sha256:9be36612a5a13e9e386dc498fb8e50dc87c72ee42b63db0ea05b32f99a72a69a"
+url = "https://github.com/dandavison/delta/releases/download/0.19.2/delta-0.19.2-aarch64-apple-darwin.tar.gz"
+
 [[tools.elixir]]
 version = "1.20.2-otp-29"
 backend = "core:elixir"
 
+[tools.elixir."platforms.linux-arm64"]
+checksum = "sha256:a9e88cd41fbbba7da6f6dc237a49dd2ed4e70457121035cc7fc56ad05582f394"
+url = "https://builds.hex.pm/builds/elixir/v1.20.2-otp-29.zip"
+
+[tools.elixir."platforms.linux-x64"]
+checksum = "sha256:a9e88cd41fbbba7da6f6dc237a49dd2ed4e70457121035cc7fc56ad05582f394"
+url = "https://builds.hex.pm/builds/elixir/v1.20.2-otp-29.zip"
+
 [tools.elixir."platforms.macos-arm64"]
-checksum = "blake3:edf9cb5e3fc0b6ea6dd264e54d5e85f52f417c629651c02b970fee29be39f1cb"
+checksum = "sha256:a9e88cd41fbbba7da6f6dc237a49dd2ed4e70457121035cc7fc56ad05582f394"
+url = "https://builds.hex.pm/builds/elixir/v1.20.2-otp-29.zip"
+
+[tools.elixir."platforms.macos-x64"]
+checksum = "sha256:a9e88cd41fbbba7da6f6dc237a49dd2ed4e70457121035cc7fc56ad05582f394"
 url = "https://builds.hex.pm/builds/elixir/v1.20.2-otp-29.zip"
 
 [[tools.erlang]]
@@ -173,6 +201,37 @@ backend = "core:erlang"
 
 [tools.erlang."platforms.macos-arm64"]
 checksum = "blake3:8be6754791eab630b0d22c1dd94ff8eb8e4629a946051f75115ef7a9659bb61b"
+
+[[tools.erlang]]
+version = "29.0.2"
+backend = "core:erlang"
+
+[tools.erlang.options]
+precompiled = "if_available"
+precompiled_os = "ubuntu-24.04"
+
+[tools.erlang."platforms.linux-arm64"]
+url = "https://builds.hex.pm/builds/otp/arm64/ubuntu-24.04/OTP-29.0.2.tar.gz"
+
+[tools.erlang."platforms.linux-x64"]
+url = "https://builds.hex.pm/builds/otp/amd64/ubuntu-24.04/OTP-29.0.2.tar.gz"
+
+[[tools.erlang]]
+version = "29.0.2"
+backend = "core:erlang"
+
+[tools.erlang.options]
+precompiled = "if_available"
+
+[tools.erlang."platforms.macos-arm64"]
+checksum = "sha256:ec6e09dee496adf646b0a22eef26b769e7f8032c83dd10292c58d50fb38e2210"
+url = "https://github.com/erlef/otp_builds/releases/download/OTP-29.0.2/otp-aarch64-apple-darwin.tar.gz"
+url_api = "https://api.github.com/repos/erlef/otp_builds/releases/assets/443541329"
+
+[tools.erlang."platforms.macos-x64"]
+checksum = "sha256:3da4495ce6372f5fda002ed1ae45832a11e05aaa9928790e0bf1d14e3ee84657"
+url = "https://github.com/erlef/otp_builds/releases/download/OTP-29.0.2/otp-x86_64-apple-darwin.tar.gz"
+url_api = "https://api.github.com/repos/erlef/otp_builds/releases/assets/443557769"
 
 [[tools.eza]]
 version = "0.23.4"
@@ -631,6 +690,10 @@ backend = "npm:@earendil-works/pi-coding-agent"
 version = "0.7.1"
 backend = "npm:@kitlangton/ghui"
 
+[[tools."npm:@openai/codex"]]
+version = "0.142.2"
+backend = "npm:@openai/codex"
+
 [[tools."npm:ccstatusline"]]
 version = "2.2.19"
 backend = "npm:ccstatusline"
@@ -638,10 +701,6 @@ backend = "npm:ccstatusline"
 [[tools."npm:ccusage"]]
 version = "20.0.11"
 backend = "npm:ccusage"
-
-[[tools."npm:diff-so-fancy"]]
-version = "1.4.10"
-backend = "npm:diff-so-fancy"
 
 [[tools."npm:pnpm"]]
 version = "11.5.3"
@@ -698,6 +757,26 @@ url = "https://github.com/ollama/ollama/releases/download/v0.30.8/ollama-windows
 [[tools.python]]
 version = "3.13.13"
 backend = "core:python"
+
+[tools.python."platforms.linux-arm64"]
+checksum = "sha256:b396c30748c4aa2ca3990464e397bf04cdd3281a4f0464a8ad179daf96f080e2"
+url = "https://github.com/astral-sh/python-build-standalone/releases/download/20260602/cpython-3.13.13+20260602-aarch64-unknown-linux-gnu-install_only_stripped.tar.gz"
+provenance = "github-attestations"
+
+[tools.python."platforms.linux-x64"]
+checksum = "sha256:c249d2b96af6912c3910f234b96aa8d20d30e8b0c46d0584fa956d7a77036ea9"
+url = "https://github.com/astral-sh/python-build-standalone/releases/download/20260602/cpython-3.13.13+20260602-x86_64-unknown-linux-gnu-install_only_stripped.tar.gz"
+provenance = "github-attestations"
+
+[tools.python."platforms.macos-arm64"]
+checksum = "sha256:b929647e1ebe243bd8b66c731e102b97dd7bdcc08127f03b7b22997ac4667403"
+url = "https://github.com/astral-sh/python-build-standalone/releases/download/20260602/cpython-3.13.13+20260602-aarch64-apple-darwin-install_only_stripped.tar.gz"
+provenance = "github-attestations"
+
+[tools.python."platforms.macos-x64"]
+checksum = "sha256:90761d4827285280b38e8d8ecd83f08b838f03730b891c6714e584fb0a53395d"
+url = "https://github.com/astral-sh/python-build-standalone/releases/download/20260602/cpython-3.13.13+20260602-x86_64-apple-darwin-install_only_stripped.tar.gz"
+provenance = "github-attestations"
 
 [[tools.ripgrep]]
 version = "15.1.0"
