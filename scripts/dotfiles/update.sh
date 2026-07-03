@@ -213,17 +213,23 @@ update_skills() {
   info "skills: apply non-trivial merges with the /sync-skills agent workflow"
 }
 
-update_self() {
-  log "self: updating the dotfiles checkout and re-applying to \$HOME"
+# self is two phases so `all` can pull BEFORE updating tools/plugins (so they
+# install from the freshest manifests) and apply AFTER (so refreshed lockfiles
+# and configs are deployed). The standalone `self` component runs both.
+self_pull() {
   if [[ -n "$(git -C "${DOTFILES_ROOT}" status --porcelain 2>/dev/null)" ]]; then
     warn "self: working tree is dirty; skipping 'git pull' to avoid clobbering changes"
-  elif [[ "${CHECK_ONLY}" == true ]]; then
-    info "self: would run 'git pull --ff-only' then 'mise dotfiles apply'"
-    git -C "${DOTFILES_ROOT}" fetch --dry-run 2>&1 | sed 's/^/  /' || true
-  else
-    git -C "${DOTFILES_ROOT}" pull --ff-only || warn "self: git pull --ff-only failed"
+    return 0
   fi
+  if [[ "${CHECK_ONLY}" == true ]]; then
+    info "self: would run 'git pull --ff-only'"
+    git -C "${DOTFILES_ROOT}" fetch --dry-run 2>&1 | sed 's/^/  /' || true
+    return 0
+  fi
+  git -C "${DOTFILES_ROOT}" pull --ff-only || warn "self: git pull --ff-only failed"
+}
 
+self_apply() {
   local mise_cmd
   mise_cmd="$(mise_bin)" || {
     warn "self: mise not available; cannot apply dotfiles"
@@ -241,6 +247,12 @@ update_self() {
     || warn "self: mise dotfiles reported pending changes or refused existing whole-file targets (use 'mise dotfiles apply --force' to overwrite them)"
 }
 
+update_self() {
+  log "self: updating the dotfiles checkout and re-applying to \$HOME"
+  self_pull
+  self_apply
+}
+
 run_component() {
   case "$1" in
     mise) update_mise ;;
@@ -252,16 +264,18 @@ run_component() {
     skills) update_skills ;;
     self) update_self ;;
     all)
-      # Update tools, packages, and agent plugins, report skill drift, then
-      # re-apply managed files to $HOME LAST so refreshed lockfiles/configs are
-      # deployed. Each component is fault-tolerant: one failure warns and the
-      # rest still run, so a single flaky layer never aborts the whole update.
+      # Pull the checkout FIRST so tools/plugins update from the freshest
+      # manifests, then update tools, packages, and agent plugins, report skill
+      # drift, and re-apply managed files to $HOME LAST so refreshed
+      # lockfiles/configs are deployed. Each step is fault-tolerant: one failure
+      # warns and the rest still run, so a single flaky layer never aborts.
+      self_pull || warn "update: self (pull) reported issues"
       update_mise || warn "update: mise component reported issues"
       update_casks || warn "update: casks component reported issues"
       update_formulae || warn "update: formulae component reported issues"
       update_plugins || warn "update: plugins component reported issues"
       update_skills || warn "update: skills component reported issues"
-      update_self || warn "update: self component reported issues"
+      self_apply || warn "update: self (apply) reported issues"
       ;;
     *)
       error "unknown component: $1"
