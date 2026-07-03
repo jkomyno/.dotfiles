@@ -1,6 +1,10 @@
 {
-  "$comment": "Single source of truth for Claude Code plugins. install/common/agents.sh registers each marketplace and installs each plugin idempotently; scripts/dotfiles/update.sh 'plugins' updates them. 'name' must match the marketplace name published in the source repo's .claude-plugin/marketplace.json, because that is what settings.json's enabledPlugins keys on (<plugin>@<name>).",
+  "$comment": "Single source of truth for managed coding-agent plugins. Top-level marketplaces/plugins are Claude Code declarations; codex.marketplaces/plugins are Codex CLI declarations. install/common/agents.sh registers marketplaces and installs plugins idempotently; scripts/dotfiles/update.sh 'plugins' updates them. Claude marketplace names must match the source repo's .claude-plugin/marketplace.json because settings.json enabledPlugins keys on <plugin>@<name>.",
   "marketplaces": [
+    {
+      "name": "agentmemory",
+      "source": "rohitg00/agentmemory"
+    },
     {
       "name": "compound-engineering-plugin",
       "source": "EveryInc/compound-engineering-plugin"
@@ -15,9 +19,21 @@
     }
   ],
   "plugins": [
+    "agentmemory@agentmemory",
     "compound-engineering@compound-engineering-plugin",
     "frontend-design@claude-plugins-official",
     "rust-analyzer-lsp@claude-plugins-official",
     "interface-design@interface-design"
-  ]
+  ],
+  "codex": {
+    "marketplaces": [
+      {
+        "name": "agentmemory",
+        "source": "rohitg00/agentmemory"
+      }
+    ],
+    "plugins": [
+      "agentmemory@agentmemory"
+    ]
+  }
 }

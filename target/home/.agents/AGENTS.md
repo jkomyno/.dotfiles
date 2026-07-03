@@ -13,6 +13,12 @@ These instructions apply to every coding agent on this machine (Claude Code, Cod
 - If `AGENTS.local.md` exists at a repository's root, read it before starting work. It holds machine-local, untracked guidance: pointers to reference corpora under `~/.jk/ideas/<name>/`, environment quirks, and other context that must stay out of git history.
 - Never commit `AGENTS.local.md`, add it to a tracked `.gitignore`, or quote its contents in commits, PRs, or tracked files. It is hidden by the global gitignore; the `jk-cli` skill maintains it.
 
+## Shared memory
+
+- Use agentmemory as the durable cross-agent memory layer when it is available. Search it before debugging a recurring class of issue, migration, release problem, or repo-specific workflow; save concise durable lessons after fixing one.
+- Keep secrets, tokens, private machine state, and full transcript dumps out of memory. Store the reusable pattern, evidence path, and verification command instead.
+- Runtime memory lives under `~/.agentmemory` and is not managed by these dotfiles.
+
 ## Skills
 
 Shared skills live in `~/.agents/skills/`. Codex scans that directory natively; Claude Code reaches it through the `~/.claude/skills` directory symlink. Edit skills in `target/home/.agents/skills/` in the dotfiles repository, not in the deployed copies.

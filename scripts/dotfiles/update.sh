@@ -5,17 +5,18 @@
 #   mise      Upgrade mise-managed CLIs/runtimes and refresh the source lockfile.
 #   casks     Converge and upgrade nanobrew/Homebrew GUI apps and fonts (macOS).
 #   formulae  Converge and upgrade nanobrew/Homebrew exceptional formulae (macOS).
-#   plugins   Register/update Claude Code marketplaces and enabled plugins.
+#   plugins   Register/update managed coding-agent marketplaces and plugins.
 #   skills    Report vendored agent-skill drift vs upstream (apply via /sync-skills).
 #   codex     Upgrade just the Codex CLI via mise (subset of `mise`).
 #   pi        Upgrade just the pi coding agent via mise (subset of `mise`).
+#   agentmemory Upgrade just the agentmemory CLI via mise (subset of `mise`).
 #   self      git pull --ff-only, then re-apply mise dotfiles to $HOME.
 #   all       Everything above in a safe order (default).
 #
 # Each component mutates its own store, not just tracked files: `mise` upgrades
 # installed tools and refreshes the source lockfile, `casks`/`formulae` update
-# installed apps, `plugins` updates Claude's plugin state under $HOME, `skills`
-# only reports. Only `self` re-applies managed dotfiles to $HOME (via
+# installed apps, `plugins` updates managed agent plugin state under $HOME,
+# `skills` only reports. Only `self` re-applies managed dotfiles to $HOME (via
 # `mise dotfiles apply`, which won't overwrite whole-file targets without --force).
 #
 # Usage:
@@ -35,6 +36,7 @@ COMPONENTS=()
 
 CODEX_MISE_TOOL="npm:@openai/codex"
 PI_MISE_TOOL="npm:@earendil-works/pi-coding-agent"
+AGENTMEMORY_MISE_TOOL="npm:@agentmemory/agentmemory"
 
 usage() {
   cat <<'USAGE'
@@ -42,7 +44,7 @@ Usage: scripts/dotfiles/update.sh [--check] [COMPONENT ...]
 
 Update every managed layer of these dotfiles with one interface.
 
-Components: all (default) mise casks formulae plugins skills codex pi self
+Components: all (default) mise casks formulae plugins skills codex pi agentmemory self
 
 Options:
   --check   Non-mutating preview: show what each component would change.
@@ -60,7 +62,7 @@ while [[ $# -gt 0 ]]; do
       usage
       exit 0
       ;;
-    all | mise | casks | formulae | plugins | skills | codex | pi | self)
+    all | mise | casks | formulae | plugins | skills | codex | pi | agentmemory | self)
       COMPONENTS+=("$1")
       shift
       ;;
@@ -104,6 +106,7 @@ update_mise() {
 
 update_codex() { update_mise "${CODEX_MISE_TOOL}"; }
 update_pi() { update_mise "${PI_MISE_TOOL}"; }
+update_agentmemory() { update_mise "${AGENTMEMORY_MISE_TOOL}"; }
 
 update_bundle() {
   # $1 = human title, $2 = Brewfile path, $3 = kind (cask|brew)
@@ -201,10 +204,10 @@ update_plugins() {
     return 0
   }
   if [[ "${CHECK_ONLY}" == true ]]; then
-    log "plugins: reporting configured vs installed Claude plugins"
+    log "plugins: reporting configured vs installed agent plugins"
     bash "${agents}" --check
   else
-    log "plugins: registering marketplaces and updating enabled plugins"
+    log "plugins: registering marketplaces and updating enabled agent plugins"
     bash "${agents}" --update
   fi
 }
@@ -268,6 +271,7 @@ run_component() {
     mise) update_mise ;;
     codex) update_codex ;;
     pi) update_pi ;;
+    agentmemory) update_agentmemory ;;
     casks) update_casks ;;
     formulae) update_formulae ;;
     plugins) update_plugins ;;

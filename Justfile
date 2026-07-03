@@ -27,7 +27,7 @@ versions:
 versions-update:
     @scripts/dotfiles/versions.sh --write
 
-# Update every managed layer, or one component: just update [all|mise|casks|formulae|plugins|skills|codex|pi|self]
+# Update every managed layer, or one component: just update [all|mise|casks|formulae|plugins|skills|codex|pi|agentmemory|self]
 update *args:
     @scripts/dotfiles/update.sh {{args}}
 
@@ -35,11 +35,11 @@ update *args:
 update-check *args:
     @scripts/dotfiles/update.sh --check {{args}}
 
-# Register Claude Code marketplaces and install enabled plugins (idempotent).
+# Register managed coding-agent marketplaces and install enabled plugins (idempotent).
 plugins-install:
     @bash install/common/agents.sh
 
-# Report configured vs installed Claude Code plugins without changing anything.
+# Report configured vs installed coding-agent plugins without changing anything.
 plugins-check:
     @bash install/common/agents.sh --check
 

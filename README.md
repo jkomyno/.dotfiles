@@ -84,12 +84,13 @@ Coding-agent configuration follows a shared-canonical-plus-adapters layout inspi
 
 - [`target/home/.agents`](./target/home/.agents) is the shared layer, deployed to `~/.agents`. `AGENTS.md` holds instructions common to every harness, and `skills/` holds both first-party skills and vendored third-party skills as real files. Each third-party skill is mapped to its upstream repository in [`sync-skills/manifest.json`](./target/home/.agents/skills/sync-skills/manifest.json); the `sync-skills` skill (inspired by dmmulroy's `sync-pocock-skills`) updates vendored copies from upstream while re-applying local modifications stored as patch files.
 - [`target/home/.claude`](./target/home/.claude) deploys Claude Code's global `settings.json`, `CLAUDE.md` (which imports `~/.agents/AGENTS.md`), hooks, and a `~/.claude/skills` symlink into `~/.agents/skills`. The plugins that `settings.json` enables are made reproducible by [`install/common/agents.sh`](./install/common/agents.sh), which reads [`scripts/dotfiles/agent-plugins.json`](./scripts/dotfiles/agent-plugins.json) and registers each marketplace and installs each plugin. It runs during staged setup and on `just update plugins`, and skips gracefully when the `claude` CLI is not installed yet.
-- [`target/home/.codex`](./target/home/.codex) deploys a curated `~/.codex/config.toml` and `AGENTS.md` (which defers to `~/.agents/AGENTS.md`). The Codex CLI itself is provisioned via mise (`npm:@openai/codex`). Codex needs no skill symlinks: it scans `~/.agents/skills/` natively (its own `~/.codex/skills/` location is deprecated upstream).
-- [`target/home/.pi`](./target/home/.pi) deploys pi's `~/.pi/agent/settings.json`; the pi CLI is provisioned via mise (`npm:@earendil-works/pi-coding-agent`) and auto-discovers `~/.agents/skills`, so no per-skill wiring is needed.
+- [`target/home/.codex`](./target/home/.codex) deploys a curated `~/.codex/config.toml` and `AGENTS.md` (which defers to `~/.agents/AGENTS.md`). The Codex CLI itself is provisioned via mise (`npm:@openai/codex`). Codex needs no skill symlinks: it scans `~/.agents/skills/` natively (its own `~/.codex/skills/` location is deprecated upstream). Codex plugins declared in [`scripts/dotfiles/agent-plugins.json`](./scripts/dotfiles/agent-plugins.json) are also converged by `install/common/agents.sh`.
+- [`target/home/.pi`](./target/home/.pi) deploys pi's `~/.pi/agent/settings.json` and the managed `~/.pi/agent/extensions/agentmemory` extension; the pi CLI is provisioned via mise (`npm:@earendil-works/pi-coding-agent`) and auto-discovers `~/.agents/skills`, so no per-skill wiring is needed.
+- [`agentmemory`](https://github.com/rohitg00/agentmemory) is the shared persistent memory layer for Claude Code, Codex, and pi. The CLI is provisioned via mise (`npm:@agentmemory/agentmemory`), Claude/Codex plugin installation is declared in `agent-plugins.json`, and pi uses the vendored extension under `target/home/.pi/agent/extensions/agentmemory`. Start the local server with `agentmemory`; it serves the memory API on `http://localhost:3111` and the viewer on `http://localhost:3113`.
 
-All three harnesses (Claude Code, Codex, pi) read the same first-party and vendored skills from `~/.agents/skills`. Skills delivered as Claude Code *plugins* are visible to Claude only; to expose one to Codex and pi, vendor it into `~/.agents/skills` via `sync-skills`.
+All three harnesses (Claude Code, Codex, pi) read the same first-party and vendored skills from `~/.agents/skills`. Plugin-delivered skills are host-specific; to expose a skill to every harness, vendor it into `~/.agents/skills` via `sync-skills`.
 
-Only curated configuration is tracked. Runtime state in `~/.claude` (sessions, history, caches) and `~/.codex` (the `[projects.*]` trust list, `rules/`, sqlite databases) stays unmanaged; mise dotfiles only applies the explicit entries in [`mise.toml`](./mise.toml). Skill directories not listed in this repository (for example one-off installs by other tooling) are left alone. To take a previously installed skill under management, vendor it via `sync-skills` instead of editing the deployed copy.
+Only curated configuration is tracked. Runtime state in `~/.claude` (sessions, history, caches), `~/.codex` (the `[projects.*]` trust list, `rules/`, sqlite databases), and `~/.agentmemory` (memory database, engine state, optional `.env`) stays unmanaged; mise dotfiles only applies the explicit entries in [`mise.toml`](./mise.toml). Skill directories not listed in this repository (for example one-off installs by other tooling) are left alone. To take a previously installed skill under management, vendor it via `sync-skills` instead of editing the deployed copy.
 
 Per-idea reference corpora (pinned shallow clones of upstream repositories, blog-post snapshots, and agent-written digests) live under `~/.jk/ideas/<name>` and are managed by the first-party `jk-cli` skill. Projects opt in through an `AGENTS.local.md` at the repository root — hidden by the global gitignore and read by every harness via the shared `AGENTS.md` — so reference material never appears in a project's git history. `~/.jk` is machine state owned by the `jk` CLI and is not managed by these dotfiles.
 
@@ -133,14 +134,15 @@ bash scripts/dotfiles/versions.sh --write
 One command updates every managed layer, or just one component:
 
 ```sh
-just update              # mise tools, casks, formulae, Claude plugins, skills report, dotfiles apply
+just update              # mise tools, casks, formulae, agent plugins, skills report, dotfiles apply
 just update-check        # non-mutating preview of the same
 
 just update mise         # upgrade mise-managed CLIs/runtimes and refresh the lockfile
 just update casks        # converge and upgrade GUI apps and fonts (nanobrew or Homebrew)
-just update plugins      # register Claude Code marketplaces and update enabled plugins
+just update plugins      # register Claude/Codex marketplaces and update enabled plugins
 just update skills       # report vendored agent-skill drift (apply with /sync-skills)
 just update codex        # upgrade just the Codex CLI (subset of `just update mise`)
+just update agentmemory  # upgrade just the agentmemory CLI (subset of `just update mise`)
 just update self         # git pull --ff-only, then re-apply mise dotfiles to $HOME
 ```
 
@@ -148,7 +150,7 @@ Like every recipe, the updater is backed by a plain script so a machine without
 `just` can run it directly: `bash scripts/dotfiles/update.sh [--check] [component ...]`.
 Each component updates its own store: `mise` upgrades installed tools and refreshes
 the tracked lockfile, `casks`/`formulae` update installed apps, `plugins` updates
-Claude's plugin state, and `skills` only reports. Only `self` re-applies managed
+agent plugin state, and `skills` only reports. Only `self` re-applies managed
 dotfiles to `$HOME`, and `mise dotfiles apply` refuses to overwrite existing
 whole-file targets without `--force`.
 

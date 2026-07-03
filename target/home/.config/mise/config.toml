@@ -77,6 +77,9 @@ ast-grep = "latest"
 # https://github.com/earendil-works/pi (https://pi.dev) - Pi, a minimal extensible coding agent;
 # global config and skills wiring tracked in target/home/.pi
 "npm:@earendil-works/pi-coding-agent" = "latest"
+# https://github.com/rohitg00/agentmemory - shared persistent memory server for coding agents;
+# Claude/Codex plugins and pi extension wiring are tracked in the agent dotfiles
+"npm:@agentmemory/agentmemory" = "latest"
 # https://github.com/rtk-ai/rtk - rewrites agent shell commands into token-efficient equivalents;
 # required by the Claude Code PreToolUse hook in target/home/.claude/hooks/rtk-rewrite.sh
 "github:rtk-ai/rtk" = "latest"

@@ -54,6 +54,8 @@ check_required_files() {
     "target/home/.handy/settings_store.json"
     "target/home/.local/bin/coffee"
     "target/home/.pi/agent/settings.json"
+    "target/home/.pi/agent/extensions/agentmemory/index.ts"
+    "target/home/.pi/agent/extensions/agentmemory/security.ts"
     "target/home/.ssh/config"
     "target/home/.uv/uv.toml"
     "target/home/.config/ccstatusline/settings.json"

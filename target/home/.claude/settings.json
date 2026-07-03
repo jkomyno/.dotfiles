@@ -93,50 +93,6 @@
   },
   "model": "claude-fable-5[1m]",
   "hooks": {
-    "PostToolUse": [
-      {
-        "matcher": "",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "test -x \"{{ env.HOME }}/.local/share/lattice/lattice-event-hook.sh\" && exec \"{{ env.HOME }}/.local/share/lattice/lattice-event-hook.sh\" || true"
-          }
-        ]
-      }
-    ],
-    "Notification": [
-      {
-        "matcher": "",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "test -x \"{{ env.HOME }}/.local/share/lattice/lattice-event-hook.sh\" && exec \"{{ env.HOME }}/.local/share/lattice/lattice-event-hook.sh\" || true"
-          }
-        ]
-      }
-    ],
-    "Stop": [
-      {
-        "matcher": "",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "test -x \"{{ env.HOME }}/.local/share/lattice/lattice-event-hook.sh\" && exec \"{{ env.HOME }}/.local/share/lattice/lattice-event-hook.sh\" || true"
-          }
-        ]
-      }
-    ],
-    "UserPromptSubmit": [
-      {
-        "matcher": "",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "test -x \"{{ env.HOME }}/.local/share/lattice/lattice-event-hook.sh\" && exec \"{{ env.HOME }}/.local/share/lattice/lattice-event-hook.sh\" || true"
-          }
-        ]
-      }
-    ],
     "PreToolUse": [
       {
         "matcher": "Bash",
@@ -163,6 +119,7 @@
     "command": "{{ env.HOME }}/.local/share/mise/shims/ccstatusline"
   },
   "enabledPlugins": {
+    "agentmemory@agentmemory": true,
     "compound-engineering@compound-engineering-plugin": true,
     "frontend-design@claude-plugins-official": true,
     "interface-design@interface-design": true,

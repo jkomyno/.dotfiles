@@ -1,13 +1,15 @@
 #!/usr/bin/env bash
-# agents.sh — make Claude Code marketplaces and plugins reproducible.
+# agents.sh — make coding-agent marketplaces and plugins reproducible.
 #
-# settings.json enables plugins by `<plugin>@<marketplace>` id, but enabling a
-# plugin does not install it. This script registers each marketplace and installs
-# each enabled plugin declared in scripts/dotfiles/agent-plugins.json, so a fresh
-# machine ends up with exactly the plugins this repo expects.
+# Claude Code settings.json enables plugins by `<plugin>@<marketplace>` id, but
+# enabling a plugin does not install it. Codex stores plugin state under its own
+# runtime directory. This script registers each declared marketplace and installs
+# each declared plugin, so a fresh machine ends up with the plugins this repo
+# expects.
 #
 # It is idempotent and safe to re-run. When Claude Code is not installed yet
-# (e.g. mid-bootstrap on a blank Mac), it skips with a hint instead of failing.
+# (e.g. mid-bootstrap on a blank Mac), or Codex is not installed yet, that host
+# skips with a hint instead of failing.
 #
 # Modes:
 #   (default)  Install: add missing marketplaces, install missing plugins.
@@ -77,27 +79,54 @@ ROOT="$(repo_root)"
 DATA_FILE="${ROOT}/scripts/dotfiles/agent-plugins.json"
 
 CLAUDE=""
+CODEX=""
 FAILURES=0
 
-known_marketplaces() {
+claude_known_marketplaces() {
   "${CLAUDE}" plugin marketplace list --json 2>/dev/null | jq -r '.[].name' 2>/dev/null || true
 }
 
-installed_plugin_ids() {
+claude_installed_plugin_ids() {
   "${CLAUDE}" plugin list --json 2>/dev/null | jq -r '.[].id' 2>/dev/null || true
 }
 
-marketplace_entries() {
+claude_marketplace_entries() {
   jq -r '.marketplaces[] | [.name, .source] | @tsv' "${DATA_FILE}"
 }
 
-plugin_ids() {
+claude_plugin_ids() {
   jq -r '.plugins[]' "${DATA_FILE}"
 }
 
-sync_marketplaces() {
+codex_bin() {
+  if command -v codex >/dev/null 2>&1; then
+    command -v codex
+  elif [[ -x "${HOME}/.local/bin/codex" ]]; then
+    printf '%s\n' "${HOME}/.local/bin/codex"
+  else
+    return 1
+  fi
+}
+
+codex_known_marketplaces() {
+  "${CODEX}" plugin marketplace list --json 2>/dev/null | jq -r '.marketplaces[].name' 2>/dev/null || true
+}
+
+codex_installed_plugin_ids() {
+  "${CODEX}" plugin list --json 2>/dev/null | jq -r '.installed[].pluginId' 2>/dev/null || true
+}
+
+codex_marketplace_entries() {
+  jq -r '.codex.marketplaces[]? | [.name, .source] | @tsv' "${DATA_FILE}"
+}
+
+codex_plugin_ids() {
+  jq -r '.codex.plugins[]?' "${DATA_FILE}"
+}
+
+sync_claude_marketplaces() {
   local known name source
-  known="$(known_marketplaces)"
+  known="$(claude_known_marketplaces)"
 
   while IFS=$'\t' read -r name source; do
     [[ -n "${name}" ]] || continue
@@ -121,12 +150,12 @@ sync_marketplaces() {
           ;;
       esac
     fi
-  done < <(marketplace_entries)
+  done < <(claude_marketplace_entries)
 }
 
-sync_plugins() {
+sync_claude_plugins() {
   local installed id
-  installed="$(installed_plugin_ids)"
+  installed="$(claude_installed_plugin_ids)"
 
   while IFS= read -r id; do
     [[ -n "${id}" ]] || continue
@@ -150,7 +179,98 @@ sync_plugins() {
           ;;
       esac
     fi
-  done < <(plugin_ids)
+  done < <(claude_plugin_ids)
+}
+
+sync_codex_marketplaces() {
+  local known name source
+  known="$(codex_known_marketplaces)"
+
+  while IFS=$'\t' read -r name source; do
+    [[ -n "${name}" ]] || continue
+    if grep -qxF "${name}" <<<"${known}"; then
+      case "${MODE}" in
+        update)
+          log "codex marketplace: updating ${name}"
+          "${CODEX}" plugin marketplace upgrade "${name}" \
+            || { warn "codex marketplace update failed: ${name}"; FAILURES=$((FAILURES + 1)); }
+          ;;
+        check) info "codex marketplace: ${name} present" ;;
+        install) info "codex marketplace: ${name} already registered" ;;
+      esac
+    else
+      case "${MODE}" in
+        check) info "codex marketplace: ${name} MISSING (would add ${source})" ;;
+        *)
+          log "codex marketplace: adding ${name} from ${source}"
+          "${CODEX}" plugin marketplace add "${source}" \
+            || { warn "codex marketplace add failed: ${source}"; FAILURES=$((FAILURES + 1)); }
+          ;;
+      esac
+    fi
+  done < <(codex_marketplace_entries)
+}
+
+sync_codex_plugins() {
+  local installed id
+  installed="$(codex_installed_plugin_ids)"
+
+  while IFS= read -r id; do
+    [[ -n "${id}" ]] || continue
+    if grep -qxF "${id}" <<<"${installed}"; then
+      case "${MODE}" in
+        update) info "codex plugin: ${id} already installed (marketplace refreshed)" ;;
+        check) info "codex plugin: ${id} installed" ;;
+        install) info "codex plugin: ${id} already installed" ;;
+      esac
+    else
+      case "${MODE}" in
+        check) info "codex plugin: ${id} MISSING (would install)" ;;
+        *)
+          log "codex plugin: installing ${id}"
+          "${CODEX}" plugin add "${id}" \
+            || { warn "codex plugin install failed: ${id}"; FAILURES=$((FAILURES + 1)); }
+          ;;
+      esac
+    fi
+  done < <(codex_plugin_ids)
+}
+
+sync_claude() {
+  if ! CLAUDE="$(claude_bin)"; then
+    log "Skipping Claude plugin sync because the claude CLI is not installed yet"
+    log "Re-run after installing Claude Code: just update plugins"
+    return 0
+  fi
+
+  log "Claude plugin sync (${MODE}) using ${DATA_FILE#"${ROOT}"/}"
+  sync_claude_marketplaces
+  sync_claude_plugins
+
+  if [[ "${MODE}" != "check" ]]; then
+    info "Restart Claude Code for plugin changes to take effect"
+  fi
+}
+
+sync_codex() {
+  if ! CODEX="$(codex_bin)"; then
+    log "Skipping Codex plugin sync because the codex CLI is not installed yet"
+    log "Re-run after installing Codex: just update plugins"
+    return 0
+  fi
+
+  if [[ -z "$(codex_marketplace_entries)" && -z "$(codex_plugin_ids)" ]]; then
+    info "Codex plugin sync: no configured Codex plugins"
+    return 0
+  fi
+
+  log "Codex plugin sync (${MODE}) using ${DATA_FILE#"${ROOT}"/}"
+  sync_codex_marketplaces
+  sync_codex_plugins
+
+  if [[ "${MODE}" != "check" ]]; then
+    info "Restart Codex for plugin changes to take effect"
+  fi
 }
 
 main() {
@@ -160,30 +280,19 @@ main() {
   export PATH="${HOME}/.local/bin:${PATH}"
 
   if ! command -v jq >/dev/null 2>&1; then
-    warn "jq is not available yet; skipping Claude plugin sync"
+    warn "jq is not available yet; skipping agent plugin sync"
     return 0
   fi
 
-  if ! CLAUDE="$(claude_bin)"; then
-    log "Skipping Claude plugin sync because the claude CLI is not installed yet"
-    log "Re-run after installing Claude Code: just update plugins"
-    return 0
-  fi
+  sync_claude
+  sync_codex
 
-  log "Claude plugin sync (${MODE}) using ${DATA_FILE#"${ROOT}"/}"
-  sync_marketplaces
-  sync_plugins
-
-  if [[ "${MODE}" != "check" ]]; then
-    info "Restart Claude Code for plugin changes to take effect"
-  fi
-
-  # Absent jq/claude already returned 0 above (a fresh machine is expected to
-  # skip). A real command failure once claude is present is a genuine error:
-  # settings.json still enables these plugins, so report non-zero so callers can
-  # see the declared plugin state was not fully reproduced.
+  # Absent jq/agent CLIs already returned 0 above (a fresh machine is expected
+  # to skip). A real command failure once a host CLI is present is a genuine
+  # error: tracked config still declares these plugins, so report non-zero so
+  # callers can see the declared plugin state was not fully reproduced.
   if [[ "${FAILURES}" -gt 0 ]]; then
-    warn "${FAILURES} Claude plugin operation(s) failed; declared plugin state not fully reproduced"
+    warn "${FAILURES} agent plugin operation(s) failed; declared plugin state not fully reproduced"
     return 1
   fi
 }

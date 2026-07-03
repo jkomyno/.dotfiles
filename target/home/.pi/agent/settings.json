@@ -3,6 +3,9 @@
   "defaultProvider": "openai-codex",
   "defaultModel": "gpt-5.5",
   "defaultThinkingLevel": "medium",
+  "extensions": [
+    "~/.pi/agent/extensions/agentmemory"
+  ],
   "packages": [
     "npm:@ff-labs/pi-fff"
   ]

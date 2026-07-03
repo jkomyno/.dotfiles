@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-#MISE description="Register Claude Code marketplaces and install enabled plugins"
+#MISE description="Register coding-agent marketplaces and install enabled plugins"
 
 set -Eeuo pipefail
 
