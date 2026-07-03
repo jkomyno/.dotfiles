@@ -27,6 +27,22 @@ versions:
 versions-update:
     @scripts/dotfiles/versions.sh --write
 
+# Update every managed layer, or one component: just update [all|mise|casks|formulae|plugins|skills|codex|pi|self]
+update *args:
+    @scripts/dotfiles/update.sh {{args}}
+
+# Non-mutating preview of what `just update` would change. Accepts the same components.
+update-check *args:
+    @scripts/dotfiles/update.sh --check {{args}}
+
+# Register Claude Code marketplaces and install enabled plugins (idempotent).
+plugins-install:
+    @bash install/common/agents.sh
+
+# Report configured vs installed Claude Code plugins without changing anything.
+plugins-check:
+    @bash install/common/agents.sh --check
+
 # Check vendored third-party agent skills against upstream.
 sync-skills-check:
     @bash target/home/.agents/skills/sync-skills/scripts/sync.sh --keep-upstream
