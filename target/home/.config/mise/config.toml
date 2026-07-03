@@ -103,6 +103,9 @@ taplo = "latest"
 typos = "latest"
 
 [settings]
+# Enable the experimental [dotfiles] feature so `mise dotfiles ...` works from
+# any shell without a MISE_EXPERIMENTAL=true prefix.
+experimental = true
 idiomatic_version_file_enable_tools = ["node", "python", "rust"]
 
 [settings.node]

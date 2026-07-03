@@ -12,16 +12,16 @@ On a brand-new Apple Silicon Mac with only Terminal available, paste:
 
 That command downloads [`setup.sh`](./setup.sh), creates `~/work/me`, fetches this repository, installs a bootstrap `mise` binary into `~/.local/bin` if needed, and runs the staged mise setup path. If `git` is not available yet, setup uses a temporary GitHub archive only long enough to install Xcode Command Line Tools, then replaces it with a real git checkout before continuing.
 
-By default, the repository checkout lands at:
+The repository checkout lands at:
 
 ```sh
-~/work/me/dotfiles
+~/work/me/.dotfiles
 ```
 
 The mise-managed target-shaped source tree is:
 
 ```sh
-~/work/me/dotfiles/target/home
+~/work/me/.dotfiles/target/home
 ```
 
 Useful first-run variants:
@@ -32,35 +32,12 @@ DOTFILES_SKIP_COMPUTER_NAME=1 /bin/bash -c "$(curl -fsSL https://raw.githubuserc
 
 # Use a specific machine name.
 DOTFILES_COMPUTER_NAME="Alberto's MacBook Pro" /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/jkomyno/.dotfiles/main/setup.sh)"
-
-# Bootstrap a branch other than main.
-DOTFILES_BRANCH=my-branch /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/jkomyno/.dotfiles/main/setup.sh)"
-
-# Use a different parent directory.
-DOTFILES_WORK_DIR="$HOME/work/personal" /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/jkomyno/.dotfiles/main/setup.sh)"
-
-# Use an exact checkout directory.
-DOTFILES_CHECKOUT_DIR="$HOME/src/dotfiles" /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/jkomyno/.dotfiles/main/setup.sh)"
 ```
-
-### Private repository
-
-While this repository is private, the unauthenticated one-liner above 404s. Provision a short-lived GitHub token (a fine-grained or classic PAT with read access to the repo) and export it before bootstrapping. `setup.sh` reads `DOTFILES_GITHUB_TOKEN` (or the conventional `GH_TOKEN` / `GITHUB_TOKEN`) and uses it for both the initial fetch of `setup.sh` and the clone/archive that follow:
-
-```sh
-export GH_TOKEN=github_pat_xxx
-/bin/bash -c "$(curl -fsSL \
-  -H "Authorization: Bearer $GH_TOKEN" \
-  -H "Accept: application/vnd.github.raw" \
-  https://api.github.com/repos/jkomyno/.dotfiles/contents/setup.sh)"
-```
-
-The token is used only for the bootstrap fetch and clone; it is passed to `git` as a one-shot header and never written to `.git/config`. `unset GH_TOKEN` afterward. Once `gh auth login` and SSH-key upload have completed the remote can move to SSH. Alternatively, making the repository public lets the plain one-liner at the top work with no token. For non-GitHub remotes without `git`, set `DOTFILES_ARCHIVE_URL` to a tarball URL.
 
 After setup finishes, open a new terminal so the managed shell environment is loaded, then run:
 
 ```sh
-cd ~/work/me/dotfiles
+cd ~/work/me/.dotfiles
 just doctor
 ```
 
@@ -72,7 +49,7 @@ The root [`setup.sh`](./setup.sh) is intentionally small:
 
 1. Requires `curl`.
 2. On macOS, keeps sudo alive for the first run and optionally sets the computer name.
-3. Fetches this repository into `~/work/me/dotfiles`.
+3. Fetches this repository into `~/work/me/.dotfiles`.
 4. Installs or finds the pinned standalone `mise` binary.
 5. Runs the staged mise setup order from `scripts/dotfiles/mise-setup-staged.sh`.
 
@@ -178,15 +155,17 @@ whole-file targets without `--force`.
 To pull repo changes on an already-provisioned machine:
 
 ```sh
-cd ~/work/me/dotfiles
+cd ~/work/me/.dotfiles
 git pull --ff-only
-MISE_EXPERIMENTAL=true mise dotfiles apply --yes
+mise dotfiles apply --yes
 ```
 
-`setup.sh` marks this repo's [`mise.toml`](./mise.toml) as trusted so these
-commands work directly. If mise ever reports the config is not trusted (for
-example on a machine provisioned before this was added), run `mise trust` once
-from the checkout.
+The managed [`mise.toml`](./mise.toml) and `~/.config/mise/config.toml` both set
+`experimental = true`, so `mise dotfiles` commands run without a
+`MISE_EXPERIMENTAL=true` prefix. `setup.sh` also marks this repo's `mise.toml` as
+trusted so these commands work directly. If mise ever reports the config is not
+trusted (for example on a machine provisioned before this was added), run `mise
+trust` once from the checkout.
 
 Historical migration notes are tracked in [`MIGRATION.md`](./MIGRATION.md).
 
@@ -202,8 +181,8 @@ just setup-smoke
 To inspect what mise dotfiles would do against the current `$HOME` without applying:
 
 ```sh
-MISE_EXPERIMENTAL=true mise dotfiles status
-MISE_EXPERIMENTAL=true mise dotfiles apply --dry-run
+mise dotfiles status
+mise dotfiles apply --dry-run
 ```
 
 Note that `mise dotfiles apply` refuses to overwrite existing whole-file targets unless given `--force`.

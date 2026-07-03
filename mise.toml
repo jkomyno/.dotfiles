@@ -3,6 +3,11 @@
 # experimental [dotfiles] features this repo relies on.
 min_version = "2026.6.14"
 
+# The [dotfiles] feature is still experimental in mise, so enable it here rather
+# than making every caller prefix commands with MISE_EXPERIMENTAL=true.
+[settings]
+experimental = true
+
 [task_config]
 includes = ["tasks"]
 
