@@ -68,7 +68,7 @@ ensure_mise() {
 
 check_versions() {
   log "Checking mise tools from target/home/.config/mise/config.toml"
-  run_source_mise outdated "${TOOL_ARGS[@]}" || {
+  run_source_mise outdated ${TOOL_ARGS[@]+"${TOOL_ARGS[@]}"} || {
     warn "mise outdated reported issues; this can happen before Node/npm-backed tools are installed"
   }
 
@@ -77,7 +77,7 @@ check_versions() {
     --dry-run \
     --platform "${DOTFILES_MISE_PLATFORMS}" \
     --minimum-release-age "${MINIMUM_RELEASE_AGE}" \
-    "${TOOL_ARGS[@]}"
+    ${TOOL_ARGS[@]+"${TOOL_ARGS[@]}"}
 }
 
 write_versions() {
@@ -87,13 +87,13 @@ write_versions() {
   fi
 
   log "Upgrading mise tools from source config"
-  run_source_mise upgrade "${upgrade_args[@]}" "${TOOL_ARGS[@]}"
+  run_source_mise upgrade "${upgrade_args[@]}" ${TOOL_ARGS[@]+"${TOOL_ARGS[@]}"}
 
   log "Refreshing source mise.lock for ${DOTFILES_MISE_PLATFORMS}"
   run_source_mise lock \
     --platform "${DOTFILES_MISE_PLATFORMS}" \
     --minimum-release-age "${MINIMUM_RELEASE_AGE}" \
-    "${TOOL_ARGS[@]}"
+    ${TOOL_ARGS[@]+"${TOOL_ARGS[@]}"}
 }
 
 main() {

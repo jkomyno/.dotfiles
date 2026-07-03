@@ -84,28 +84,18 @@ bundle_package_names() {
   sed -nE "s/^[[:space:]]*${kind}[[:space:]]+\"([^\"]+)\".*/\1/p" "${file}"
 }
 
-nanobrew_or_brew() {
-  # Echo the package manager to use for Brewfile bundles, preferring nanobrew.
-  export PATH="${NANOBREW_BIN_DIR:-/opt/nanobrew/prefix/bin}:${PATH}"
-  if have nb; then
-    printf 'nb'
-  elif have brew; then
-    printf 'brew'
-  else
-    return 1
-  fi
-}
-
 # --- components ------------------------------------------------------------
 
 update_mise() {
+  # ${arr[@]+"${arr[@]}"} is the Bash-3.2-safe empty-array expansion the rest of
+  # this repo uses: a bare "${tool_args[@]}" on an empty array aborts under set -u.
   local -a tool_args=("$@")
   if [[ "${CHECK_ONLY}" == true ]]; then
     log "mise: checking outdated tools and lock refresh"
-    bash "$(versions_script)" --check "${tool_args[@]}"
+    bash "$(versions_script)" --check ${tool_args[@]+"${tool_args[@]}"}
   else
     log "mise: upgrading tools and refreshing source lockfile"
-    bash "$(versions_script)" --write "${tool_args[@]}"
+    bash "$(versions_script)" --write ${tool_args[@]+"${tool_args[@]}"}
   fi
 }
 
@@ -124,11 +114,19 @@ update_bundle() {
     return 0
   }
 
-  local pm
-  pm="$(nanobrew_or_brew)" || {
+  # Prefer nanobrew; both read the same Brewfile. Export the nanobrew bin in this
+  # function's own scope so later nb/brew calls resolve — a command-substitution
+  # helper would lose the PATH change to its subshell.
+  export PATH="${NANOBREW_BIN_DIR:-/opt/nanobrew/prefix/bin}:${PATH}"
+  local pm=""
+  if have nb; then
+    pm="nb"
+  elif have brew; then
+    pm="brew"
+  else
     warn "${title}: neither nanobrew (nb) nor Homebrew (brew) is available"
     return 0
-  }
+  fi
 
   local -a names=()
   while IFS= read -r n; do [[ -n "${n}" ]] && names+=("${n}"); done \
@@ -139,8 +137,8 @@ update_bundle() {
     case "${pm}" in
       nb) nb outdated 2>/dev/null || info "${title}: nanobrew has no outdated report; would converge bundle" ;;
       brew)
-        if [[ "${kind}" == "cask" ]]; then brew outdated --cask "${names[@]}" 2>/dev/null || true;
-        else brew outdated --formula "${names[@]}" 2>/dev/null || true; fi
+        if [[ "${kind}" == "cask" ]]; then brew outdated --cask ${names[@]+"${names[@]}"} 2>/dev/null || true;
+        else brew outdated --formula ${names[@]+"${names[@]}"} 2>/dev/null || true; fi
         ;;
     esac
     return 0
