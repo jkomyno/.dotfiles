@@ -156,11 +156,20 @@ update_bundle() {
     brew)
       brew bundle install --file="${bundle}" || warn "${title}: brew bundle reported issues"
       if [[ ${#names[@]} -gt 0 ]]; then
-        log "${title}: upgrading ${#names[@]} package(s)"
-        if [[ "${kind}" == "cask" ]]; then
-          brew upgrade --cask "${names[@]}" 2>/dev/null || info "${title}: nothing to upgrade"
+        local flag="--cask"
+        [[ "${kind}" == "brew" ]] && flag="--formula"
+        # Upgrade only what is actually outdated so a real upgrade failure
+        # (checksum, network, permissions) surfaces as a warning instead of
+        # being swallowed as "nothing to upgrade".
+        local -a outdated=()
+        while IFS= read -r o; do [[ -n "${o}" ]] && outdated+=("${o}"); done \
+          < <(brew outdated "${flag}" --quiet ${names[@]+"${names[@]}"} 2>/dev/null || true)
+        if [[ ${#outdated[@]} -eq 0 ]]; then
+          info "${title}: all managed packages current"
         else
-          brew upgrade --formula "${names[@]}" 2>/dev/null || info "${title}: nothing to upgrade"
+          log "${title}: upgrading ${#outdated[@]} outdated package(s)"
+          brew upgrade "${flag}" ${outdated[@]+"${outdated[@]}"} \
+            || warn "${title}: some upgrades failed (see output above)"
         fi
       fi
       ;;
@@ -196,8 +205,11 @@ update_skills() {
     warn "skills: sync-skills not found"
     return 0
   }
+  # No --keep-upstream: this is a report; the interactive /sync-skills workflow
+  # is what retains upstream clones for inspection. Keeping them here would leak
+  # temp clones on every (including non-mutating) run.
   log "skills: analysing vendored skills vs upstream (read-only)"
-  bash "${sync}" --keep-upstream || warn "skills: sync analysis reported issues"
+  bash "${sync}" || warn "skills: sync analysis reported issues"
   info "skills: apply non-trivial merges with the /sync-skills agent workflow"
 }
 
