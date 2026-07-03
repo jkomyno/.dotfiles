@@ -1,0 +1,23 @@
+{
+  "$comment": "Single source of truth for Claude Code plugins. install/common/agents.sh registers each marketplace and installs each plugin idempotently; scripts/dotfiles/update.sh 'plugins' updates them. 'name' must match the marketplace name published in the source repo's .claude-plugin/marketplace.json, because that is what settings.json's enabledPlugins keys on (<plugin>@<name>).",
+  "marketplaces": [
+    {
+      "name": "compound-engineering-plugin",
+      "source": "EveryInc/compound-engineering-plugin"
+    },
+    {
+      "name": "claude-plugins-official",
+      "source": "anthropics/claude-plugins-official"
+    },
+    {
+      "name": "interface-design",
+      "source": "Dammyjay93/interface-design"
+    }
+  ],
+  "plugins": [
+    "compound-engineering@compound-engineering-plugin",
+    "frontend-design@claude-plugins-official",
+    "rust-analyzer-lsp@claude-plugins-official",
+    "interface-design@interface-design"
+  ]
+}

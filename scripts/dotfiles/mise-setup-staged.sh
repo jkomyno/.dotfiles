@@ -27,6 +27,7 @@ setup_plan=(
   "task|install:common:git|install/common/git.sh|install/common/git.sh"
   "task|install:common:git-signing|install/common/git-signing.sh|install/common/git-signing.sh"
   "task|install:common:gh|install/common/gh.sh|install/common/gh.sh"
+  "task|install:common:agents|install/common/agents.sh|install/common/agents.sh"
   "task|install:common:ollama-models|install/common/ollama-models.sh|install/common/ollama-models.sh"
   "task|install:common:mlx|install/common/mlx.sh|install/common/mlx.sh"
   "task|install:macos:defaults|install/macos/common/defaults.sh|install/macos/common/defaults.sh"
@@ -37,6 +38,7 @@ setup_plan=(
 # remaining setup (notably macOS defaults, which runs after them). They can also
 # be skipped outright via their own DOTFILES_SKIP_* env vars.
 optional_steps=(
+  "install:common:agents"
   "install:common:ollama-models"
   "install:common:mlx"
 )

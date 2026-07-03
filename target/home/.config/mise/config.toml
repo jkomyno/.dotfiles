@@ -35,8 +35,8 @@ cargo-binstall = "latest"
 gh = "latest"
 # https://github.com/kitlangton/ghui - GitHub pull request TUI
 "npm:@kitlangton/ghui" = "latest"
-# https://github.com/so-fancy/diff-so-fancy - human-friendly Git diff pager
-"npm:diff-so-fancy" = "latest"
+# https://github.com/dandavison/delta - syntax-highlighting, side-by-side Git diff pager
+delta = "latest"
 # https://github.com/git-lfs/git-lfs - Git extension for versioning large files
 git-lfs = "latest"
 # https://codeberg.org/mergiraf/mergiraf - syntax-aware Git merge driver
@@ -71,6 +71,9 @@ neovim = "latest"
 ast-grep = "latest"
 
 # AI agent tooling
+# https://github.com/openai/codex - OpenAI Codex CLI coding agent;
+# global config and shared-agent adapter tracked in target/home/.codex
+"npm:@openai/codex" = "latest"
 # https://github.com/earendil-works/pi (https://pi.dev) - Pi, a minimal extensible coding agent;
 # global config and skills wiring tracked in target/home/.pi
 "npm:@earendil-works/pi-coding-agent" = "latest"

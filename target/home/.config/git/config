@@ -11,8 +11,16 @@
 	autocrlf = false
 	attributesfile = ~/.config/git/attributes
 	excludesfile = ~/.config/git/ignore
-	pager = diff-so-fancy | less -RS -+X --tabs=4
+	pager = delta
 	whitespace = trailing-space,space-before-tab
+
+[interactive]
+	diffFilter = delta --color-only
+
+[delta]
+	navigate = true
+	line-numbers = true
+	hyperlinks = true
 
 [credential "https://github.com"]
 	helper =
