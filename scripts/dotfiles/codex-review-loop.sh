@@ -89,6 +89,14 @@ CODEX="$(codex_bin)" || {
   exit 1
 }
 
+# Refuse to review a dirty tree BEFORE writing any output files, so a repo-local
+# --out cannot dirty the tree and trip this guard, and uncommitted work is never
+# exposed to a --danger run.
+if [[ -n "$(git -C "${DOTFILES_ROOT}" status --porcelain 2>/dev/null)" ]]; then
+  error "working tree is dirty; commit or stash before reviewing (protects uncommitted work)"
+  exit 1
+fi
+
 if [[ -z "${OUT_DIR}" ]]; then
   OUT_DIR="$(mktemp -d "${TMPDIR:-/tmp}/codex-review.XXXXXX")"
 fi
@@ -154,13 +162,6 @@ scenario. Prefer fewer, higher-confidence findings over speculation. If the
 changes are sound, return verdict "approve" with an empty findings array.
 Emit your result strictly per the provided JSON schema.
 PROMPT
-
-# Refuse to review a dirty tree: the sandbox default protects committed work,
-# and --danger must never run against uncommitted changes it could clobber.
-if [[ -n "$(git -C "${DOTFILES_ROOT}" status --porcelain 2>/dev/null)" ]]; then
-  error "working tree is dirty; commit or stash before reviewing (protects uncommitted work)"
-  exit 1
-fi
 
 # Never carry a previous run's outputs forward: a failed Codex run must not
 # leave stale findings behind when --out points at a reused directory.
