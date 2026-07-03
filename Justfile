@@ -43,6 +43,10 @@ plugins-install:
 plugins-check:
     @bash install/common/agents.sh --check
 
+# Adversarially review the current branch with Codex (review-only). Override base: just codex-review main
+codex-review base="main":
+    @scripts/dotfiles/codex-review-loop.sh --base "{{base}}"
+
 # Check vendored third-party agent skills against upstream.
 sync-skills-check:
     @bash target/home/.agents/skills/sync-skills/scripts/sync.sh --keep-upstream
