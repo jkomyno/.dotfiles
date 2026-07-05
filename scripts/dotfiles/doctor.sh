@@ -40,6 +40,7 @@ check_required_files() {
     "mise.toml"
     "setup.sh"
     "README.md"
+    "THIRD-PARTY-NOTICES.md"
     "target/home/.zprofile"
     "target/home/.zshenv"
     "target/home/.zshrc"

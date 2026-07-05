@@ -198,8 +198,11 @@ For end-to-end bootstrap testing (`setup.sh`, staged setup tasks, Brewfiles, SSH
 
 ## License
 
-Released under the [MIT License](./LICENSE). These are personal dotfiles shared as a
-reference: they encode one person's preferences and machine identity, and are not
-affiliated with any tool they configure. Read what a script does before running it,
+First-party content is released under the [MIT License](./LICENSE). Skills vendored
+under `target/home/.agents/skills/` remain under their upstream licenses; see
+[THIRD-PARTY-NOTICES.md](./THIRD-PARTY-NOTICES.md) for the per-skill attribution.
+These are personal dotfiles shared as a reference: they encode one person's
+preferences and machine identity, and are not affiliated with any tool they
+configure. Read what a script does before running it,
 and adapt rather than adopt wholesale: the bootstrap one-liner runs remote code and
 `setup.sh` changes system settings.
