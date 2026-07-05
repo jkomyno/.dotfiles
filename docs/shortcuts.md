@@ -90,13 +90,14 @@ Two plugins (loaded via zinit, deferred so they don't slow down shell startup) c
 
 ## Modern CLI replacements
 
-[`mise/config.toml`](../target/home/.config/mise/config.toml) and [`git/config`](../target/home/.config/git/config) install and wire up faster/friendlier rewrites of several standard Unix tools. None of these need an alias to shadow the original — either the original binary is never installed, or the config points a well-known tool (like `git diff`) at the replacement directly.
+[`mise/config.toml`](../target/home/.config/mise/config.toml) and [`git/config`](../target/home/.config/git/config) install and wire up faster/friendlier rewrites of several standard Unix tools. Most run under their own name (`rg`, `fd`, `jq`, `hunk`, `ghui`); `ls` and `cat` are aliased over the standard-tool name itself once the replacement is installed (falling back to the real thing if it isn't); delta and mergiraf hook into git config so they run automatically without ever being typed.
 
 | Instead of | Use | Why |
 | --- | --- | --- |
 | `grep -r` | `rg` (**ripgrep**) | Respects `.gitignore`, searches recursively by default, and is dramatically faster on large trees. Also the engine behind `Ctrl+r` history search and `<leader>fg`/`<leader>/` project grep in Neovim ([`FZF_DEFAULT_COMMAND`](../target/home/.zshrc) and LazyVim both shell out to it). |
 | `find` | `fd` | Sensible defaults (ignores `.git`, respects `.gitignore`), simpler glob-like syntax instead of `find`'s flags. |
 | `ls` / `ls -al` | `ls` / `lsa` (**eza**, aliased over `ls` itself) | Long view with icons, git status per file, and human-readable sizes/dates out of the box — see [Shell command shortcuts](#shell-command-shortcuts). |
+| `cat` | `cat` (**bat**, aliased over `cat` itself, paging disabled) | Syntax highlighting, line numbers, and a git-modified gutter, while still dumping straight to the terminal instead of opening a pager — see [Shell command shortcuts](#shell-command-shortcuts). |
 | `grep`/`sed` across code (structural edits) | `ast-grep` | Matches and rewrites code by AST pattern instead of text, so it doesn't get confused by formatting or match inside comments/strings. |
 | `git diff` / `less` as a diff pager | **delta** (`git/config`: `core.pager`, `interactive.diffFilter`) | Side-by-side, syntax-highlighted diffs with line numbers and clickable hyperlinks — applies automatically to every `git diff`, `git show`, and `git add -p`. |
 | resolving conflicting merges by hand | **mergiraf** (`git/config`: `[merge "mergiraf"]`, enabled repo-wide by [`git/attributes`](../target/home/.config/git/attributes)) | Syntax-aware 3-way merges: it re-parses both sides and often resolves conflicts standard git would block on. |
@@ -116,6 +117,7 @@ These are functions/aliases, not keybindings — type the short form and press E
 | `gcom` / `gm` | Check out the repo's default branch (main or master, auto-detected) | zsh, fish |
 | `gbda` | Delete local branches already merged into the default branch, including squash-merged ones | zsh, fish |
 | `ls` / `lsa` | `eza` long listing with icons (`lsa` also shows hidden files) | zsh |
+| `cat` | `bat` with paging disabled (syntax highlighting, line numbers, no pager) | zsh, fish |
 | `p` | `pnpm` | zsh, fish |
 | `pt` | `pnpm test` | zsh, fish |
 | `pb` | `pnpm build` | zsh, fish |

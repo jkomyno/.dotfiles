@@ -65,6 +65,8 @@ ripgrep = "latest"
 fd = "latest"
 # https://github.com/eza-community/eza - modern ls replacement
 eza = "latest"
+# https://github.com/sharkdp/bat - cat clone with syntax highlighting and git integration
+bat = "latest"
 # https://github.com/junegunn/fzf - command-line fuzzy finder
 fzf = "latest"
 # https://github.com/neovim/neovim - programmable terminal editor; config in target/home/.config/nvim
