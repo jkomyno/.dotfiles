@@ -44,12 +44,6 @@ copyright notices:
   public domain ([Project Gutenberg #37134](https://www.gutenberg.org/ebooks/37134)).
   The wrapper repository publishes no license; it is vendored with attribution to
   Jesse Vincent (obra).
-- `better-auth-best-practices`, from
-  [better-auth/skills](https://github.com/better-auth/skills), publishes no
-  license, which leaves the upstream's default all-rights-reserved copyright in
-  force. It is vendored with attribution to the Better Auth project pending an
-  upstream license grant; if you fork this repository, treat that skill as
-  not-redistributable and remove or replace it.
 
 ## License texts
 

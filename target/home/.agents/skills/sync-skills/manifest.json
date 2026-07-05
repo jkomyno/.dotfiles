@@ -16,10 +16,6 @@
       "repo": "https://github.com/mattpocock/skills.git",
       "path": "skills/engineering/tdd"
     },
-    "better-auth-best-practices": {
-      "repo": "https://github.com/better-auth/skills.git",
-      "path": "better-auth/best-practices"
-    },
     "postgres-drizzle": {
       "repo": "https://github.com/ccheney/robust-skills.git",
       "path": "skills/postgres-drizzle"
