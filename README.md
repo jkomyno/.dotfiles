@@ -67,6 +67,16 @@ The staged setup path generates an SSH key (step 1), installs or checks Xcode Co
 
 Linux is not a full provisioning target yet. The shared dotfiles and diagnostics are expected to work, while macOS package/default hooks skip themselves until this repository grows a real Linux profile.
 
+## Repository Layout
+
+Shell scripts live in three trees, and each tree has one job:
+
+- [`install/`](./install) holds the implementation of first-run provisioning: standalone, idempotent scripts (SSH keygen, Homebrew, nanobrew, Git/GitHub setup, macOS defaults) plus the package bundles. Every script runs on its own, without mise.
+- [`tasks/`](./tasks) holds thin [mise task](https://mise.jdx.dev/tasks/) wrappers, a few lines each, that `exec` into `install/` or `scripts/dotfiles/`. They exist only to give scripts stable task names (`install:common:git`, `setup:staged`), declared dependencies, and a place in the staged setup order. No logic lives here.
+- [`scripts/dotfiles/`](./scripts/dotfiles) holds repeatable maintenance and diagnostics (`doctor.sh`, `update.sh`, `versions.sh`), each exposed as a `Justfile` recipe. These run for the life of the machine, not just at first setup.
+
+So the same file can be reached three ways: `bash install/common/git.sh` directly, `mise run install:common:git` through its task wrapper, or as one step of `setup.sh`'s staged order. Pick the layer that matches how much orchestration you want.
+
 ## Tool Ownership
 
 [`target/home/.config/mise/config.toml`](./target/home/.config/mise/config.toml) is the source of truth for language runtimes and command-line development tools. This includes Node.js, Python, Rust, package managers, linters, formatters, search tools, and other CLIs that mise can install. The staged setup applies the mise dotfiles entry to expose it as `~/.config/mise/config.toml`.
@@ -91,7 +101,7 @@ All three harnesses (Claude Code, Codex, pi) read the same first-party and vendo
 
 Only curated configuration is tracked. Runtime state in `~/.claude` (sessions, history, caches), `~/.codex` (the `[projects.*]` trust list, `rules/`, sqlite databases), and `~/.agentmemory` (memory database, engine state, optional `.env`) stays unmanaged; mise dotfiles only applies the explicit entries in [`mise.toml`](./mise.toml). Skill directories not listed in this repository (for example one-off installs by other tooling) are left alone. To take a previously installed skill under management, vendor it via `sync-skills` instead of editing the deployed copy.
 
-Per-idea reference corpora (pinned shallow clones of upstream repositories, blog-post snapshots, and agent-written digests) live under `~/.jk/ideas/<name>` and are managed by the first-party `jk-cli` skill. Projects opt in through an `AGENTS.local.md` at the repository root — hidden by the global gitignore and read by every harness via the shared `AGENTS.md` — so reference material never appears in a project's git history. `~/.jk` is machine state owned by the `jk` CLI and is not managed by these dotfiles.
+Per-idea reference corpora (pinned shallow clones of upstream repositories, blog-post snapshots, and agent-written digests) live under `~/.jk/ideas/<name>` and are managed by the first-party `jk-cli` skill. Projects opt in through an `AGENTS.local.md` at the repository root (hidden by the global gitignore and read by every harness via the shared `AGENTS.md`), so reference material never appears in a project's git history. `~/.jk` is machine state owned by the `jk` CLI and is not managed by these dotfiles.
 
 macOS user preferences live in [`install/macos/common/defaults.sh`](./install/macos/common/defaults.sh) and are applied through the staged setup task `install:macos:defaults`. The script handles repeatable user-level defaults by default, including a Dock that shows only running applications; clearing saved Dock pins and sudo-backed power/login settings are explicit opt-ins. Per-device machine identity is set once by [`setup.sh`](./setup.sh), defaulting to `Alberto's MacBook Pro`.
 
@@ -191,5 +201,5 @@ For end-to-end bootstrap testing (`setup.sh`, staged setup tasks, Brewfiles, SSH
 Released under the [MIT License](./LICENSE). These are personal dotfiles shared as a
 reference: they encode one person's preferences and machine identity, and are not
 affiliated with any tool they configure. Read what a script does before running it,
-and adapt rather than adopt wholesale — the bootstrap one-liner runs remote code and
+and adapt rather than adopt wholesale: the bootstrap one-liner runs remote code and
 `setup.sh` changes system settings.
