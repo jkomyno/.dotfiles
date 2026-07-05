@@ -109,6 +109,22 @@ macOS user preferences live in [`install/macos/common/defaults.sh`](./install/ma
 
 Every keybinding and shell shortcut this repo configures — tmux, Neovim/LazyVim, Ghostty, and zsh/fish — is catalogued in [`docs/shortcuts.md`](./docs/shortcuts.md).
 
+## Changing These Dotfiles
+
+Most changes touch three things: the tracked source, the ownership manifest, and
+the check that proves the manifest still works. Keep those in the same change.
+
+- **Managed dotfiles:** edit files under [`target/home`](./target/home), then add or update the matching `[dotfiles]` entry in [`mise.toml`](./mise.toml). For copy or template targets, update [`scripts/dotfiles/mise-dotfiles-check.sh`](./scripts/dotfiles/mise-dotfiles-check.sh) when the rendered content matters. Verify with `just dotfiles-check`; use `mise dotfiles apply --dry-run` to preview the current `$HOME`.
+- **Setup steps:** put first-run machine logic in [`install/`](./install), add a thin wrapper under [`tasks/`](./tasks), wire the explicit setup order in [`scripts/dotfiles/mise-setup-staged.sh`](./scripts/dotfiles/mise-setup-staged.sh), and update [`install/README.md`](./install/README.md) or [`install/macos/README.md`](./install/macos/README.md) when the order changes. Verify with `just tasks-check` and `just setup-smoke`.
+- **Tools and apps:** put language runtimes and CLI developer tools in [`target/home/.config/mise/config.toml`](./target/home/.config/mise/config.toml). Put GUI apps and fonts in [`install/macos/common/nanobrew-casks.Brewfile`](./install/macos/common/nanobrew-casks.Brewfile). Use [`install/macos/common/nanobrew-formulae.Brewfile`](./install/macos/common/nanobrew-formulae.Brewfile) only when mise has no practical backend. Verify ownership with `just packages`; use `just versions` or `just versions-update` for the mise lockfile path.
+- **Agent configuration:** put shared instructions and vendored skills under [`target/home/.agents`](./target/home/.agents). Declare Claude and Codex plugin installation in [`scripts/dotfiles/agent-plugins.json`](./scripts/dotfiles/agent-plugins.json), and keep Claude's enabled plugin IDs in [`target/home/.claude/settings.json`](./target/home/.claude/settings.json) synchronized. Verify with `just dotfiles-check`, `just update-check plugins`, and JSON validation for edited JSON files.
+- **Bootstrap and machine state:** treat [`setup.sh`](./setup.sh), [`install/common/mise.sh`](./install/common/mise.sh), and [`install/macos/common/defaults.sh`](./install/macos/common/defaults.sh) as real machine mutators. Start with non-mutating proof: `just setup-plan`, `just setup-smoke`, `just git-signing-check`, and `bash -n` for changed shell scripts. Use a separate macOS account or VM for a full first-run bootstrap.
+
+Before committing, run `git diff --check` and `git status --short`. For
+provisioning changes, run `just doctor` when the local machine has the required
+tools. Stage only the intended files; this repo often has unrelated local tool
+or lockfile drift.
+
 ## Maintenance
 
 Repeatable operator tasks live in the root [`Justfile`](./Justfile). After `setup.sh` has installed the managed mise toolchain, run:
