@@ -1,5 +1,7 @@
 # jkomyno's dotfiles
 
+[![CI](https://github.com/jkomyno/.dotfiles/actions/workflows/ci.yml/badge.svg)](https://github.com/jkomyno/.dotfiles/actions/workflows/ci.yml)
+
 Automated dotfiles management for my ([jkomyno](https://x.com/jkomyno)) personal development environment.
 
 ## Start Here

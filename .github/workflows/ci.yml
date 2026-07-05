@@ -1,0 +1,38 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  doctor:
+    name: just doctor
+    runs-on: macos-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
+
+      # Use the repo's own bootstrap installer so CI exercises the same
+      # pinned mise binary that setup.sh installs on a fresh machine.
+      - name: Install pinned mise
+        run: |
+          bash install/common/mise.sh --binary-only
+          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+
+      - name: Install just
+        run: brew install just
+
+      - name: Run doctor
+        env:
+          # mise resolves github:/npm: backends against the GitHub API; the
+          # workflow token avoids anonymous rate limits during the lock dry-run.
+          GITHUB_TOKEN: ${{ github.token }}
+        run: just doctor
