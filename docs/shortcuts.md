@@ -1,6 +1,6 @@
 # Shortcuts
 
-Every keybinding and shell shortcut actually configured in this repo, grouped by tool. Each table only lists what's customized here — defaults a tool ships with on its own aren't repeated unless a section says so explicitly.
+Every keybinding, shell shortcut, and modern CLI replacement actually configured in this repo, grouped by tool. Each table only lists what's customized here — defaults a tool ships with on its own aren't repeated unless a section says so explicitly.
 
 ## tmux
 
@@ -88,6 +88,22 @@ Two plugins (loaded via zinit, deferred so they don't slow down shell startup) c
 
 `Ctrl+r` is worth calling out on its own: without this setup it's a plain substring search; here it opens a fuzzy, scrollable picker, which is a much faster way to reuse a long command from a week ago than retyping it.
 
+## Modern CLI replacements
+
+[`mise/config.toml`](../target/home/.config/mise/config.toml) and [`git/config`](../target/home/.config/git/config) install and wire up faster/friendlier rewrites of several standard Unix tools. None of these need an alias to shadow the original — either the original binary is never installed, or the config points a well-known tool (like `git diff`) at the replacement directly.
+
+| Instead of | Use | Why |
+| --- | --- | --- |
+| `grep -r` | `rg` (**ripgrep**) | Respects `.gitignore`, searches recursively by default, and is dramatically faster on large trees. Also the engine behind `Ctrl+r` history search and `<leader>fg`/`<leader>/` project grep in Neovim ([`FZF_DEFAULT_COMMAND`](../target/home/.zshrc) and LazyVim both shell out to it). |
+| `find` | `fd` | Sensible defaults (ignores `.git`, respects `.gitignore`), simpler glob-like syntax instead of `find`'s flags. |
+| `ls` / `ls -al` | `ls` / `lsa` (**eza**, aliased over `ls` itself) | Long view with icons, git status per file, and human-readable sizes/dates out of the box — see [Shell command shortcuts](#shell-command-shortcuts). |
+| `grep`/`sed` across code (structural edits) | `ast-grep` | Matches and rewrites code by AST pattern instead of text, so it doesn't get confused by formatting or match inside comments/strings. |
+| `git diff` / `less` as a diff pager | **delta** (`git/config`: `core.pager`, `interactive.diffFilter`) | Side-by-side, syntax-highlighted diffs with line numbers and clickable hyperlinks — applies automatically to every `git diff`, `git show`, and `git add -p`. |
+| resolving conflicting merges by hand | **mergiraf** (`git/config`: `[merge "mergiraf"]`, enabled repo-wide by [`git/attributes`](../target/home/.config/git/attributes)) | Syntax-aware 3-way merges: it re-parses both sides and often resolves conflicts standard git would block on. |
+| eyeballing/parsing JSON with `sed`/`awk` | `jq` | A real query language for JSON — filtering, reshaping, and formatting without regex gymnastics. |
+| `git diff` / `git add -p` for reviewing before committing | `hunk` | A review-first TUI for staging and inspecting hunks, separate from delta (which is just the pager). |
+| plain `gh pr list` / `gh pr view` | `ghui` | A TUI over the same GitHub PR data, easier to scan than the raw CLI output. |
+
 ## Shell command shortcuts
 
 These are functions/aliases, not keybindings — type the short form and press Enter. Defined once and shared: git ones in [`git-shortcuts.zsh`](../target/home/.config/zsh/aliases.d/git-shortcuts.zsh) (zsh) / [`gm.fish`](../target/home/.config/fish/functions/gm.fish), [`gbda.fish`](../target/home/.config/fish/functions/gbda.fish) (fish); the rest in `aliases.d/*.zsh` and `.config/fish/functions/*.fish`.
@@ -108,3 +124,22 @@ These are functions/aliases, not keybindings — type the short form and press E
 | `ct` | Keep the Mac awake while Ghostty is running (`coffee -d app Ghostty`) | zsh, fish |
 
 Two are guardrails rather than shortcuts to type on purpose: plain `npm`/`pnpm install -g ...` is blocked with a pointer to `mise use -g "npm:<package>"` instead (see [`npm-guard.zsh`](../target/home/.config/zsh/aliases.d/npm-guard.zsh)), and `git checkout <PR URL>` transparently becomes `gh pr checkout <PR URL>`.
+
+## Git aliases
+
+Defined directly in [`git/config`](../target/home/.config/git/config)'s `[alias]` block — these work in any shell, no zsh/fish wiring needed.
+
+| Alias | Runs |
+| --- | --- |
+| `git st` | `git status` |
+| `git co` | `git checkout` |
+| `git com` | Check out the repo's default branch (same detection logic as `gcom`/`gm`) |
+| `git br` | `git branch` |
+| `git ci` / `git civ` | `git commit --no-verify` / `git commit --verify` |
+| `git ca` / `git cav` | `git commit --amend --no-verify` / `git commit --amend --verify` |
+| `git ph` / `git pl` | `git push` / `git pull` |
+| `git r` | `git reset` |
+| `git rs` | `git reset --soft HEAD~1` (undo last commit, keep changes staged) |
+| `git rh` | `git reset --hard HEAD~1` (undo last commit, discard its changes) |
+
+`--no-verify` is the default on `ci`/`ca` on purpose (fast local commits); use the `*v` variant (`civ`/`cav`) when you deliberately want hooks to run. `rh` is destructive — it discards the last commit's changes, not just the commit itself.
