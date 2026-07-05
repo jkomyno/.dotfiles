@@ -2,7 +2,15 @@
 
 [![CI](https://github.com/jkomyno/.dotfiles/actions/workflows/ci.yml/badge.svg)](https://github.com/jkomyno/.dotfiles/actions/workflows/ci.yml)
 
-Automated dotfiles management for my ([jkomyno](https://x.com/jkomyno)) personal development environment.
+My ([jkomyno](https://x.com/jkomyno)) personal development environment for Apple Silicon Macs. One command provisions a factory-fresh machine end to end, `just doctor` verifies the result, and `just update` keeps every layer current after that.
+
+Three decisions shape the whole repository:
+
+- **mise manages the dotfiles themselves, not just the toolchain.** Most dotfiles managers make you encode metadata in filenames (chezmoi's `dot_zshrc` and `exact_` prefixes) or maintain a symlink farm by hand. This repo uses mise's experimental [`[dotfiles]`](https://mise.jdx.dev/) feature instead: the source tree under [`target/home`](./target/home) reads exactly like `$HOME`, and a table in [`mise.toml`](./mise.toml) declares how each entry deploys (symlink, copy, or template). The tool that pins my language runtimes and CLIs also places my config files, so one manager does the work of two.
+- **One skills layer feeds three coding agents.** Claude Code, Codex, and pi all read the same `~/.agents/skills` directory. Third-party skills are vendored as real files and kept current from upstream by the `sync-skills` skill, with local modifications preserved as patches; shared instructions and persistent agent memory follow the same pattern. Details in [Agent Configuration](#agent-configuration).
+- **The repo tests itself.** `just doctor` syntax-checks every shell script, validates the mise task graph, runs the staged setup against a throwaway `$HOME`, and dry-runs the lockfile refresh for four platforms. CI runs it on every push; the badge above is the result.
+
+Beyond that, mise owns language runtimes and CLI tools, [nanobrew](https://github.com/justrach/nanobrew) owns GUI apps and fonts, and the tracked configuration covers zsh, fish, Git, GitHub CLI, Ghostty, tmux, Neovim/LazyVim, starship, hunk, ghui, uv, macOS defaults, and the coding-agent stack.
 
 ## Start Here
 
@@ -58,17 +66,6 @@ The root [`setup.sh`](./setup.sh) is intentionally small:
 The staged setup path generates an SSH key (step 1), installs or checks Xcode Command Line Tools, Homebrew, nanobrew, GUI apps/fonts, exceptional formulae, applies the mise `[dotfiles]` entries, installs the configured mise toolchain, runs Git/GitHub setup, pulls Ollama models, installs MLX tooling, and applies repeatable macOS defaults last.
 
 Linux is not a full provisioning target yet. The shared dotfiles and diagnostics are expected to work, while macOS package/default hooks skip themselves until this repository grows a real Linux profile.
-
-## Overview
-
-These dotfiles:
-- use [`mise` dotfiles](https://mise.jdx.dev/) for managed files
-- target macOS (Apple Silicon)
-- use [`mise`](https://mise.jdx.dev/) for language runtimes and CLI developer tools
-- use [`nanobrew`](https://github.com/justrach/nanobrew), a faster Homebrew alternative, for macOS apps, fonts, and exceptional formulae
-- include configurations for zsh, Git, GitHub CLI, Ghostty, tmux, Neovim/LazyVim, hunk, ghui, mise, uv, macOS preferences, and local AI agent skills
-
-The managed source tree lives under [`target/home`](./target/home).
 
 ## Tool Ownership
 
