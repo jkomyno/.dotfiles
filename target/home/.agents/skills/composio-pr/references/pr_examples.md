@@ -1,6 +1,6 @@
 # PR Examples from Composio SDK
 
-These are real PRs merged into the Composio SDK by jkomyno. Use them as style reference.
+These are real PRs merged into the Composio SDK by jkomyno. Use them as style reference. Linear issue IDs and slugs are redacted to `PLEN-XXXX`; real PRs link the actual issue.
 
 ## Example 1: Simple bug fix
 
@@ -10,7 +10,7 @@ These are real PRs merged into the Composio SDK by jkomyno. Use them as style re
 **Body:**
 ```
 This PR:
-- closes [PLEN-1036](https://linear.app/composio/issue/PLEN-1036/unable-to-use-tool-router-with-gemini-provider)
+- closes [PLEN-XXXX](https://linear.app/composio/issue/PLEN-XXXX/slug-of-the-issue-title)
 - fixes Gemini for Tool Router
 ```
 
@@ -22,7 +22,7 @@ This PR:
 **Body:**
 ```
 This PR:
-- closes [PLEN-1398](https://linear.app/composio/issue/PLEN-1398)
+- closes [PLEN-XXXX](https://linear.app/composio/issue/PLEN-XXXX)
 - breaking:
   - metadata changed from typed object (with trigger_slug, trigger_id, etc.) to `Record<string, unknown>`
   - Any consumer accessing `result.rawPayload.metadata.trigger_slug` after verifyWebhook will get a compile error
@@ -65,12 +65,12 @@ This builds on #2553 which loosened V3 detection to accept any `composio.*` even
 ## Example 3: Quick fix with short description
 
 **Title:** `fix(core): loosen V3 webhook schema to accept any composio.* event type`
-**Branch:** `fix/plen-1397-webhook-v3-detection`
+**Branch:** `fix/plen-xxxx-webhook-v3-detection`
 
 **Body:**
 ```
 This PR:
-- closes [PLEN-1397](https://linear.app/composio/issue/PLEN-1397/verified-webhook-rolled-back-to-v2-format)
+- closes [PLEN-XXXX](https://linear.app/composio/issue/PLEN-XXXX/slug-of-the-issue-title)
 - loosens up webhook v3 schema
 ```
 
@@ -83,7 +83,7 @@ This PR:
 ```
 This PR:
 - builds on top of https://github.com/ComposioHQ/composio/pull/2540
-- closes [PLEN-1349](https://linear.app/composio/issue/PLEN-1349/add-tests-to-check-integrity-of-file-uploaded-from-sdk)
+- closes [PLEN-XXXX](https://linear.app/composio/issue/PLEN-XXXX/slug-of-the-issue-title)
 - adds Node.js e2e tests to verify the absence of file corruption in the upload/download roundtrip
 ```
 
@@ -95,7 +95,7 @@ This PR:
 **Body:**
 ```
 This PR:
-- closes [PLEN-1350](https://linear.app/composio/issue/PLEN-1350/fixtse2e-restore-lost-functionality)
+- closes [PLEN-XXXX](https://linear.app/composio/issue/PLEN-XXXX/slug-of-the-issue-title)
 - restores some Node.js e2e test behavior that was accidentally deleted
   - adds back DEBUG.log stdout/stderr forward for debuggability
   - adds back explicit env var validation, when `e2e(import.meta.url, { env: { ... }  })` is passed
@@ -109,7 +109,7 @@ This PR:
 **Body:**
 ```
 This PR:
-- closes [PLEN-1076](https://linear.app/composio/issue/PLEN-1076/webhook-signature-verification-failing-with-triggers-sdk)
+- closes [PLEN-XXXX](https://linear.app/composio/issue/PLEN-XXXX/slug-of-the-issue-title)
 - unifies webhook and pusher payload parsing in Triggers.ts via the new `tryParseVersionedPayload()` function
   - I manually checked the zod schemas from the Hermes repo
 - adds ts example to subscribe to a webhook
