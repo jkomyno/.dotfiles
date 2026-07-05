@@ -19,6 +19,8 @@ uv = "latest"
 ruff = "latest"
 # https://github.com/astral-sh/ty - Python type checker
 ty = "latest"
+# https://nox.thea.codes - Python task automation driven by noxfile.py sessions
+"pipx:nox" = "latest"
 
 # Rust tooling
 # https://github.com/cargo-bins/cargo-binstall - installs Rust binaries from prebuilt releases
@@ -96,6 +98,14 @@ ollama = "latest"
 # mlx-lm (`mlx_lm.server`, the MLX-first OpenAI-compatible local LLM runtime) is NOT a mise
 # tool: it is Apple-Silicon-only, so it is installed via `uv tool` by the guarded
 # install/common/mlx.sh provisioning script rather than this cross-platform manifest.
+
+# Terminal recording
+# https://github.com/agentstation/vhs - charmbracelet/vhs fork with SVG output; scripted terminal
+# demo recordings for READMEs. The registry short name `vhs` resolves to the upstream
+# charmbracelet build, so the fork is pinned through the github backend explicitly.
+"github:agentstation/vhs" = "latest"
+# ttyd (vhs's recording driver) is NOT here: upstream publishes no macOS arm64
+# binaries, so it lives in install/macos/common/nanobrew-formulae.Brewfile.
 
 # Productivity and file-format tools
 # https://github.com/jqlang/jq - command-line JSON processor

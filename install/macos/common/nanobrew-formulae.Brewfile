@@ -13,6 +13,11 @@ brew "fish"
 # which is impractically slow and fragile on macOS.
 brew "ffmpeg"
 
+# https://github.com/tsl0922/ttyd - terminal-over-web server that vhs drives
+# to record terminal demos. Lives here instead of mise: upstream releases and
+# the aqua registry ship no macOS arm64 binaries, only Homebrew has a bottle.
+brew "ttyd"
+
 # Machine learning
 # https://github.com/microsoft/onnxruntime - cross-platform inference engine for ONNX models.
 # Lives here instead of mise: it is a native library (shared objects and headers)

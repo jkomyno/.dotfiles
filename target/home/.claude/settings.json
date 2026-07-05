@@ -26,7 +26,6 @@
       "Bash(cat *)",
       "Bash(cd *)",
       "Bash(chmod *)",
-      "Bash(ctm *)",
       "Bash(curl *)",
       "Bash(cut *)",
       "Bash(dirname *)",
@@ -46,7 +45,6 @@
       "Bash(git commit *)",
       "Bash(grep *)",
       "Bash(jq *)",
-      "Bash(lalph *)",
       "Bash(ls *)",
       "Bash(lsof *)",
       "Bash(make *)",
@@ -86,10 +84,7 @@
     "ask": [
       "Bash(rm -rf *)"
     ],
-    "defaultMode": "acceptEdits",
-    "additionalDirectories": [
-      "{{ env.HOME }}/.better-coding-agents/resources/effect/code"
-    ]
+    "defaultMode": "acceptEdits"
   },
   "model": "claude-fable-5[1m]",
   "hooks": {
