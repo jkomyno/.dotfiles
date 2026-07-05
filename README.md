@@ -107,9 +107,7 @@ just diff               # mise dotfiles dry-run against the current HOME
 just packages           # validate package ownership and report installed/missing macOS packages
 just versions           # check third-party mise versions and lock refreshes without writing
 just sync-skills-check  # compare vendored agent skills with upstream
-just dotfiles-spike     # run the disposable mise dotfiles probe
 just dotfiles-check     # validate the mise dotfiles slice in a temporary HOME
-just dotfiles-capabilities # probe mise dotfiles modes and conflict behavior
 just setup-smoke        # run the safe staged setup subset in a temporary HOME
 ```
 
@@ -168,8 +166,6 @@ The managed [`mise.toml`](./mise.toml) and `~/.config/mise/config.toml` both set
 trusted so these commands work directly. If mise ever reports the config is not
 trusted (for example on a machine provisioned before this was added), run `mise
 trust` once from the checkout.
-
-Historical migration notes are tracked in [`MIGRATION.md`](./MIGRATION.md).
 
 ## Testing Changes Safely
 

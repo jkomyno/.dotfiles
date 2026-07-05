@@ -117,7 +117,6 @@ check_required_files() {
     "target/home/.config/zsh/functions/trash"
     "target/home/.config/zsh/plugins.zsh"
     "target/home/.config/zsh/session.d/tmux.zsh"
-    "scripts/dotfiles/mise-dotfiles-capabilities.sh"
     "scripts/dotfiles/mise-dotfiles-check.sh"
     "scripts/dotfiles/mise-setup-staged.sh"
     "scripts/dotfiles/mise-setup-staged-smoke.sh"

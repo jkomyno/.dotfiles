@@ -20,9 +20,7 @@ expected_tasks=(
   "install:macos:nanobrew"
   "install:macos:nanobrew-casks"
   "install:macos:nanobrew-formulae"
-  "migration:dotfiles-capabilities"
-  "migration:dotfiles-check"
-  "migration:dotfiles-spike"
+  "check:dotfiles-check"
   "setup:staged"
 )
 

@@ -55,21 +55,9 @@ sync-skills-check:
 benchmark-shell shell="zsh" runs="10":
     @scripts/dotfiles/benchmark-shell.sh --shell "{{shell}}" --runs "{{runs}}"
 
-# Run the disposable mise dotfiles migration spike.
-dotfiles-spike:
-    @scripts/dotfiles/mise-dotfiles-spike.sh
-
-# Backward-compatible alias from the initial migration name.
-system-files-spike:
-    @just dotfiles-spike
-
 # Validate the repository mise dotfiles slice against a temporary HOME.
 dotfiles-check:
     @scripts/dotfiles/mise-dotfiles-check.sh
-
-# Probe mise dotfiles behavior in a disposable project and HOME.
-dotfiles-capabilities:
-    @scripts/dotfiles/mise-dotfiles-capabilities.sh
 
 # Validate mise task wrappers without running installers.
 tasks-check:

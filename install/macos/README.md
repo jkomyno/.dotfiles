@@ -4,7 +4,7 @@ This directory contains macOS provisioning scripts used by the staged mise tasks
 
 The active target is Apple Silicon macOS. These macOS-specific scripts run in
 this relative order within the full staged setup (see the complete step list in
-`MIGRATION.md`):
+[`install/README.md`](../README.md)):
 
 1. Xcode Command Line Tools
 2. Homebrew
