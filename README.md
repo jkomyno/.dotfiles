@@ -105,6 +105,10 @@ Per-idea reference corpora (pinned shallow clones of upstream repositories, blog
 
 macOS user preferences live in [`install/macos/common/defaults.sh`](./install/macos/common/defaults.sh) and are applied through the staged setup task `install:macos:defaults`. The script handles repeatable user-level defaults by default, including a Dock that shows only running applications; clearing saved Dock pins and sudo-backed power/login settings are explicit opt-ins. Per-device machine identity is set once by [`setup.sh`](./setup.sh), defaulting to `Alberto's MacBook Pro`.
 
+## Shortcuts
+
+Every keybinding and shell shortcut this repo configures — tmux, Neovim/LazyVim, Ghostty, and zsh/fish — is catalogued in [`docs/shortcuts.md`](./docs/shortcuts.md).
+
 ## Maintenance
 
 Repeatable operator tasks live in the root [`Justfile`](./Justfile). After `setup.sh` has installed the managed mise toolchain, run:
