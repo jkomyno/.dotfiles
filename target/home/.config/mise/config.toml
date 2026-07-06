@@ -128,3 +128,14 @@ corepack = true
 
 [settings.python]
 uv_venv_auto = "source"
+
+# Encrypted environment variables via age (experimental; requires experimental=true above).
+# `mise set --age-encrypt --prompt SECRET` stores SECRET encrypted inline in a project's
+# mise.toml as `SECRET = { age = "..." }`, and mise decrypts it automatically at runtime.
+# We use the Ed25519 SSH key at ~/.ssh/id_ed25519 as the age identity (recipient for
+# encryption, private key for decryption) rather than an age-keygen key file: a
+# passphrase-protected SSH key can live in the macOS Keychain and is never stored in
+# plaintext, whereas ~/.config/mise/age.txt would sit on disk unprotected.
+# Setup and the "just works on a new machine" caveats: docs/encrypted-secrets.md
+[settings.age]
+ssh_identity_files = ["~/.ssh/id_ed25519"]

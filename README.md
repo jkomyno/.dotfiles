@@ -105,6 +105,10 @@ Per-idea reference corpora (pinned shallow clones of upstream repositories, blog
 
 macOS user preferences live in [`install/macos/common/defaults.sh`](./install/macos/common/defaults.sh) and are applied through the staged setup task `install:macos:defaults`. The script handles repeatable user-level defaults by default, including a Dock that shows only running applications; clearing saved Dock pins and sudo-backed power/login settings are explicit opt-ins. Per-device machine identity is set once by [`setup.sh`](./setup.sh), defaulting to `Alberto's MacBook Pro`.
 
+## Encrypted Secrets
+
+Per-project secrets are stored encrypted inline in each project's `mise.toml` via mise's built-in [`age`](https://mise.jdx.dev/environments/secrets/age.html) support and decrypted automatically at runtime. The global wiring — the experimental flag and the `[settings.age] ssh_identity_files` setting that uses `~/.ssh/id_ed25519` as the age identity — is tracked in [`target/home/.config/mise/config.toml`](./target/home/.config/mise/config.toml), so a new machine needs only your passphrase-protected SSH key in place. Setup, the `age-keygen`-vs-SSH-key rationale, and the portability caveats are in [`docs/encrypted-secrets.md`](./docs/encrypted-secrets.md).
+
 ## Shortcuts
 
 Every keybinding and shell shortcut this repo configures — tmux, Neovim/LazyVim, Ghostty, and zsh/fish — is catalogued in [`docs/shortcuts.md`](./docs/shortcuts.md).
