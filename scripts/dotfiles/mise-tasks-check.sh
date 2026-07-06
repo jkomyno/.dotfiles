@@ -78,9 +78,58 @@ check_mise_tasks() {
   run_repo_mise tasks validate --local --errors-only
 }
 
+check_mise_installer_env() {
+  local output
+  local tmp
+  tmp="$(mktemp -d)"
+
+  if output="$(
+    env \
+      HOME="${tmp}/home" \
+      MISE_BOOTSTRAP_VERSION="v0.0.0-test" \
+      MISE_INSTALL_PATH="${tmp}/bin/mise" \
+      DOTFILES_ROOT="${DOTFILES_ROOT}" \
+      bash <<'BASH'
+set -Eeuo pipefail
+
+curl() {
+  case " $* " in
+    *" https://github.com/jdx/mise/releases/download/v0.0.0-test/install.sh "*) ;;
+    *)
+      printf 'unexpected mise installer URL: %s\n' "$*" >&2
+      return 1
+      ;;
+  esac
+
+  cat <<'INSTALLER'
+#!/bin/sh
+set -eu
+: "${MISE_VERSION:?}"
+: "${MISE_INSTALL_PATH:?}"
+mkdir -p "$(dirname "${MISE_INSTALL_PATH}")"
+printf '#!/bin/sh\nprintf "mise 0.0.0-test\\n"\n' >"${MISE_INSTALL_PATH}"
+chmod +x "${MISE_INSTALL_PATH}"
+INSTALLER
+}
+
+source "${DOTFILES_ROOT}/install/common/mise.sh"
+install_mise
+BASH
+  )"; then
+    rm -rf "${tmp}"
+    info "mise installer accepts readonly MISE_INSTALL_PATH"
+  else
+    rm -rf "${tmp}"
+    printf '%s\n' "${output}" >&2
+    error "mise installer cannot pass MISE_INSTALL_PATH to child installer"
+    return 1
+  fi
+}
+
 main() {
   check_task_targets
   check_mise_tasks
+  check_mise_installer_env
   "${SCRIPT_DIR}/mise-setup-staged.sh" --check
   "${SCRIPT_DIR}/mise-setup-staged.sh" --check --only install:common:git-signing >/dev/null
   "${SCRIPT_DIR}/mise-setup-staged.sh" --plan --from install:common:mise --until install:common:git-signing >/dev/null

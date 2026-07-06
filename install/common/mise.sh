@@ -9,7 +9,7 @@ fi
 readonly DEFAULT_MISE_BOOTSTRAP_VERSION="v2026.6.14"
 readonly MISE_BOOTSTRAP_VERSION="${MISE_BOOTSTRAP_VERSION:-${DEFAULT_MISE_BOOTSTRAP_VERSION}}"
 readonly MISE_INSTALL_PATH="${MISE_INSTALL_PATH:-${HOME}/.local/bin/mise}"
-readonly MISE_INSTALLER_URL="https://raw.githubusercontent.com/jdx/mise/refs/tags/${MISE_BOOTSTRAP_VERSION}/packaging/standalone/install.envsubst"
+readonly MISE_INSTALLER_URL="https://github.com/jdx/mise/releases/download/${MISE_BOOTSTRAP_VERSION}/install.sh"
 readonly DEFAULT_MISE_MINIMUM_RELEASE_AGE="${MISE_MINIMUM_RELEASE_AGE:-7d}"
 install_tools="true"
 
@@ -69,7 +69,7 @@ install_mise() {
 
   log "Installing mise ${MISE_BOOTSTRAP_VERSION}"
   curl -fsSL "${MISE_INSTALLER_URL}" |
-    MISE_VERSION="${MISE_BOOTSTRAP_VERSION}" MISE_INSTALL_PATH="${MISE_INSTALL_PATH}" sh
+    env MISE_VERSION="${MISE_BOOTSTRAP_VERSION}" MISE_INSTALL_PATH="${MISE_INSTALL_PATH}" sh
 }
 
 install_configured_tools() {
