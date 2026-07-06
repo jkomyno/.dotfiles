@@ -89,32 +89,28 @@ check_mise_installer_env() {
       MISE_BOOTSTRAP_VERSION="v0.0.0-test" \
       MISE_INSTALL_PATH="${tmp}/bin/mise" \
       DOTFILES_ROOT="${DOTFILES_ROOT}" \
-      bash <<'BASH'
+      bash -c '
 set -Eeuo pipefail
 
 curl() {
   case " $* " in
     *" https://github.com/jdx/mise/releases/download/v0.0.0-test/install.sh "*) ;;
     *)
-      printf 'unexpected mise installer URL: %s\n' "$*" >&2
+      printf "unexpected mise installer URL: %s\n" "$*" >&2
       return 1
       ;;
   esac
 
-  cat <<'INSTALLER'
-#!/bin/sh
-set -eu
-: "${MISE_VERSION:?}"
-: "${MISE_INSTALL_PATH:?}"
-mkdir -p "$(dirname "${MISE_INSTALL_PATH}")"
-printf '#!/bin/sh\nprintf "mise 0.0.0-test\\n"\n' >"${MISE_INSTALL_PATH}"
-chmod +x "${MISE_INSTALL_PATH}"
-INSTALLER
+  printf "%s\n" \
+    "#!/bin/sh" \
+    "set -eu" \
+    ": \"\${MISE_VERSION:?}\"" \
+    ": \"\${MISE_INSTALL_PATH:?}\""
 }
 
 source "${DOTFILES_ROOT}/install/common/mise.sh"
 install_mise
-BASH
+'
   )"; then
     rm -rf "${tmp}"
     info "mise installer accepts readonly MISE_INSTALL_PATH"
