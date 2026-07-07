@@ -87,8 +87,15 @@ run_paseo() {
   fi
 }
 
+# Probe the CLI, capturing stderr into PASEO_DIAG so callers can surface the real
+# reason on failure. "not resolvable" is ambiguous: it covers a genuinely missing
+# tool AND an installed-but-broken one (e.g. an interrupted npm install leaves the
+# bin unrunnable — mise then says `"paseo" couldn't exec process: No such file or
+# directory`, which needs a reinstall, not `mise install`). Showing the raw error
+# turns a multi-round guessing game into a one-look diagnosis.
+PASEO_DIAG=""
 paseo_available() {
-  run_paseo --version >/dev/null 2>&1
+  PASEO_DIAG="$(run_paseo --version 2>&1)"
 }
 
 # Deploy just the daemon plist. A bare `mise dotfiles apply` is all-or-nothing and
@@ -136,6 +143,7 @@ main() {
     pair)
       if ! paseo_available; then
         warn "paseo CLI not resolvable; run 'mise install' first"
+        [[ -n "${PASEO_DIAG}" ]] && warn "mise exec said: ${PASEO_DIAG}"
         return 0
       fi
       run_paseo daemon pair
@@ -158,6 +166,8 @@ main() {
 
   if ! paseo_available; then
     warn "paseo CLI not resolvable via mise; run 'mise install' (needs npm:@getpaseo/cli)"
+    [[ -n "${PASEO_DIAG}" ]] && warn "mise exec said: ${PASEO_DIAG}"
+    warn "if it names an installed tool, the install is broken: 'mise uninstall npm:@getpaseo/cli && mise install npm:@getpaseo/cli'"
     return 0
   fi
 
