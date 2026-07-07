@@ -1,4 +1,4 @@
-# w: jump to the work tree
-function w -d "cd to ~/work"
+# cw: jump to the work tree
+function cw -d "cd to ~/work"
     cd ~/work
 end
