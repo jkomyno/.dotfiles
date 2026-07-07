@@ -120,6 +120,30 @@ codex_marketplace_entries() {
   jq -r '.codex.marketplaces[]? | [.name, .source] | @tsv' "${DATA_FILE}"
 }
 
+# `~/.codex/config.toml` is deployed by mise dotfiles in `mode = "copy"`, and
+# Codex appends its machine-local [marketplaces.*]/[plugins.*] state there at
+# runtime. A re-apply (e.g. a forced first-run `mise dotfiles apply`) re-copies
+# the curated seed and wipes that appended state, but leaves the marketplace
+# clone under ~/.codex/.tmp/marketplaces/<name> in place. In that desynced state
+# `codex plugin marketplace add` refuses with "already added from a different
+# source" and never repairs config.toml, so the marketplace stays out of scope
+# and plugin installs fail with "not found in marketplace". Clearing the stale
+# clone lets the add re-register the marketplace and rewrite config.toml.
+codex_marketplace_add() {
+  local name="$1" source="$2"
+  if "${CODEX}" plugin marketplace add "${source}"; then
+    return 0
+  fi
+  local stale="${CODEX_HOME:-${HOME}/.codex}/.tmp/marketplaces/${name}"
+  if [[ -d "${stale}" ]]; then
+    warn "codex marketplace: clearing stale clone ${stale} and retrying add"
+    rm -rf -- "${stale}"
+    "${CODEX}" plugin marketplace add "${source}"
+    return
+  fi
+  return 1
+}
+
 codex_plugin_ids() {
   jq -r '.codex.plugins[]?' "${DATA_FILE}"
 }
@@ -203,7 +227,7 @@ sync_codex_marketplaces() {
         check) info "codex marketplace: ${name} MISSING (would add ${source})" ;;
         *)
           log "codex marketplace: adding ${name} from ${source}"
-          "${CODEX}" plugin marketplace add "${source}" \
+          codex_marketplace_add "${name}" "${source}" \
             || { warn "codex marketplace add failed: ${source}"; FAILURES=$((FAILURES + 1)); }
           ;;
       esac
