@@ -126,4 +126,11 @@ else
   warn "Could not confirm Screen Sharing is active; check System Settings > General > Sharing."
 fi
 
+# On macOS 14+, the Screen Recording / Screen Control TCC entitlement cannot be
+# granted from the CLI (kickstart prints "must be enabled from System Settings or
+# via MDM"). If a client connects but sees a black screen or is refused, someone
+# must toggle Screen Sharing ON once in System Settings on this Mac — that grant
+# is not scriptable over SSH.
+log "macOS 14+: if you still cannot connect, grant it once in System Settings >"
+log "  General > Sharing > Screen Sharing (the Screen Recording grant is GUI-only)."
 log "Undo with: just screen-sharing --remove"

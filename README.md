@@ -120,15 +120,18 @@ Three layers for reaching a Mac you drive remotely (the intended combination is 
   just screen-sharing --remove   # disable
   ```
 
-  Then, from another Mac: Finder → Go → Connect to Server → `vnc://<tailscale-ip>` and log in.
+  Then, from another Mac: Finder → Go → Connect to Server → `vnc://<tailscale-ip>` and log in. **macOS 14+ caveat:** the Screen Recording/Control entitlement is TCC-gated and cannot be granted from the CLI — if a client connects but the screen is black or refused, toggle Screen Sharing ON once in System Settings → General → Sharing on the target Mac. That one grant is GUI/MDM-only; everything else the script handles.
 
-- **Paseo (drive local agents from your phone).** [Paseo](https://paseo.sh) runs your local coding agents (Claude Code, Codex, pi) and lets the phone/web app control them. The CLI is a mise tool (`npm:@getpaseo/cli`); the always-on daemon is a tracked LaunchAgent ([`sh.paseo.daemon.plist`](./target/home/Library/LaunchAgents/sh.paseo.daemon.plist)) that binds `0.0.0.0:6767` so the phone can reach it over Tailscale. Staged setup loads it via [`install/common/paseo.sh`](./install/common/paseo.sh); it restarts on every login. Pairing is a one-time manual step — open the paseo app on your phone, add `http://<tailscale-ip>:6767`, and approve.
+- **Paseo (drive local agents from your phone).** [Paseo](https://paseo.sh) runs your local coding agents (Claude Code, Codex, pi) and lets the phone/web app control them. The CLI is a mise tool (`npm:@getpaseo/cli`); the always-on daemon is a tracked LaunchAgent ([`sh.paseo.daemon.plist`](./target/home/Library/LaunchAgents/sh.paseo.daemon.plist)) that runs `paseo daemon start --foreground --listen 0.0.0.0:6767 --hostnames true` so the phone can reach it over Tailscale. It launches paseo through `mise exec npm:@getpaseo/cli` (not a shim, which isn't generated on activate-mode machines), and `--foreground` is required so launchd doesn't respawn-loop a self-daemonizing process. Staged setup loads it via [`install/common/paseo.sh`](./install/common/paseo.sh); it restarts on every login.
 
   ```sh
   just paseo            # load / restart the daemon LaunchAgent
-  just paseo --status   # show state and the connect URL
+  just paseo --pair     # print the pairing QR/link for the phone app
+  just paseo --status   # show agent + daemon status and the connect URL
   just paseo --remove   # unload
   ```
+
+  Pairing is one-time: `just paseo --pair` (or add `http://<tailscale-ip>:6767` in the phone app), then approve.
 
 ## Repository Layout
 

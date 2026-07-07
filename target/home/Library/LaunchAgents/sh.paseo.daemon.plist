@@ -7,11 +7,14 @@
   paseo phone/web app can drive local coding agents on this Mac at any time.
 
   Rendered by `mise dotfiles apply` (template mode) with the real $HOME baked in.
-  paseo is a mise tool (npm:@getpaseo/cli), so it is launched through its mise
-  shim — the same way settings.json invokes ccstatusline — which resolves without
-  a login shell. PASEO_LISTEN binds 0.0.0.0:6767 so the daemon is reachable from
-  the phone over Tailscale (rather than the localhost-only default); pairing
-  supplies its own auth. Load/manage it with `just paseo`.
+  paseo is a mise tool (npm:@getpaseo/cli). It is launched via `mise exec` with an
+  explicit backend rather than a shim, because a shim is not always generated
+  (e.g. on activate-mode machines) whereas `mise exec npm:@getpaseo/cli` always
+  resolves. `--foreground` is REQUIRED under launchd: without it the daemon forks
+  and the tracked process exits, sending KeepAlive into a respawn loop.
+  `--listen 0.0.0.0:6767` exposes it on the tailnet (vs the localhost-only
+  default) and `--hostnames true` accepts the tailnet IP/hostname; pairing
+  supplies auth. Load/manage/pair it with `just paseo`.
 -->
 <plist version="1.0">
 <dict>
@@ -20,17 +23,24 @@
 
   <key>ProgramArguments</key>
   <array>
-    <string>{{ env.HOME }}/.local/share/mise/shims/paseo</string>
+    <string>{{ env.HOME }}/.local/bin/mise</string>
+    <string>exec</string>
+    <string>npm:@getpaseo/cli</string>
+    <string>--</string>
+    <string>paseo</string>
     <string>daemon</string>
     <string>start</string>
+    <string>--foreground</string>
+    <string>--listen</string>
+    <string>0.0.0.0:6767</string>
+    <string>--hostnames</string>
+    <string>true</string>
   </array>
 
   <key>EnvironmentVariables</key>
   <dict>
     <key>HOME</key>
     <string>{{ env.HOME }}</string>
-    <key>PASEO_LISTEN</key>
-    <string>0.0.0.0:6767</string>
     <key>PATH</key>
     <string>{{ env.HOME }}/.local/share/mise/shims:{{ env.HOME }}/.local/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin</string>
   </dict>

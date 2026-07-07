@@ -55,7 +55,7 @@ tailscale *args:
 screen-sharing *args:
     @bash install/macos/common/screen-sharing.sh {{args}}
 
-# Load the paseo daemon LaunchAgent so the phone can reach local agents. Status: --status. Undo: --remove.
+# Load the paseo daemon LaunchAgent so the phone can reach local agents. Pair: --pair. Status: --status. Undo: --remove.
 paseo *args:
     @bash install/common/paseo.sh {{args}}
 

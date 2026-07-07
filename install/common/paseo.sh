@@ -8,16 +8,22 @@
 # script bootstraps that agent into the login session so the daemon starts now
 # and again on every login. It is idempotent and never needs sudo (user agent).
 #
-# Pairing is one-time and interactive: open the paseo app on your phone, add this
-# Mac's daemon at http://<tailscale-ip>:6767, and approve. Keeping the bind on the
-# tailnet (see PASEO_LISTEN in the plist) means nothing is exposed publicly.
+# Pairing is one-time and interactive: run `just paseo --pair` for the QR/link, or
+# open the paseo app on your phone, add this Mac's daemon at
+# http://<tailscale-ip>:6767, and approve. The daemon binds the tailnet (see the
+# plist's --listen), so nothing is exposed publicly.
+#
+# paseo is resolved through `mise exec npm:@getpaseo/cli` rather than a shim,
+# because a `paseo` shim is not always generated (activate-mode machines), whereas
+# `mise exec` always resolves an installed mise tool.
 #
 # Guarded to a no-op off macOS and skippable via DOTFILES_SKIP_PASEO=1. Wired into
 # staged setup as an optional step; manage it any time with `just paseo`.
 #
 # Modes:
 #   (default)  Load (and (re)start) the paseo daemon LaunchAgent.
-#   --status   Report the agent state and how to connect. No changes.
+#   --status   Report the agent state and daemon status. No changes.
+#   --pair     Print the pairing QR/link for the phone app.
 #   --remove   Unload the LaunchAgent.
 
 set -Eeuo pipefail
@@ -41,6 +47,7 @@ MODE="load"
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --status | --check) MODE="status" ;;
+    --pair) MODE="pair" ;;
     --remove | --unload) MODE="remove" ;;
     -h | --help)
       grep -E '^# ' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//'
@@ -53,9 +60,25 @@ done
 
 uid="$(id -u)"
 readonly DOMAIN="gui/${uid}"
+readonly MISE_BIN="${MISE_INSTALL_PATH:-${HOME}/.local/bin/mise}"
 
 agent_loaded() {
   launchctl print "${DOMAIN}/${LABEL}" >/dev/null 2>&1
+}
+
+# Run the paseo CLI through mise so it works whether or not a shim was generated.
+run_paseo() {
+  if [[ -x "${MISE_BIN}" ]]; then
+    "${MISE_BIN}" exec npm:@getpaseo/cli -- paseo "$@"
+  elif command -v paseo >/dev/null 2>&1; then
+    paseo "$@"
+  else
+    return 127
+  fi
+}
+
+paseo_available() {
+  run_paseo --version >/dev/null 2>&1
 }
 
 print_connect_hint() {
@@ -81,10 +104,19 @@ main() {
       if agent_loaded; then
         log "paseo daemon LaunchAgent is loaded (${LABEL})"
         print_connect_hint
+        run_paseo daemon status 2>/dev/null || warn "daemon status unavailable (still starting?)"
         log "Logs: ${HOME}/Library/Logs/paseo.daemon.log"
       else
         log "paseo daemon LaunchAgent is NOT loaded (load it with: just paseo)"
       fi
+      return 0
+      ;;
+    pair)
+      if ! paseo_available; then
+        warn "paseo CLI not resolvable; run 'mise install' first"
+        return 0
+      fi
+      run_paseo daemon pair
       return 0
       ;;
     remove)
@@ -101,8 +133,8 @@ main() {
     return 0
   fi
 
-  if ! command -v paseo >/dev/null 2>&1 && [[ ! -x "${HOME}/.local/share/mise/shims/paseo" ]]; then
-    warn "paseo CLI not found yet; ensure mise installed npm:@getpaseo/cli (install:common:mise)"
+  if ! paseo_available; then
+    warn "paseo CLI not resolvable via mise; run 'mise install' (needs npm:@getpaseo/cli)"
     return 0
   fi
 
@@ -121,7 +153,7 @@ main() {
 
   log "paseo daemon is running (listening on :${PORT})."
   print_connect_hint
-  log "First time: pair by adding that URL in the paseo phone app, then approve."
+  log "First time: run 'just paseo --pair' for the QR/link, then approve in the phone app."
 }
 
 if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
