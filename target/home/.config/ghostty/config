@@ -6,6 +6,11 @@ theme = Catppuccin Macchiato
 font-family = "Hack Nerd Font Mono"
 font-size = 16
 shell-integration = zsh
+# Enable Ghostty's SSH integration on top of the defaults (cursor, title, path):
+# ssh-terminfo auto-installs the xterm-ghostty terminfo on remote hosts, and
+# ssh-env sets a safe TERM fallback — so SSHing into a fresh machine doesn't
+# spew `tput: unknown terminal "xterm-ghostty"` before the entry is present.
+shell-integration-features = cursor,no-sudo,title,ssh-env,ssh-terminfo,path
 macos-titlebar-style = tabs
 confirm-close-surface = false
 window-save-state = always
