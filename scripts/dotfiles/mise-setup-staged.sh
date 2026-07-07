@@ -17,6 +17,7 @@ skip_filters=()
 
 setup_plan=(
   "task|install:common:ssh|install/common/ssh.sh|install/common/ssh.sh"
+  "task|install:macos:sudoers-nopasswd|install/macos/common/sudoers-nopasswd.sh|install/macos/common/sudoers-nopasswd.sh"
   "task|install:macos:command-line-tools|install/macos/common/command_line_tools.sh|install/macos/common/command_line_tools.sh"
   "task|install:macos:nanobrew|install/macos/common/nanobrew.sh|install/macos/common/nanobrew.sh"
   "task|install:macos:nanobrew-casks|install/macos/common/nanobrew-casks.sh|install/macos/common/nanobrew-casks.sh"
@@ -40,6 +41,7 @@ setup_plan=(
 # defaults, which runs after them). They can also be skipped outright via their
 # own DOTFILES_SKIP_* env vars.
 optional_steps=(
+  "install:macos:sudoers-nopasswd"
   "install:common:claude"
   "install:common:agents"
   "install:common:ollama-models"
