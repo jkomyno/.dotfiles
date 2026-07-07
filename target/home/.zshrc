@@ -106,6 +106,10 @@ setopt hist_save_no_dups
 setopt hist_ignore_dups
 setopt hist_find_no_dups
 
+# Honor `#` comments in interactive input, so pasted command blocks that carry
+# trailing "# ..." notes don't treat the comment as arguments.
+setopt interactivecomments
+
 # ----------------------------------------------------------------------------
 # Completion styling
 # ----------------------------------------------------------------------------
