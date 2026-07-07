@@ -23,3 +23,10 @@ brew "ttyd"
 # Lives here instead of mise: it is a native library (shared objects and headers)
 # consumed by other tools, not a versioned CLI, so mise has no backend for it.
 brew "onnxruntime"
+
+# Networking
+# https://tailscale.com - WireGuard-based mesh VPN; provides `tailscale` and `tailscaled`.
+# Lives here instead of mise: it needs a root LaunchDaemon (`tailscaled install-system-daemon`),
+# not just a versioned CLI, so a per-version mise install cannot manage the daemon.
+# install/macos/common/tailscale.sh wires up the daemon and guides `tailscale up`.
+brew "tailscale"

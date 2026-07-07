@@ -47,6 +47,18 @@ plugins-check:
 nopasswd-sudo *args:
     @bash install/macos/common/sudoers-nopasswd.sh {{args}}
 
+# Install the tailscaled system daemon and guide joining the tailnet (also part of staged setup).
+tailscale *args:
+    @bash install/macos/common/tailscale.sh {{args}}
+
+# Enable native mac-to-mac Screen Sharing (opt-in; needs sudo). Status: --check. Undo: --remove.
+screen-sharing *args:
+    @bash install/macos/common/screen-sharing.sh {{args}}
+
+# Load the paseo daemon LaunchAgent so the phone can reach local agents. Status: --status. Undo: --remove.
+paseo *args:
+    @bash install/common/paseo.sh {{args}}
+
 # Authenticate gh, codex, and claude (interactive; skips anything already logged in).
 auth:
     @scripts/dotfiles/auth.sh

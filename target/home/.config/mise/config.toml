@@ -93,6 +93,10 @@ ast-grep = "latest"
 # https://github.com/ryoppippi/ccusage - Claude Code usage/cost reporter; feeds the
 # first status line via the custom-command widget in target/home/.config/ccstatusline/settings.json
 "npm:ccusage" = "latest"
+# https://paseo.sh - run local coding agents (Claude Code, Codex, pi) from the phone/web app;
+# the always-on daemon is a tracked LaunchAgent (target/home/Library/LaunchAgents/sh.paseo.daemon.plist)
+# loaded by install/common/paseo.sh, reachable from the phone over Tailscale
+"npm:@getpaseo/cli" = "latest"
 
 # Local LLM tooling
 # https://github.com/ollama/ollama - run large language models locally; `ollama serve` hosts the API

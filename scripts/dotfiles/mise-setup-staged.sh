@@ -23,8 +23,10 @@ setup_plan=(
   "task|install:macos:nanobrew-casks|install/macos/common/nanobrew-casks.sh|install/macos/common/nanobrew-casks.sh"
   "task|install:macos:ghostty-terminfo|install/macos/common/ghostty-terminfo.sh|install/macos/common/ghostty-terminfo.sh"
   "task|install:macos:nanobrew-formulae|install/macos/common/nanobrew-formulae.sh|install/macos/common/nanobrew-formulae.sh"
+  "task|install:macos:tailscale|install/macos/common/tailscale.sh|install/macos/common/tailscale.sh"
   "dotfiles|mise:dotfiles:apply|mise.toml|target/home"
   "task|install:common:mise|install/common/mise.sh|install/common/mise.sh"
+  "task|install:common:paseo|install/common/paseo.sh|install/common/paseo.sh"
   "task|install:common:git|install/common/git.sh|install/common/git.sh"
   "task|install:common:git-signing|install/common/git-signing.sh|install/common/git-signing.sh"
   "task|install:common:gh|install/common/gh.sh|install/common/gh.sh"
@@ -36,12 +38,16 @@ setup_plan=(
 )
 
 # Steps allowed to fail without aborting the staged run. These fetch things over
-# the network (the Claude Code installer, coding-agent plugins, local-LLM
-# assets), so a flaky download must not block the remaining setup (notably macOS
+# the network (the Claude Code installer, coding-agent plugins, local-LLM assets)
+# or depend on host state a fresh/headless run may lack (sudo for the tailscaled
+# daemon, a login GUI session for the paseo LaunchAgent), so a flaky download or
+# a missing prerequisite must not block the remaining setup (notably macOS
 # defaults, which runs after them). They can also be skipped outright via their
 # own DOTFILES_SKIP_* env vars.
 optional_steps=(
   "install:macos:sudoers-nopasswd"
+  "install:macos:tailscale"
+  "install:common:paseo"
   "install:common:claude"
   "install:common:agents"
   "install:common:ollama-models"

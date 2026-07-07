@@ -13,6 +13,7 @@ expected_tasks=(
   "install:common:mise"
   "install:common:mlx"
   "install:common:ollama-models"
+  "install:common:paseo"
   "install:common:ssh"
   "install:macos:command-line-tools"
   "install:macos:defaults"
@@ -20,6 +21,8 @@ expected_tasks=(
   "install:macos:nanobrew"
   "install:macos:nanobrew-casks"
   "install:macos:nanobrew-formulae"
+  "install:macos:screen-sharing"
+  "install:macos:tailscale"
   "check:dotfiles-check"
   "setup:staged"
 )
@@ -31,6 +34,7 @@ task_install_targets=(
   "install/common/mise.sh"
   "install/common/mlx.sh"
   "install/common/ollama-models.sh"
+  "install/common/paseo.sh"
   "install/common/ssh.sh"
   "install/macos/common/command_line_tools.sh"
   "install/macos/common/defaults.sh"
@@ -38,6 +42,8 @@ task_install_targets=(
   "install/macos/common/nanobrew.sh"
   "install/macos/common/nanobrew-casks.sh"
   "install/macos/common/nanobrew-formulae.sh"
+  "install/macos/common/screen-sharing.sh"
+  "install/macos/common/tailscale.sh"
 )
 
 run_repo_mise() {

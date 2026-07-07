@@ -150,6 +150,7 @@ verify_agent_skill_links() {
 verify_dotfiles() {
   verify_no_template_delimiters ".zprofile"
   verify_no_template_delimiters ".claude/settings.json"
+  verify_no_template_delimiters "Library/LaunchAgents/sh.paseo.daemon.plist"
   verify_json ".claude/settings.json"
   verify_file_matches_source ".pi/agent/settings.json" "target/home/.pi/agent/settings.json"
   verify_symlink ".pi/agent/extensions/agentmemory" "target/home/.pi/agent/extensions/agentmemory"

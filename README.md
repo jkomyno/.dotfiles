@@ -71,7 +71,7 @@ The root [`setup.sh`](./setup.sh) is intentionally small:
 4. Installs or finds the pinned standalone `mise` binary.
 5. Runs the staged mise setup order from `scripts/dotfiles/mise-setup-staged.sh`.
 
-The staged setup path generates an SSH key (step 1), installs or checks Xcode Command Line Tools, nanobrew, GUI apps/fonts, exceptional formulae, applies the mise `[dotfiles]` entries, installs the configured mise toolchain, runs Git/GitHub setup, pulls Ollama models, installs MLX tooling, and applies repeatable macOS defaults last.
+The staged setup path generates an SSH key (step 1), installs or checks Xcode Command Line Tools, nanobrew, GUI apps/fonts, exceptional formulae, installs the tailscaled system daemon, applies the mise `[dotfiles]` entries, installs the configured mise toolchain, loads the paseo daemon, runs Git/GitHub setup, pulls Ollama models, installs MLX tooling, and applies repeatable macOS defaults last.
 
 Linux is not a full provisioning target yet. The shared dotfiles and diagnostics are expected to work, while macOS package/default hooks skip themselves until this repository grows a real Linux profile.
 
@@ -100,6 +100,35 @@ Two optional conveniences for driving another Mac (for example over `ssh`):
   ```
 
   This is a deliberate security trade-off — anyone with a shell as your user then has root without a password — so it is strictly opt-in. It stays a no-op inside staged setup unless `DOTFILES_ENABLE_NOPASSWD_SUDO=1` is set. Note that macOS TouchID (`pam_tid`) cannot authorize `sudo` inside an SSH session, so passwordless sudo — not TouchID — is the way to silence remote sudo prompts.
+
+## Remote Access: Tailscale, Screen Sharing, and Paseo
+
+Three layers for reaching a Mac you drive remotely (the intended combination is Tailscale for private connectivity, then Screen Sharing and Paseo reachable over the tailnet — nothing is exposed publicly):
+
+- **Tailscale (headless daemon).** The `tailscale` Homebrew formula ships `tailscale` and `tailscaled`; it lives in [`nanobrew-formulae.Brewfile`](./install/macos/common/nanobrew-formulae.Brewfile) rather than mise because it needs a root LaunchDaemon, not just a versioned CLI. Staged setup runs [`install/macos/common/tailscale.sh`](./install/macos/common/tailscale.sh), which installs the `tailscaled` system daemon (`install-system-daemon`, needs sudo once) and then guides joining your tailnet. Authentication is interactive by design (browser SSO), so — like `just auth` — it is the one manual step: run `tailscale up` (or set `TAILSCALE_AUTHKEY` to join non-interactively). Re-run any time with `just tailscale`; skip in setup with `DOTFILES_SKIP_TAILSCALE=1`.
+
+  ```sh
+  just tailscale        # (re)install the daemon and guide `tailscale up`
+  tailscale up          # join the tailnet (opens a browser login URL)
+  ```
+
+- **Screen Sharing (native mac-to-mac VNC, opt-in).** [`install/macos/common/screen-sharing.sh`](./install/macos/common/screen-sharing.sh) enables the built-in `com.apple.screensharing` daemon so another Mac connects over `vnc://` and signs in with this machine's account password. It is Apple-to-Apple only — no plaintext legacy VNC password is set. Because remote screen access widens the attack surface, it is strictly opt-in and never runs during staged setup:
+
+  ```sh
+  just screen-sharing            # enable (needs sudo once)
+  just screen-sharing --check    # report whether it is enabled
+  just screen-sharing --remove   # disable
+  ```
+
+  Then, from another Mac: Finder → Go → Connect to Server → `vnc://<tailscale-ip>` and log in.
+
+- **Paseo (drive local agents from your phone).** [Paseo](https://paseo.sh) runs your local coding agents (Claude Code, Codex, pi) and lets the phone/web app control them. The CLI is a mise tool (`npm:@getpaseo/cli`); the always-on daemon is a tracked LaunchAgent ([`sh.paseo.daemon.plist`](./target/home/Library/LaunchAgents/sh.paseo.daemon.plist)) that binds `0.0.0.0:6767` so the phone can reach it over Tailscale. Staged setup loads it via [`install/common/paseo.sh`](./install/common/paseo.sh); it restarts on every login. Pairing is a one-time manual step — open the paseo app on your phone, add `http://<tailscale-ip>:6767`, and approve.
+
+  ```sh
+  just paseo            # load / restart the daemon LaunchAgent
+  just paseo --status   # show state and the connect URL
+  just paseo --remove   # unload
+  ```
 
 ## Repository Layout
 

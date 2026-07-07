@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+  Managed by dotfiles: target/home/Library/LaunchAgents/sh.paseo.daemon.plist
+
+  Keeps the paseo daemon (https://paseo.sh) running in the login session so the
+  paseo phone/web app can drive local coding agents on this Mac at any time.
+
+  Rendered by `mise dotfiles apply` (template mode) with the real $HOME baked in.
+  paseo is a mise tool (npm:@getpaseo/cli), so it is launched through its mise
+  shim — the same way settings.json invokes ccstatusline — which resolves without
+  a login shell. PASEO_LISTEN binds 0.0.0.0:6767 so the daemon is reachable from
+  the phone over Tailscale (rather than the localhost-only default); pairing
+  supplies its own auth. Load/manage it with `just paseo`.
+-->
+<plist version="1.0">
+<dict>
+  <key>Label</key>
+  <string>sh.paseo.daemon</string>
+
+  <key>ProgramArguments</key>
+  <array>
+    <string>{{ env.HOME }}/.local/share/mise/shims/paseo</string>
+    <string>daemon</string>
+    <string>start</string>
+  </array>
+
+  <key>EnvironmentVariables</key>
+  <dict>
+    <key>HOME</key>
+    <string>{{ env.HOME }}</string>
+    <key>PASEO_LISTEN</key>
+    <string>0.0.0.0:6767</string>
+    <key>PATH</key>
+    <string>{{ env.HOME }}/.local/share/mise/shims:{{ env.HOME }}/.local/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin</string>
+  </dict>
+
+  <key>WorkingDirectory</key>
+  <string>{{ env.HOME }}</string>
+
+  <key>RunAtLoad</key>
+  <true/>
+
+  <key>KeepAlive</key>
+  <true/>
+
+  <key>ProcessType</key>
+  <string>Background</string>
+
+  <key>StandardOutPath</key>
+  <string>{{ env.HOME }}/Library/Logs/paseo.daemon.log</string>
+
+  <key>StandardErrorPath</key>
+  <string>{{ env.HOME }}/Library/Logs/paseo.daemon.err.log</string>
+</dict>
+</plist>

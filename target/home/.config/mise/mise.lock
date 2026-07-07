@@ -818,6 +818,10 @@ backend = "npm:@agentmemory/agentmemory"
 version = "0.80.2"
 backend = "npm:@earendil-works/pi-coding-agent"
 
+[[tools."npm:@getpaseo/cli"]]
+version = "0.1.103"
+backend = "npm:@getpaseo/cli"
+
 [[tools."npm:@kitlangton/ghui"]]
 version = "0.8.0"
 backend = "npm:@kitlangton/ghui"
