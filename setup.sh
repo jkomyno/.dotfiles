@@ -379,8 +379,15 @@ run_mise_setup() {
   mise_cmd="$(ensure_mise)"
   export PATH="$(dirname -- "${mise_cmd}"):${PATH}"
 
+  # First-run provisioning owns the managed config files. Tools installed
+  # earlier in the staged order (notably fish) auto-create default stubs such as
+  # ~/.config/fish/config.fish, and `mise dotfiles apply` refuses to overwrite
+  # existing whole-file targets without --force — which would strand a fresh
+  # machine before any dotfile is deployed. Force by default so setup converges
+  # in one pass; set DOTFILES_SETUP_FORCE_DOTFILES=0 to keep the refuse-on-
+  # conflict behavior. Maintenance (`just update self`) never forces.
   local -a setup_args=()
-  if [[ "${DOTFILES_SETUP_FORCE_DOTFILES:-}" == "1" ]]; then
+  if [[ "${DOTFILES_SETUP_FORCE_DOTFILES:-1}" != "0" ]]; then
     setup_args+=(--force-dotfiles)
   fi
 
