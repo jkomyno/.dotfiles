@@ -112,7 +112,7 @@ Three layers for reaching a Mac you drive remotely (the intended combination is 
   tailscale up          # join the tailnet (opens a browser login URL)
   ```
 
-- **Screen Sharing (native mac-to-mac VNC, opt-in).** [`install/macos/common/screen-sharing.sh`](./install/macos/common/screen-sharing.sh) enables the built-in `com.apple.screensharing` daemon so another Mac connects over `vnc://` and signs in with this machine's account password. It is Apple-to-Apple only — no plaintext legacy VNC password is set. Because remote screen access widens the attack surface, it is strictly opt-in and never runs during staged setup:
+- **Screen Sharing (native mac-to-mac VNC, opt-in).** [`install/macos/common/screen-sharing.sh`](./install/macos/common/screen-sharing.sh) uses Apple's `kickstart` to activate the Remote Management agent (which serves Screen Sharing) and grant access to all local users, so another Mac connects over `vnc://` and signs in with this machine's account password. It is Apple-to-Apple only — legacy (plaintext) VNC stays disabled. `kickstart` (not a bare `launchctl` load) is required so access is actually configured; enable runs a clean deactivate→activate cycle, which is the headless form of Apple's "disable and re-enable" recovery. Because remote screen access widens the attack surface, it is strictly opt-in and never runs during staged setup:
 
   ```sh
   just screen-sharing            # enable (needs sudo once)
