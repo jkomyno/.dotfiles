@@ -8,7 +8,13 @@
 #
 # This script is that step. It reports what is already authenticated and drives
 # the interactive login flow for whatever is not. It is idempotent: a tool that
-# is already logged in, or not installed yet, is left untouched.
+# is already logged in is left untouched.
+#
+# Self-healing install: most CLIs come from mise, but Claude Code has no mise
+# backend — setup lays it down through install/common/claude.sh, an optional
+# step whose flaky download or skip can leave a fresh machine without claude. So
+# when a tool that ships its own installer is missing here, auth runs that
+# installer first rather than dead-ending on a skip, then logs in as usual.
 #
 # SSH-aware: when run inside an SSH session (SSH_CONNECTION / SSH_TTY /
 # SSH_CLIENT), login flows steer clear of browser-callback grants that would
@@ -104,6 +110,14 @@ claude_login() {
   claude auth login
 }
 
+# Claude Code ships no mise backend; setup installs it through this same script.
+# converge() calls `<tool>_install` when a tool is missing, so lay claude down
+# here — the installer drops it in ~/.local/bin, already on PATH from
+# activate_mise. Only claude defines an installer; gh and codex come from setup.
+claude_install() {
+  bash "${DOTFILES_ROOT}/install/common/claude.sh"
+}
+
 UNAUTHENTICATED=0
 
 # converge <tool> — probe one tool and, in login mode, run its flow if needed.
@@ -111,8 +125,21 @@ converge() {
   local tool="$1"
 
   if ! have "${tool}"; then
-    info "${tool}: not installed yet (provisioned via mise); skipping"
-    return 0
+    # A tool with its own installer (only claude) can be absent when setup's
+    # optional install step was skipped or its download failed. Self-heal in
+    # login mode so `just auth` installs it instead of dead-ending; check mode
+    # only reports. `hash -r` forgets the negative lookup so the freshly linked
+    # binary is visible without a new shell.
+    if [[ "${MODE}" == "login" ]] && declare -F "${tool}_install" >/dev/null; then
+      log "${tool}: not installed; running its installer"
+      "${tool}_install" || warn "${tool}: installer did not complete"
+      hash -r 2>/dev/null || true
+    fi
+
+    if ! have "${tool}"; then
+      info "${tool}: not installed yet; skipping"
+      return 0
+    fi
   fi
 
   if "${tool}_status"; then
