@@ -66,6 +66,16 @@ agent_loaded() {
   launchctl print "${DOMAIN}/${LABEL}" >/dev/null 2>&1
 }
 
+# Bootstrap the agent into the user's GUI domain. A plain `bootstrap gui/$uid` works
+# from a console login but usually fails from an SSH shell (the caller isn't in the
+# GUI bootstrap namespace) even when a desktop session is active — so fall back to
+# `asuser`, which injects into this uid's running session. Both fail at the login
+# window (no GUI session exists yet); the agent then loads on the next desktop login.
+bootstrap_agent() {
+  launchctl bootstrap "${DOMAIN}" "${PLIST}" 2>/dev/null && return 0
+  launchctl asuser "${uid}" launchctl bootstrap "${DOMAIN}" "${PLIST}" 2>/dev/null
+}
+
 # Run the paseo CLI through mise so it works whether or not a shim was generated.
 run_paseo() {
   if [[ -x "${MISE_BIN}" ]]; then
@@ -156,9 +166,11 @@ main() {
     launchctl kickstart -k "${DOMAIN}/${LABEL}" 2>/dev/null || true
   else
     log "Loading the paseo daemon LaunchAgent"
-    if ! launchctl bootstrap "${DOMAIN}" "${PLIST}" 2>/dev/null; then
+    if ! bootstrap_agent; then
       warn "Could not bootstrap ${LABEL} into ${DOMAIN}."
-      warn "This needs an active login (GUI) session; run 'just paseo' from a console login."
+      warn "This needs an active GUI login session for this user (not the login window)."
+      warn "Over SSH: log the desktop user into m4pro's console, then re-run 'just paseo'."
+      warn "Otherwise it loads automatically on the next desktop login (RunAtLoad)."
       return 0
     fi
     launchctl enable "${DOMAIN}/${LABEL}" 2>/dev/null || true
