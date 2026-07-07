@@ -21,6 +21,7 @@ cask "telegram-desktop"
 cask "vlc"
 
 # Development tools
+cask "secretive"
 cask "tableplus"
 cask "visual-studio-code"
 cask "zed"

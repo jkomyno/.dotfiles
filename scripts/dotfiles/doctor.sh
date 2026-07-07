@@ -260,6 +260,35 @@ check_git_signing_generator() {
   fi
 }
 
+check_auth() {
+  # Authentication is a manual post-install step (browser OAuth / keyring
+  # tokens that are never tracked), so an unauthenticated tool is a warning,
+  # never a hard failure. A tool that is not installed yet is skipped silently.
+  check_one_auth() {
+    local tool="$1"
+    shift
+    if ! have "${tool}"; then
+      return 0
+    fi
+    if "$@" >/dev/null 2>&1; then
+      pass "${tool} is authenticated"
+    else
+      soft_fail "${tool} is not authenticated (run: just auth)"
+    fi
+  }
+
+  check_one_auth gh gh auth status --hostname github.com
+  check_one_auth codex codex login status
+  # claude auth status exits 0 even when signed out; key off the loggedIn flag.
+  if have claude; then
+    if claude auth status 2>/dev/null | grep -q '"loggedIn": *true'; then
+      pass "claude is authenticated"
+    else
+      soft_fail "claude is not authenticated (run: just auth)"
+    fi
+  fi
+}
+
 check_packages() {
   if "${SCRIPT_DIR}/packages.sh" --check-syntax >/dev/null; then
     pass "package bundles are valid and ownership is not duplicated"
@@ -295,6 +324,7 @@ main() {
   check_staged_setup_smoke
   check_git_signing_generator
   check_packages
+  check_auth
 
   printf '\nsummary: failures=%s warnings=%s\n' "${failures}" "${warnings}"
   if ((failures > 0)); then

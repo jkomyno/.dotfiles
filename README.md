@@ -51,7 +51,15 @@ cd ~/work/me/.dotfiles
 just doctor
 ```
 
-`just doctor` checks the source checkout, staged mise setup, target-shaped dotfiles entries, package ownership, and the mise lock refresh path.
+`just doctor` checks the source checkout, staged mise setup, target-shaped dotfiles entries, package ownership, the mise lock refresh path, and whether `gh`, `codex`, and `claude` are authenticated.
+
+Then sign in to the coding-agent CLIs (the one step setup cannot do for you, because these credentials are never tracked):
+
+```sh
+just auth
+```
+
+This drives the interactive login for `gh`, `codex`, and `claude`, skipping any that are already authenticated. See [Authentication](#authentication) for details.
 
 ## What Setup Does
 
@@ -66,6 +74,32 @@ The root [`setup.sh`](./setup.sh) is intentionally small:
 The staged setup path generates an SSH key (step 1), installs or checks Xcode Command Line Tools, nanobrew, GUI apps/fonts, exceptional formulae, applies the mise `[dotfiles]` entries, installs the configured mise toolchain, runs Git/GitHub setup, pulls Ollama models, installs MLX tooling, and applies repeatable macOS defaults last.
 
 Linux is not a full provisioning target yet. The shared dotfiles and diagnostics are expected to work, while macOS package/default hooks skip themselves until this repository grows a real Linux profile.
+
+## Authentication
+
+Setup never stores CLI credentials: `gh` keeps its token in the system keyring, while `codex` and `claude` use browser OAuth tied to a subscription. None of that belongs in a git checkout, so signing in is the one manual step after provisioning. [`scripts/dotfiles/auth.sh`](./scripts/dotfiles/auth.sh) drives it:
+
+```sh
+just auth          # log in to gh, codex, and claude (skips any already authenticated)
+just auth-check    # report status only; never launches a login flow
+```
+
+`just auth` is idempotent — an already-authenticated tool is left untouched, and a tool not installed yet is skipped. `just doctor` reports the same status as warnings (authentication is a manual step, never a hard failure). Once `gh` is authenticated, re-running the GitHub setup step (`mise run install:common:gh`, part of staged setup) uploads your SSH signing key and installs the configured `gh` extensions.
+
+## Remote Machines: TouchID SSH and Passwordless Sudo
+
+Two optional conveniences for driving another Mac (for example over `ssh`):
+
+- **TouchID for SSH.** [Secretive](https://github.com/maxgoedjen/secretive) stores an SSH key in the Secure Enclave and gates every use behind TouchID. The `secretive` cask and a socket-guarded `~/.ssh/config` block are tracked, so it is inert until you set it up and never affects a fresh machine or git-over-SSH. Full walkthrough in [`docs/touchid-ssh.md`](./docs/touchid-ssh.md).
+- **Passwordless sudo.** To stop `sudo` prompting on a machine you administer often, [`install/macos/common/sudoers-nopasswd.sh`](./install/macos/common/sudoers-nopasswd.sh) installs a `visudo`-validated `/etc/sudoers.d` drop-in:
+
+  ```sh
+  just nopasswd-sudo            # enable for the current user (needs your password once)
+  just nopasswd-sudo --check    # report whether it is active
+  just nopasswd-sudo --remove   # undo
+  ```
+
+  This is a deliberate security trade-off — anyone with a shell as your user then has root without a password — so it is strictly opt-in. It stays a no-op inside staged setup unless `DOTFILES_ENABLE_NOPASSWD_SUDO=1` is set. Note that macOS TouchID (`pam_tid`) cannot authorize `sudo` inside an SSH session, so passwordless sudo — not TouchID — is the way to silence remote sudo prompts.
 
 ## Repository Layout
 

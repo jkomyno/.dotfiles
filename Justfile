@@ -43,6 +43,18 @@ plugins-install:
 plugins-check:
     @bash install/common/agents.sh --check
 
+# Grant the current user passwordless sudo (opt-in; needs your password once). Undo: add --remove.
+nopasswd-sudo *args:
+    @bash install/macos/common/sudoers-nopasswd.sh {{args}}
+
+# Authenticate gh, codex, and claude (interactive; skips anything already logged in).
+auth:
+    @scripts/dotfiles/auth.sh
+
+# Report gh/codex/claude authentication status without launching any login flow.
+auth-check:
+    @scripts/dotfiles/auth.sh --check
+
 # Adversarially review the current branch with Codex (review-only). Override base: just codex-review main
 codex-review base="main":
     @scripts/dotfiles/codex-review-loop.sh --base "{{base}}"
