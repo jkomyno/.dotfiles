@@ -10,6 +10,14 @@
 # the interactive login flow for whatever is not. It is idempotent: a tool that
 # is already logged in, or not installed yet, is left untouched.
 #
+# SSH-aware: when run inside an SSH session (SSH_CONNECTION / SSH_TTY /
+# SSH_CLIENT), login flows steer clear of browser-callback grants that would
+# need port forwarding to complete — the OAuth localhost callback lands on the
+# local machine, not the remote one running the CLI. codex switches to
+# device-code auth (`--device-auth`). claude has no such flag, but its login
+# already falls back to a paste-a-code prompt when the localhost callback is
+# unreachable, which is exactly what SSH needs. gh uses a device code regardless.
+#
 # Modes:
 #   (default)  Log in to every supported tool that is not yet authenticated.
 #   --check    Report status only; never launch a login flow. Exit non-zero if
@@ -46,6 +54,14 @@ while [[ $# -gt 0 ]]; do
   shift
 done
 
+# Detect an SSH session so login flows avoid browser-callback grants that would
+# need port forwarding. Over SSH the OAuth localhost callback binds on the remote
+# host but the redirect fires against the operator's local browser, so the two
+# never meet; code-based flows sidestep the mismatch entirely.
+is_ssh_session() {
+  [[ -n "${SSH_CONNECTION:-}" || -n "${SSH_TTY:-}" || -n "${SSH_CLIENT:-}" ]]
+}
+
 # The CLIs are provisioned through mise, so their shims are only on PATH once
 # mise is active. Mirror install/common/agents.sh so this runs standalone too.
 activate_mise() {
@@ -64,12 +80,29 @@ gh_login() {
 }
 
 codex_status() { codex login status >/dev/null 2>&1; }
-codex_login() { codex login; }
+codex_login() {
+  # Plain `codex login` serves an OAuth callback on localhost:1455; over SSH that
+  # port lives on the wrong host, so switch to device-code auth instead.
+  if is_ssh_session; then
+    codex login --device-auth
+  else
+    codex login
+  fi
+}
 
 # `claude auth status` prints JSON and exits 0 even when signed out, so key off
 # the loggedIn flag rather than the exit code.
 claude_status() { claude auth status 2>/dev/null | grep -q '"loggedIn": *true'; }
-claude_login() { claude auth login; }
+claude_login() {
+  # Claude Code exposes no device-auth flag: `claude auth login` uses a
+  # localhost:54545 callback and falls back to a paste-a-code prompt when that
+  # callback is unreachable — the SSH case. Flag the expectation, then run the
+  # normal flow; no port forwarding required.
+  if is_ssh_session; then
+    info "claude: open the printed URL in your local browser, then paste the code back here (no port forwarding needed)"
+  fi
+  claude auth login
+}
 
 UNAUTHENTICATED=0
 
