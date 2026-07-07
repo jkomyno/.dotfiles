@@ -1,6 +1,13 @@
 # Login-shell setup for the active macOS arm64 target.
 typeset -gU path
 
+# Raise the open-file soft limit, inherited by every child of this login shell.
+# GUI-launched macOS shells default to a low 256, which a leaky interactive
+# plugin or an fd-heavy command (e.g. `mise reshim`) can exhaust — at which point
+# zsh can no longer dup fd 1 and external commands fail silently. 8192 is ample
+# headroom; fall back to the hard cap when it is lower.
+ulimit -Sn 8192 2>/dev/null || ulimit -Sn "$(ulimit -Hn)" 2>/dev/null || true
+
 if [ -d "${HOME}/.local/bin" ]; then
   path=("${HOME}/.local/bin" $path)
 fi
