@@ -18,7 +18,6 @@ skip_filters=()
 setup_plan=(
   "task|install:common:ssh|install/common/ssh.sh|install/common/ssh.sh"
   "task|install:macos:command-line-tools|install/macos/common/command_line_tools.sh|install/macos/common/command_line_tools.sh"
-  "task|install:macos:homebrew|install/macos/common/homebrew.sh|install/macos/common/homebrew.sh"
   "task|install:macos:nanobrew|install/macos/common/nanobrew.sh|install/macos/common/nanobrew.sh"
   "task|install:macos:nanobrew-casks|install/macos/common/nanobrew-casks.sh|install/macos/common/nanobrew-casks.sh"
   "task|install:macos:nanobrew-formulae|install/macos/common/nanobrew-formulae.sh|install/macos/common/nanobrew-formulae.sh"

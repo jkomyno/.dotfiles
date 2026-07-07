@@ -63,7 +63,7 @@ The root [`setup.sh`](./setup.sh) is intentionally small:
 4. Installs or finds the pinned standalone `mise` binary.
 5. Runs the staged mise setup order from `scripts/dotfiles/mise-setup-staged.sh`.
 
-The staged setup path generates an SSH key (step 1), installs or checks Xcode Command Line Tools, Homebrew, nanobrew, GUI apps/fonts, exceptional formulae, applies the mise `[dotfiles]` entries, installs the configured mise toolchain, runs Git/GitHub setup, pulls Ollama models, installs MLX tooling, and applies repeatable macOS defaults last.
+The staged setup path generates an SSH key (step 1), installs or checks Xcode Command Line Tools, nanobrew, GUI apps/fonts, exceptional formulae, applies the mise `[dotfiles]` entries, installs the configured mise toolchain, runs Git/GitHub setup, pulls Ollama models, installs MLX tooling, and applies repeatable macOS defaults last.
 
 Linux is not a full provisioning target yet. The shared dotfiles and diagnostics are expected to work, while macOS package/default hooks skip themselves until this repository grows a real Linux profile.
 
@@ -71,7 +71,7 @@ Linux is not a full provisioning target yet. The shared dotfiles and diagnostics
 
 Shell scripts live in three trees, and each tree has one job:
 
-- [`install/`](./install) holds the implementation of first-run provisioning: standalone, idempotent scripts (SSH keygen, Homebrew, nanobrew, Git/GitHub setup, macOS defaults) plus the package bundles. Every script runs on its own, without mise.
+- [`install/`](./install) holds the implementation of first-run provisioning: standalone, idempotent scripts (SSH keygen, nanobrew, Git/GitHub setup, macOS defaults) plus the package bundles. Every script runs on its own, without mise.
 - [`tasks/`](./tasks) holds thin [mise task](https://mise.jdx.dev/tasks/) wrappers, a few lines each, that `exec` into `install/` or `scripts/dotfiles/`. They exist only to give scripts stable task names (`install:common:git`, `setup:staged`), declared dependencies, and a place in the staged setup order. No logic lives here.
 - [`scripts/dotfiles/`](./scripts/dotfiles) holds repeatable maintenance and diagnostics (`doctor.sh`, `update.sh`, `versions.sh`), each exposed as a `Justfile` recipe. These run for the life of the machine, not just at first setup.
 
@@ -169,7 +169,7 @@ just update              # mise tools, casks, formulae, agent plugins, skills re
 just update-check        # non-mutating preview of the same
 
 just update mise         # upgrade mise-managed CLIs/runtimes and refresh the lockfile
-just update casks        # converge and upgrade GUI apps and fonts (nanobrew or Homebrew)
+just update casks        # converge and upgrade GUI apps and fonts (nanobrew)
 just update plugins      # register Claude/Codex marketplaces and update enabled plugins
 just update skills       # report vendored agent-skill drift (apply with /sync-skills)
 just update codex        # upgrade just the Codex CLI (subset of `just update mise`)

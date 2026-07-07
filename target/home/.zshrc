@@ -7,12 +7,11 @@ typeset -gU path fpath manpath
 # Environment & PATH (all static — no subprocess calls, costs ~0ms)
 # ----------------------------------------------------------------------------
 
-# Homebrew (inlined — output of `brew shellenv` is static on Apple Silicon)
-export HOMEBREW_PREFIX="/opt/homebrew"
-export HOMEBREW_CELLAR="/opt/homebrew/Cellar"
-export HOMEBREW_REPOSITORY="/opt/homebrew"
-export MANPATH="/opt/homebrew/share/man${MANPATH+:$MANPATH}:"
-export INFOPATH="/opt/homebrew/share/info:${INFOPATH:-}"
+# nanobrew (drop-in Homebrew replacement; prefix is static on Apple Silicon).
+# `nb` and installed formulae live under /opt/nanobrew/prefix (added to PATH
+# below), so man/info lookup points at the nanobrew prefix.
+export MANPATH="/opt/nanobrew/prefix/share/man${MANPATH+:$MANPATH}:"
+export INFOPATH="/opt/nanobrew/prefix/share/info:${INFOPATH:-}"
 
 export PNPM_HOME="$HOME/Library/pnpm"
 export BUN_INSTALL="$HOME/.bun"
@@ -22,8 +21,6 @@ path=(
   $HOME/.local/bin
   $BUN_INSTALL/bin(N-/)
   $PNPM_HOME(N-/)
-  /opt/homebrew/bin
-  /opt/homebrew/sbin
   /opt/nanobrew/prefix/bin(N-/)
   $path
 )

@@ -62,7 +62,7 @@ check_required_files() {
     "target/home/.config/ccstatusline/settings.json"
     "target/home/.config/fish/config.fish"
     "target/home/.config/fish/conf.d/00-paths.fish"
-    "target/home/.config/fish/conf.d/brew.fish"
+    "target/home/.config/fish/conf.d/nanobrew.fish"
     "target/home/.config/fish/conf.d/macos-apps.fish"
     "target/home/.config/fish/conf.d/mise.fish"
     "target/home/.config/fish/conf.d/ripgrep.fish"
@@ -273,7 +273,6 @@ check_packages() {
     else
       soft_fail "macOS target is $(uname -m); provisioning scripts currently support arm64 only"
     fi
-    check_command brew warn
     check_command nb warn
   elif is_linux; then
     pass "Linux detected; macOS package/defaults hooks are skipped"

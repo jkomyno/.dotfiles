@@ -149,7 +149,7 @@ Do NOT modify, stage, or commit any files. This is review-only.
 Judge the changes against these standards, which this repo cares about:
 - Bash correctness under 'set -Eeuo pipefail' and stock macOS /bin/bash 3.2
   (empty-array expansion, unbound vars, portable sed/grep).
-- Idempotency and graceful degradation when a tool (claude, nb, brew, codex,
+- Idempotency and graceful degradation when a tool (claude, nb, codex,
   jq) is absent — scripts must skip, not abort a fresh-machine setup.
 - Correctness of the unified updater (scripts/dotfiles/update.sh), the Claude
   plugin installer (install/common/agents.sh + agent-plugins.json), the mise

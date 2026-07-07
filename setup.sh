@@ -390,7 +390,7 @@ run_mise_setup() {
   if [[ "${dotfiles_checkout_kind}" == "archive" ]]; then
     run_mise_staged_setup ${setup_args[@]+"${setup_args[@]}"} --until install:macos:command-line-tools
     promote_archive_checkout_to_git
-    run_mise_staged_setup ${setup_args[@]+"${setup_args[@]}"} --from install:macos:homebrew
+    run_mise_staged_setup ${setup_args[@]+"${setup_args[@]}"} --from install:macos:nanobrew
     return
   fi
 

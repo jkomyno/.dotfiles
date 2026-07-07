@@ -16,7 +16,7 @@ Validate and report package ownership for the dotfiles checkout.
 
 The command is portable: on Linux it validates tracked bundle files and skips
 macOS installation-state checks. On macOS it also reports installed/missing
-Homebrew/nanobrew package entries when brew is available.
+nanobrew package entries when nanobrew (nb) is available.
 USAGE
 }
 
@@ -113,14 +113,19 @@ list_mise_tools() {
   done < "${DOTFILES_MISE_CONFIG}"
 }
 
-is_installed_brew_formula() {
+# nanobrew mirrors Homebrew's on-disk layout under its own prefix, so an
+# installed formula/cask shows up as a directory in Cellar/Caskroom. This is
+# more robust than parsing an `nb list` format that may change.
+readonly NANOBREW_PREFIX="${NANOBREW_PREFIX:-/opt/nanobrew/prefix}"
+
+is_installed_nb_formula() {
   local name="$1"
-  brew list --formula 2>/dev/null | grep -qxF "${name}"
+  [[ -d "${NANOBREW_PREFIX}/Cellar/${name}" ]]
 }
 
-is_installed_brew_cask() {
+is_installed_nb_cask() {
   local name="$1"
-  brew list --cask 2>/dev/null | grep -qxF "${name}"
+  [[ -d "${NANOBREW_PREFIX}/Caskroom/${name}" ]]
 }
 
 report_bundle_status() {
@@ -135,7 +140,7 @@ report_bundle_status() {
   while IFS=$'\t' read -r entry_kind name; do
     [[ -n "${entry_kind:-}" && -n "${name:-}" ]] || continue
     if [[ "${kind}" == "brew" ]]; then
-      if is_installed_brew_formula "${name}"; then
+      if is_installed_nb_formula "${name}"; then
         printf '  ok      %s\n' "${name}"
         installed=$((installed + 1))
       else
@@ -143,7 +148,7 @@ report_bundle_status() {
         missing=$((missing + 1))
       fi
     else
-      if is_installed_brew_cask "${name}"; then
+      if is_installed_nb_cask "${name}"; then
         printf '  ok      %s\n' "${name}"
         installed=$((installed + 1))
       else
@@ -193,8 +198,8 @@ main() {
     return "${issues}"
   fi
 
-  if ! have brew; then
-    warn "brew is not available; run setup.sh or install/macos/common/homebrew.sh before install-state checks"
+  if [[ ! -x "${NANOBREW_PREFIX}/bin/nb" ]]; then
+    warn "nanobrew (nb) is not installed at ${NANOBREW_PREFIX}; run setup.sh or install/macos/common/nanobrew.sh before install-state checks"
     return "${issues}"
   fi
 

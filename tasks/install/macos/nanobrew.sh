@@ -1,5 +1,4 @@
 #!/usr/bin/env bash
-#MISE depends=["install:macos:homebrew"]
 #MISE description="Install nanobrew when missing"
 
 set -Eeuo pipefail

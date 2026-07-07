@@ -3,8 +3,8 @@
 #
 # Components:
 #   mise      Upgrade mise-managed CLIs/runtimes and refresh the source lockfile.
-#   casks     Converge and upgrade nanobrew/Homebrew GUI apps and fonts (macOS).
-#   formulae  Converge and upgrade nanobrew/Homebrew exceptional formulae (macOS).
+#   casks     Converge and upgrade nanobrew GUI apps and fonts (macOS).
+#   formulae  Converge and upgrade nanobrew exceptional formulae (macOS).
 #   plugins   Register/update managed coding-agent marketplaces and plugins.
 #   skills    Report vendored agent-skill drift vs upstream (apply via /sync-skills).
 #   codex     Upgrade just the Codex CLI via mise (subset of `mise`).
@@ -120,17 +120,12 @@ update_bundle() {
     return 0
   }
 
-  # Prefer nanobrew; both read the same Brewfile. Export the nanobrew bin in this
-  # function's own scope so later nb/brew calls resolve — a command-substitution
-  # helper would lose the PATH change to its subshell.
+  # Export the nanobrew bin in this function's own scope so later nb calls
+  # resolve — a command-substitution helper would lose the PATH change to its
+  # subshell.
   export PATH="${NANOBREW_BIN_DIR:-/opt/nanobrew/prefix/bin}:${PATH}"
-  local pm=""
-  if have nb; then
-    pm="nb"
-  elif have brew; then
-    pm="brew"
-  else
-    warn "${title}: neither nanobrew (nb) nor Homebrew (brew) is available"
+  if ! have nb; then
+    warn "${title}: nanobrew (nb) is not available; run install/macos/common/nanobrew.sh"
     return 0
   fi
 
@@ -139,51 +134,21 @@ update_bundle() {
     < <(bundle_package_names "${bundle}" "${kind}")
 
   if [[ "${CHECK_ONLY}" == true ]]; then
-    log "${title}: outdated report via ${pm}"
-    case "${pm}" in
-      nb) nb outdated 2>/dev/null || info "${title}: nanobrew has no outdated report; would converge bundle" ;;
-      brew)
-        if [[ "${kind}" == "cask" ]]; then brew outdated --cask ${names[@]+"${names[@]}"} 2>/dev/null || true;
-        else brew outdated --formula ${names[@]+"${names[@]}"} 2>/dev/null || true; fi
-        ;;
-    esac
+    log "${title}: outdated report via nb"
+    nb outdated 2>/dev/null || info "${title}: nanobrew has no outdated report; would converge bundle"
     return 0
   fi
 
-  log "${title}: converging bundle via ${pm}"
+  log "${title}: converging bundle via nb"
   local rc=0
-  case "${pm}" in
-    nb)
-      # Converge the (component-scoped) bundle, then upgrade only its packages.
-      # A bare `nb upgrade` would upgrade the whole nanobrew prefix, so a
-      # cask-only run must not touch formulae and vice versa.
-      nb bundle install "${bundle}" || { warn "${title}: nanobrew bundle did not converge"; rc=1; }
-      if [[ ${#names[@]} -gt 0 ]]; then
-        nb upgrade ${names[@]+"${names[@]}"} 2>/dev/null \
-          || info "${title}: nanobrew per-package upgrade unavailable; bundle converged only"
-      fi
-      ;;
-    brew)
-      brew bundle install --file="${bundle}" || { warn "${title}: brew bundle did not converge"; rc=1; }
-      if [[ ${#names[@]} -gt 0 ]]; then
-        local flag="--cask"
-        [[ "${kind}" == "brew" ]] && flag="--formula"
-        # Upgrade only what is actually outdated so a real upgrade failure
-        # (checksum, network, permissions) surfaces as a warning instead of
-        # being swallowed as "nothing to upgrade".
-        local -a outdated=()
-        while IFS= read -r o; do [[ -n "${o}" ]] && outdated+=("${o}"); done \
-          < <(brew outdated "${flag}" --quiet ${names[@]+"${names[@]}"} 2>/dev/null || true)
-        if [[ ${#outdated[@]} -eq 0 ]]; then
-          info "${title}: all managed packages current"
-        else
-          log "${title}: upgrading ${#outdated[@]} outdated package(s)"
-          brew upgrade "${flag}" ${outdated[@]+"${outdated[@]}"} \
-            || warn "${title}: some upgrades failed (see output above)"
-        fi
-      fi
-      ;;
-  esac
+  # Converge the (component-scoped) bundle, then upgrade only its packages.
+  # A bare `nb upgrade` would upgrade the whole nanobrew prefix, so a
+  # cask-only run must not touch formulae and vice versa.
+  nb bundle install "${bundle}" || { warn "${title}: nanobrew bundle did not converge"; rc=1; }
+  if [[ ${#names[@]} -gt 0 ]]; then
+    nb upgrade ${names[@]+"${names[@]}"} 2>/dev/null \
+      || info "${title}: nanobrew per-package upgrade unavailable; bundle converged only"
+  fi
   # Non-zero when the managed bundle did not converge, so `just update casks`
   # signals failure; `all` still tolerates it via `update_casks || warn`.
   return "${rc}"

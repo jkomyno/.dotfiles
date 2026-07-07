@@ -5,14 +5,6 @@ if [ -d "${HOME}/.local/bin" ]; then
   path=("${HOME}/.local/bin" $path)
 fi
 {%- if os() == "macos" and arch() == "arm64" %}
-if [ -d /opt/homebrew/bin ]; then
-  path=(/opt/homebrew/bin $path)
-fi
-
-if [ -d /opt/homebrew/sbin ]; then
-  path=(/opt/homebrew/sbin $path)
-fi
-
 # Command-line entrypoints shipped inside GUI app bundles.
 path=(
   $path

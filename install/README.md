@@ -8,18 +8,17 @@ The canonical staged setup order is:
 
 1. `install:common:ssh`
 2. `install:macos:command-line-tools`
-3. `install:macos:homebrew`
-4. `install:macos:nanobrew`
-5. `install:macos:nanobrew-casks`
-6. `install:macos:nanobrew-formulae`
-7. `mise dotfiles apply`
-8. `install:common:mise`
-9. `install:common:git`
-10. `install:common:git-signing`
-11. `install:common:gh`
-12. `install:common:ollama-models`
-13. `install:common:mlx`
-14. `install:macos:defaults`
+3. `install:macos:nanobrew`
+4. `install:macos:nanobrew-casks`
+5. `install:macos:nanobrew-formulae`
+6. `mise dotfiles apply`
+7. `install:common:mise`
+8. `install:common:git`
+9. `install:common:git-signing`
+10. `install:common:gh`
+11. `install:common:ollama-models`
+12. `install:common:mlx`
+13. `install:macos:defaults`
 
 The staged setup runner invokes wrapper tasks with `mise run --skip-deps` in this explicit order, so the dependency graph stays useful for ad hoc task runs without making the full setup path repeat prerequisites. Inspect the plan without running installers via `just setup-plan` (or `mise run setup:staged -- --plan`).
 

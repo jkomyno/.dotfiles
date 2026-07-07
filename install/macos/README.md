@@ -7,11 +7,10 @@ this relative order within the full staged setup (see the complete step list in
 [`install/README.md`](../README.md)):
 
 1. Xcode Command Line Tools
-2. Homebrew
-3. nanobrew
-4. nanobrew casks from `install/macos/common/nanobrew-casks.Brewfile`
-5. nanobrew formulae from `install/macos/common/nanobrew-formulae.Brewfile`
-6. macOS preferences from `install/macos/common/defaults.sh`
+2. nanobrew
+3. nanobrew casks from `install/macos/common/nanobrew-casks.Brewfile`
+4. nanobrew formulae from `install/macos/common/nanobrew-formulae.Brewfile`
+5. macOS preferences from `install/macos/common/defaults.sh`
 
 Note that `defaults.sh` is the **last** step of the whole staged setup: it runs
 after the common mise, Git, GitHub, Ollama, and MLX tasks, not immediately after
