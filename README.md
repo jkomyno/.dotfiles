@@ -90,7 +90,7 @@ just auth-check    # report status only; never launches a login flow
 
 Two optional conveniences for driving another Mac (for example over `ssh`):
 
-- **TouchID for SSH.** [Secretive](https://github.com/maxgoedjen/secretive) stores an SSH key in the Secure Enclave and gates every use behind TouchID. The `secretive` cask and a socket-guarded `~/.ssh/config` block are tracked, so it is inert until you set it up and never affects a fresh machine or git-over-SSH. Full walkthrough in [`docs/touchid-ssh.md`](./docs/touchid-ssh.md).
+- **TouchID for SSH.** [Secretive](https://github.com/maxgoedjen/secretive) stores an SSH key in the Secure Enclave and gates every use behind TouchID. Only the `secretive` cask is tracked; the per-host wiring lives in the unmanaged `~/.ssh/config.local` (a global `IdentityAgent` would hijack every host), so a fresh machine is unaffected until you opt a host in. Full walkthrough in [`docs/touchid-ssh.md`](./docs/touchid-ssh.md).
 - **Passwordless sudo.** To stop `sudo` prompting on a machine you administer often, [`install/macos/common/sudoers-nopasswd.sh`](./install/macos/common/sudoers-nopasswd.sh) installs a `visudo`-validated `/etc/sudoers.d` drop-in:
 
   ```sh
