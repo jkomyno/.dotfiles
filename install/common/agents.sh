@@ -131,17 +131,19 @@ codex_marketplace_entries() {
 # clone lets the add re-register the marketplace and rewrite config.toml.
 codex_marketplace_add() {
   local name="$1" source="$2"
-  if "${CODEX}" plugin marketplace add "${source}"; then
-    return 0
-  fi
+  # This runs only when the marketplace is not currently in scope (the add
+  # branch), so any clone left under ~/.codex/.tmp/marketplaces/<name> is
+  # orphaned: config.toml was redeployed by mise in copy mode and lost the
+  # [marketplaces.<name>] entry codex appends at runtime. Left in place, codex
+  # refuses the re-add with "already added from a different source" instead of
+  # repairing config. Clear it up front so the add cleanly re-registers the
+  # marketplace and rewrites config.toml.
   local stale="${CODEX_HOME:-${HOME}/.codex}/.tmp/marketplaces/${name}"
   if [[ -d "${stale}" ]]; then
-    warn "codex marketplace: clearing stale clone ${stale} and retrying add"
+    warn "codex marketplace: clearing orphaned clone ${stale} before re-adding"
     rm -rf -- "${stale}"
-    "${CODEX}" plugin marketplace add "${source}"
-    return
   fi
-  return 1
+  "${CODEX}" plugin marketplace add "${source}"
 }
 
 codex_plugin_ids() {

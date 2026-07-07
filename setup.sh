@@ -297,12 +297,42 @@ download_dotfiles_archive() {
   rm -rf "${tmp_dir}"
 }
 
+# Fast-forward an existing git checkout to its upstream so re-running setup.sh
+# runs the latest code rather than whatever was cloned earlier — otherwise a
+# machine set up weeks ago silently skips steps added since. Best-effort: a
+# checkout with local changes or a diverged branch is left untouched with a
+# note, never blocked. Skip with DOTFILES_SKIP_SELF_UPDATE=1.
+update_dotfiles_checkout() {
+  if [[ -n "${DOTFILES_SKIP_SELF_UPDATE:-}" ]]; then
+    log "Skipping checkout self-update (DOTFILES_SKIP_SELF_UPDATE is set)"
+    return 0
+  fi
+  has_working_git || return 0
+
+  if [[ -n "$(git -C "${DOTFILES_CHECKOUT_DIR}" status --porcelain 2>/dev/null)" ]]; then
+    log "Checkout has local changes; not pulling latest (using it as-is)"
+    return 0
+  fi
+
+  if ! git -C "${DOTFILES_CHECKOUT_DIR}" fetch --quiet origin 2>/dev/null; then
+    log "Could not fetch updates (offline?); continuing with the existing checkout"
+    return 0
+  fi
+
+  if git -C "${DOTFILES_CHECKOUT_DIR}" merge --ff-only --quiet '@{u}' 2>/dev/null; then
+    log "Updated checkout to latest $(git -C "${DOTFILES_CHECKOUT_DIR}" rev-parse --short HEAD 2>/dev/null)"
+  else
+    log "Checkout is not fast-forwardable to its upstream; using it as-is"
+  fi
+}
+
 prepare_dotfiles_checkout() {
   prepare_dotfiles_parent
 
   if checkout_is_git; then
     dotfiles_checkout_kind="git"
     log "Using existing git checkout at ${DOTFILES_CHECKOUT_DIR}"
+    update_dotfiles_checkout
     return
   fi
 
