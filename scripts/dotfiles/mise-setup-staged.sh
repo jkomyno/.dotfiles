@@ -20,6 +20,7 @@ setup_plan=(
   "task|install:macos:command-line-tools|install/macos/common/command_line_tools.sh|install/macos/common/command_line_tools.sh"
   "task|install:macos:nanobrew|install/macos/common/nanobrew.sh|install/macos/common/nanobrew.sh"
   "task|install:macos:nanobrew-casks|install/macos/common/nanobrew-casks.sh|install/macos/common/nanobrew-casks.sh"
+  "task|install:macos:ghostty-terminfo|install/macos/common/ghostty-terminfo.sh|install/macos/common/ghostty-terminfo.sh"
   "task|install:macos:nanobrew-formulae|install/macos/common/nanobrew-formulae.sh|install/macos/common/nanobrew-formulae.sh"
   "dotfiles|mise:dotfiles:apply|mise.toml|target/home"
   "task|install:common:mise|install/common/mise.sh|install/common/mise.sh"
