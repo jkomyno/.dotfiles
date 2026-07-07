@@ -8,5 +8,8 @@
   ],
   "packages": [
     "npm:@ff-labs/pi-fff"
-  ]
+  ],
+  "warnings": {
+    "anthropicExtraUsage": false
+  }
 }
