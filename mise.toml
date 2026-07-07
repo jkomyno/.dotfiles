@@ -28,6 +28,7 @@ includes = ["tasks"]
 "~/Library/Application Support/com.pais.handy/settings_store.json" = { source = "target/home/.handy/settings_store.json", mode = "copy" }
 "~/.local/bin/coffee" = { source = "target/home/.local/bin/coffee", mode = "symlink" }
 "~/.pi/agent/settings.json" = { source = "target/home/.pi/agent/settings.json", mode = "copy" }
+"~/.pi/agent/claude-bridge.json" = { source = "target/home/.pi/agent/claude-bridge.json", mode = "symlink" }
 "~/.pi/agent/extensions/agentmemory" = { source = "target/home/.pi/agent/extensions/agentmemory", mode = "symlink" }
 "~/.ssh/config" = { source = "target/home/.ssh/config", mode = "copy" }
 "~/.uv/uv.toml" = { source = "target/home/.uv/uv.toml", mode = "symlink" }
