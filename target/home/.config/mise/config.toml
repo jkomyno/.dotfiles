@@ -116,6 +116,10 @@ jq = "latest"
 taplo = "latest"
 # https://github.com/crate-ci/typos - source-code spell checker
 typos = "latest"
+# https://github.com/jkomyno/uniku - unique ID generator CLI, compatible with every modern JS runtime;
+# version_prefix restricts "latest" to uniku-cli-v* release tags, since the repo also
+# tags unrelated library releases (e.g. bare "0.0.12", "@uniku/cli@0.0.12")
+"github:jkomyno/uniku" = { version = "latest", version_prefix = "uniku-cli-v" }
 
 [settings]
 # Enable the experimental [dotfiles] feature so `mise dotfiles ...` works from
