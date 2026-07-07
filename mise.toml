@@ -42,6 +42,9 @@ includes = ["tasks"]
 "~/.config/fish/conf.d/uv.env.fish" = { source = "target/home/.config/fish/conf.d/uv.env.fish", mode = "symlink" }
 "~/.config/fish/functions/_node_global_install_blocked.fish" = { source = "target/home/.config/fish/functions/_node_global_install_blocked.fish", mode = "symlink" }
 "~/.config/fish/functions/ct.fish" = { source = "target/home/.config/fish/functions/ct.fish", mode = "symlink" }
+"~/.config/fish/functions/cw.fish" = { source = "target/home/.config/fish/functions/cw.fish", mode = "symlink" }
+"~/.config/fish/functions/d.fish" = { source = "target/home/.config/fish/functions/d.fish", mode = "symlink" }
+"~/.config/fish/functions/dot.fish" = { source = "target/home/.config/fish/functions/dot.fish", mode = "symlink" }
 "~/.config/fish/functions/gbda.fish" = { source = "target/home/.config/fish/functions/gbda.fish", mode = "symlink" }
 "~/.config/fish/functions/gm.fish" = { source = "target/home/.config/fish/functions/gm.fish", mode = "symlink" }
 "~/.config/fish/functions/ls.fish" = { source = "target/home/.config/fish/functions/ls.fish", mode = "symlink" }
@@ -79,10 +82,13 @@ includes = ["tasks"]
 "~/.config/ripgrep/config" = { source = "target/home/.config/ripgrep/config", mode = "symlink" }
 "~/.config/starship.toml" = { source = "target/home/.config/starship.toml", mode = "symlink" }
 "~/.config/tmux/tmux.conf" = { source = "target/home/.config/tmux/tmux.conf", mode = "symlink" }
+"~/.config/zsh/aliases.d/cat.zsh" = { source = "target/home/.config/zsh/aliases.d/cat.zsh", mode = "symlink" }
 "~/.config/zsh/aliases.d/clipboard.zsh" = { source = "target/home/.config/zsh/aliases.d/clipboard.zsh", mode = "symlink" }
 "~/.config/zsh/aliases.d/coffee.zsh" = { source = "target/home/.config/zsh/aliases.d/coffee.zsh", mode = "symlink" }
+"~/.config/zsh/aliases.d/dot.zsh" = { source = "target/home/.config/zsh/aliases.d/dot.zsh", mode = "symlink" }
 "~/.config/zsh/aliases.d/git-shortcuts.zsh" = { source = "target/home/.config/zsh/aliases.d/git-shortcuts.zsh", mode = "symlink" }
 "~/.config/zsh/aliases.d/ls.zsh" = { source = "target/home/.config/zsh/aliases.d/ls.zsh", mode = "symlink" }
+"~/.config/zsh/aliases.d/nav.zsh" = { source = "target/home/.config/zsh/aliases.d/nav.zsh", mode = "symlink" }
 "~/.config/zsh/aliases.d/npm-guard.zsh" = { source = "target/home/.config/zsh/aliases.d/npm-guard.zsh", mode = "symlink" }
 "~/.config/zsh/aliases.d/pnpm.zsh" = { source = "target/home/.config/zsh/aliases.d/pnpm.zsh", mode = "symlink" }
 "~/.config/zsh/functions/gbda" = { source = "target/home/.config/zsh/functions/gbda", mode = "symlink" }
