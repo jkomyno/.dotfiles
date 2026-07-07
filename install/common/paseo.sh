@@ -81,6 +81,18 @@ paseo_available() {
   run_paseo --version >/dev/null 2>&1
 }
 
+# Deploy just the daemon plist. A bare `mise dotfiles apply` is all-or-nothing and
+# aborts ("refusing to overwrite existing files") while $HOME still holds pre-mise
+# real files (mid-migration), so the brand-new plist never lands. Targeting the one
+# entry sidesteps those conflicts. No-op if mise or the [dotfiles] mapping is absent.
+ensure_plist() {
+  [[ -f "${PLIST}" ]] && return 0
+  [[ -x "${MISE_BIN}" ]] || return 1
+  log "Deploying the paseo LaunchAgent (targeted mise dotfiles apply)"
+  "${MISE_BIN}" dotfiles apply "${PLIST}" -y >/dev/null 2>&1 || true
+  [[ -f "${PLIST}" ]]
+}
+
 print_connect_hint() {
   local addr=""
   if command -v tailscale >/dev/null 2>&1; then
@@ -128,8 +140,9 @@ main() {
   esac
 
   # load
-  if [[ ! -f "${PLIST}" ]]; then
-    warn "LaunchAgent not found at ${PLIST}; run 'mise dotfiles apply' first"
+  if [[ ! -f "${PLIST}" ]] && ! ensure_plist; then
+    warn "LaunchAgent not found at ${PLIST} and could not be deployed."
+    warn "Deploy it with: mise dotfiles apply '~/Library/LaunchAgents/${LABEL}.plist'"
     return 0
   fi
 
