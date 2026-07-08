@@ -4,7 +4,8 @@
   "defaultModel": "gpt-5.5",
   "defaultThinkingLevel": "medium",
   "extensions": [
-    "~/.pi/agent/extensions/agentmemory"
+    "~/.pi/agent/extensions/agentmemory",
+    "~/.pi/agent/extensions/autocheckpoint"
   ],
   "packages": [
     "npm:@ff-labs/pi-fff",

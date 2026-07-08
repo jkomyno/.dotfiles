@@ -16,6 +16,8 @@ includes = ["tasks"]
 "~/.zshenv" = { source = "target/home/.zshenv", mode = "symlink" }
 "~/.zshrc" = { source = "target/home/.zshrc", mode = "symlink" }
 "~/.agents/AGENTS.md" = { source = "target/home/.agents/AGENTS.md", mode = "symlink" }
+"~/.agents/bin/agent-checkpoint.sh" = { source = "target/home/.agents/bin/agent-checkpoint.sh", mode = "symlink" }
+"~/.agents/bin/codex-notify.sh" = { source = "target/home/.agents/bin/codex-notify.sh", mode = "symlink" }
 "~/.agents/skills" = { source = "target/home/.agents/skills", mode = "symlink" }
 "~/.claude/CLAUDE.md" = { source = "target/home/.claude/CLAUDE.md", mode = "symlink" }
 "~/.claude/hooks/block-claude-attribution.sh" = { source = "target/home/.claude/hooks/block-claude-attribution.sh", mode = "symlink" }
@@ -32,6 +34,7 @@ includes = ["tasks"]
 "~/.pi/agent/settings.json" = { source = "target/home/.pi/agent/settings.json", mode = "copy" }
 "~/.pi/agent/claude-bridge.json" = { source = "target/home/.pi/agent/claude-bridge.json", mode = "symlink" }
 "~/.pi/agent/extensions/agentmemory" = { source = "target/home/.pi/agent/extensions/agentmemory", mode = "symlink" }
+"~/.pi/agent/extensions/autocheckpoint" = { source = "target/home/.pi/agent/extensions/autocheckpoint", mode = "symlink" }
 "~/.ssh/config" = { source = "target/home/.ssh/config", mode = "copy" }
 "~/.uv/uv.toml" = { source = "target/home/.uv/uv.toml", mode = "symlink" }
 "~/.config/ccstatusline/settings.json" = { source = "target/home/.config/ccstatusline/settings.json", mode = "copy" }

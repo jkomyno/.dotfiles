@@ -107,6 +107,16 @@
           }
         ]
       }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "{{ env.HOME }}/.agents/bin/agent-checkpoint.sh commit --agent claude"
+          }
+        ]
+      }
     ]
   },
   "statusLine": {

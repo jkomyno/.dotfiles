@@ -7,6 +7,12 @@ model_reasoning_effort = "xhigh"
 personality = "pragmatic"
 service_tier = "fast"
 
+# Auto-commit checkpoint on turn completion, shared with Claude Code + pi.
+# Codex fires this on the `agent-turn-complete` event with the event JSON as an
+# argv arg; the wrapper filters + delegates to ~/.agents/bin/agent-checkpoint.sh.
+# Absolute path required: Codex does not expand ~ or $HOME inside the argv array.
+notify = ["/Users/jkomyno/.agents/bin/codex-notify.sh"]
+
 [features]
 rmcp_client = true
 terminal_resize_reflow = true
