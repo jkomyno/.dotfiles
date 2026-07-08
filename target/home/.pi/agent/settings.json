@@ -10,7 +10,11 @@
   "packages": [
     "npm:@ff-labs/pi-fff",
     "npm:pi-claude-bridge",
-    "npm:pi-kilocode"
+    "npm:pi-kilocode",
+    "npm:pi-simplify",
+    "npm:pi-web-access",
+    "npm:@quintinshaw/pi-dynamic-workflows",
+    "npm:@narumitw/pi-goal"
   ],
   "warnings": {
     "anthropicExtraUsage": false
