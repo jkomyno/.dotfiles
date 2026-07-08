@@ -1,0 +1,30 @@
+#!/bin/sh
+# keychain-run — run a command inside the GUI login session so it can reach the
+# macOS login keychain over SSH (where sessions otherwise get "User interaction
+# is not allowed" / empty keychain reads).
+#
+# Usage: keychain-run <command> [args...]
+#   e.g. keychain-run gh auth status
+#        keychain-run security find-generic-password -s some-service
+#
+# Requires: an active GUI login (console or VNC/Screen Sharing) for this user,
+# and passwordless sudo for `launchctl asuser`.
+set -eu
+
+uid=$(id -u)
+
+if [ "$#" -eq 0 ]; then
+	echo "usage: keychain-run <command> [args...]" >&2
+	exit 2
+fi
+
+# `launchctl asuser` resets PATH to a bare system default, so resolve the target
+# against the caller's PATH now (this is where mise shims / ~/.local/bin live).
+cmd=$1
+shift
+resolved=$(command -v "$cmd" 2>/dev/null || true)
+[ -n "$resolved" ] && cmd=$resolved
+
+# `launchctl asuser <uid>` needs root; it re-drops to <uid> inside the GUI
+# (Aqua) session's bootstrap namespace, which is where the keychain is unlocked.
+exec sudo launchctl asuser "$uid" "$cmd" "$@"

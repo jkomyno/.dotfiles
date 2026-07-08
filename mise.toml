@@ -27,6 +27,7 @@ includes = ["tasks"]
 "~/.handy/settings_store.json" = { source = "target/home/.handy/settings_store.json", mode = "copy" }
 "~/Library/Application Support/com.pais.handy/settings_store.json" = { source = "target/home/.handy/settings_store.json", mode = "copy" }
 "~/.local/bin/coffee" = { source = "target/home/.local/bin/coffee", mode = "symlink" }
+"~/.local/bin/keychain-run" = { source = "target/home/.local/bin/keychain-run", mode = "symlink" }
 "~/Library/LaunchAgents/sh.paseo.daemon.plist" = { source = "target/home/Library/LaunchAgents/sh.paseo.daemon.plist", mode = "template" }
 "~/.pi/agent/settings.json" = { source = "target/home/.pi/agent/settings.json", mode = "copy" }
 "~/.pi/agent/claude-bridge.json" = { source = "target/home/.pi/agent/claude-bridge.json", mode = "symlink" }
@@ -88,6 +89,7 @@ includes = ["tasks"]
 "~/.config/zsh/aliases.d/clipboard.zsh" = { source = "target/home/.config/zsh/aliases.d/clipboard.zsh", mode = "symlink" }
 "~/.config/zsh/aliases.d/coffee.zsh" = { source = "target/home/.config/zsh/aliases.d/coffee.zsh", mode = "symlink" }
 "~/.config/zsh/aliases.d/dot.zsh" = { source = "target/home/.config/zsh/aliases.d/dot.zsh", mode = "symlink" }
+"~/.config/zsh/aliases.d/gh-keychain.zsh" = { source = "target/home/.config/zsh/aliases.d/gh-keychain.zsh", mode = "symlink" }
 "~/.config/zsh/aliases.d/git-shortcuts.zsh" = { source = "target/home/.config/zsh/aliases.d/git-shortcuts.zsh", mode = "symlink" }
 "~/.config/zsh/aliases.d/ls.zsh" = { source = "target/home/.config/zsh/aliases.d/ls.zsh", mode = "symlink" }
 "~/.config/zsh/aliases.d/nav.zsh" = { source = "target/home/.config/zsh/aliases.d/nav.zsh", mode = "symlink" }
