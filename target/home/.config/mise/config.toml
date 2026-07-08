@@ -97,6 +97,11 @@ ast-grep = "latest"
 # the always-on daemon is a tracked LaunchAgent (target/home/Library/LaunchAgents/sh.paseo.daemon.plist)
 # loaded by install/common/paseo.sh, reachable from the phone over Tailscale
 "npm:@getpaseo/cli" = "latest"
+# Amp (https://ampcode.com) is NOT a mise tool: every @sourcegraph/amp npm release
+# carries a -g<hash> suffix mise reads as a prerelease, so `mise ls-remote` returns
+# nothing and "latest" never resolves (an exact pin installs but never auto-updates).
+# It ships a self-updating native binary instead, laid down once by the guarded
+# install/common/amp.sh provisioning script, like Claude Code (install/common/claude.sh).
 
 # Local LLM tooling
 # https://github.com/ollama/ollama - run large language models locally; `ollama serve` hosts the API

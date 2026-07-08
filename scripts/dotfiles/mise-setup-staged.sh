@@ -32,6 +32,7 @@ setup_plan=(
   "task|install:common:gh|install/common/gh.sh|install/common/gh.sh"
   "task|install:common:claude|install/common/claude.sh|install/common/claude.sh"
   "task|install:common:agents|install/common/agents.sh|install/common/agents.sh"
+  "task|install:common:amp|install/common/amp.sh|install/common/amp.sh"
   "task|install:common:ollama-models|install/common/ollama-models.sh|install/common/ollama-models.sh"
   "task|install:common:mlx|install/common/mlx.sh|install/common/mlx.sh"
   "task|install:macos:defaults|install/macos/common/defaults.sh|install/macos/common/defaults.sh"
@@ -50,6 +51,7 @@ optional_steps=(
   "install:common:paseo"
   "install:common:claude"
   "install:common:agents"
+  "install:common:amp"
   "install:common:ollama-models"
   "install:common:mlx"
 )

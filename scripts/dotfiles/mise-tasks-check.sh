@@ -7,6 +7,7 @@ SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd -P)"
 source "${SCRIPT_DIR}/lib.sh"
 
 expected_tasks=(
+  "install:common:amp"
   "install:common:gh"
   "install:common:git"
   "install:common:git-signing"
@@ -28,6 +29,7 @@ expected_tasks=(
 )
 
 task_install_targets=(
+  "install/common/amp.sh"
   "install/common/gh.sh"
   "install/common/git.sh"
   "install/common/git-signing.sh"
