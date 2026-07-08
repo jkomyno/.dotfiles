@@ -20,6 +20,14 @@
   `--no-engine` here, and no `--foreground` flag is required because the worker
   does not self-daemonize (launchd keeps tracking the real process). Everything
   binds localhost only (REST 3111, streams 3112, viewer 3113); nothing is exposed.
+
+  WorkingDirectory is $HOME/.agentmemory on purpose: the iii engine's file-based
+  KV store path is cwd-relative (`./data/state_store.db` in iii-config.yaml, with
+  no env override), so pinning cwd here keeps the store at a stable, conventional
+  ~/.agentmemory/data alongside the rest of agentmemory's state — rather than a
+  stray ~/data (or a per-project ./data if it were ever started from a repo). The
+  store reloads across restarts; only a full engine restart (reboot/logout, or
+  `agentmemory stop`) rehydrates it — a worker-only restart does not.
   Load/manage it with `just agentmemory`.
 -->
 <plist version="1.0">
@@ -45,7 +53,7 @@
   </dict>
 
   <key>WorkingDirectory</key>
-  <string>{{ env.HOME }}</string>
+  <string>{{ env.HOME }}/.agentmemory</string>
 
   <key>RunAtLoad</key>
   <true/>
