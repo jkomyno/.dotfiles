@@ -59,6 +59,10 @@ screen-sharing *args:
 paseo *args:
     @bash install/common/paseo.sh {{args}}
 
+# Load the agentmemory daemon LaunchAgent so shared agent memory is always available. Status: --status. Undo: --remove.
+agentmemory *args:
+    @bash install/common/agentmemory.sh {{args}}
+
 # Authenticate gh, codex, and claude (interactive; skips anything already logged in).
 auth:
     @scripts/dotfiles/auth.sh

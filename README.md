@@ -71,7 +71,7 @@ The root [`setup.sh`](./setup.sh) is intentionally small:
 4. Installs or finds the pinned standalone `mise` binary.
 5. Runs the staged mise setup order from `scripts/dotfiles/mise-setup-staged.sh`.
 
-The staged setup path generates an SSH key (step 1), installs or checks Xcode Command Line Tools, nanobrew, GUI apps/fonts, exceptional formulae, installs the tailscaled system daemon, applies the mise `[dotfiles]` entries, installs the configured mise toolchain, loads the paseo daemon, runs Git/GitHub setup, pulls Ollama models, installs MLX tooling, and applies repeatable macOS defaults last.
+The staged setup path generates an SSH key (step 1), installs or checks Xcode Command Line Tools, nanobrew, GUI apps/fonts, exceptional formulae, installs the tailscaled system daemon, applies the mise `[dotfiles]` entries, installs the configured mise toolchain, loads the paseo and agentmemory daemons, runs Git/GitHub setup, pulls Ollama models, installs MLX tooling, and applies repeatable macOS defaults last.
 
 Linux is not a full provisioning target yet. The shared dotfiles and diagnostics are expected to work, while macOS package/default hooks skip themselves until this repository grows a real Linux profile.
 
@@ -133,6 +133,30 @@ Three layers for reaching a Mac you drive remotely (the intended combination is 
 
   Pairing is one-time: `just paseo --pair` (or add `http://<tailscale-ip>:6767` in the phone app), then approve.
 
+## Always-on Background Services
+
+A few tools this repo installs are only useful while a process of theirs stays running — a long-lived service that must survive logout and reboot and restart itself if it crashes, not something you start by hand. On macOS that is a launchd job: a **LaunchDaemon** (system-wide, runs as root, in `/Library/LaunchDaemons`) or a **LaunchAgent** (per-user, runs in your login GUI session, in `~/Library/LaunchAgents`). Each such service is tracked here — the launchd job as a source file, plus a loader that boots it into the running session — so a service that dies is a `just` command away, not a debugging session. All are enumerated below; nothing else in these dotfiles runs unattended.
+
+| Service | Kind | Started at setup by | Manage | Bound to |
+| --- | --- | --- | --- | --- |
+| **tailscaled** | system LaunchDaemon (root) | `install:macos:tailscale` | `just tailscale` | tailnet |
+| **paseo** | user LaunchAgent | `install:common:paseo` | `just paseo` | `0.0.0.0:6767` (tailnet) |
+| **agentmemory** | user LaunchAgent | `install:common:agentmemory` | `just agentmemory` | `localhost:3111` / `:3113` |
+
+- **tailscaled** is a root system daemon installed by Homebrew (`tailscaled install-system-daemon`); it needs sudo once and is not a mise tool. See [Remote Access](#remote-access-tailscale-screen-sharing-and-paseo).
+- **paseo** is a user LaunchAgent ([`sh.paseo.daemon.plist`](./target/home/Library/LaunchAgents/sh.paseo.daemon.plist)) that keeps the phone/web bridge reachable over the tailnet. See [Remote Access](#remote-access-tailscale-screen-sharing-and-paseo).
+- **agentmemory** is a user LaunchAgent ([`com.agentmemory.daemon.plist`](./target/home/Library/LaunchAgents/com.agentmemory.daemon.plist)) that keeps the shared memory server up so Claude Code, Codex, and pi can save and recall memory at any time; it binds localhost only. Loaded by [`install/common/agentmemory.sh`](./install/common/agentmemory.sh); logs to `~/Library/Logs/agentmemory.daemon.log`.
+
+  ```sh
+  just agentmemory            # load / restart the daemon LaunchAgent
+  just agentmemory --status   # report agent state + server health
+  just agentmemory --remove   # unload
+  ```
+
+Both user LaunchAgents use the same shape: a `template`-mode plist tracked under [`target/home/Library/LaunchAgents/`](./target/home/Library/LaunchAgents) (registered in [`mise.toml`](./mise.toml) so `mise dotfiles apply` renders it with the real `$HOME`), `RunAtLoad` + `KeepAlive` so they start on login and respawn on crash, and a loader script that runs the tool through `mise exec` (a shim is not always generated) and bootstraps the agent into the live GUI session. They need an active desktop login to bootstrap — over SSH they load on the next console login. To add another always-on service, copy that shape and add a row above.
+
+Not every server here is always-on: **Ollama** is deliberately on-demand — [`install/common/ollama-models.sh`](./install/common/ollama-models.sh) starts a temporary `ollama serve` only while pulling models and stops it afterward, so there is no Ollama LaunchAgent.
+
 ## Repository Layout
 
 Shell scripts live in three trees, and each tree has one job:
@@ -161,7 +185,7 @@ Coding-agent configuration follows a shared-canonical-plus-adapters layout inspi
 - [`target/home/.claude`](./target/home/.claude) deploys Claude Code's global `settings.json`, `CLAUDE.md` (which imports `~/.agents/AGENTS.md`), hooks, and a `~/.claude/skills` symlink into `~/.agents/skills`. The plugins that `settings.json` enables are made reproducible by [`install/common/agents.sh`](./install/common/agents.sh), which reads [`scripts/dotfiles/agent-plugins.json`](./scripts/dotfiles/agent-plugins.json) and registers each marketplace and installs each plugin. It runs during staged setup and on `just update plugins`, and skips gracefully when the `claude` CLI is not installed yet.
 - [`target/home/.codex`](./target/home/.codex) deploys a curated `~/.codex/config.toml` and `AGENTS.md` (which defers to `~/.agents/AGENTS.md`). The Codex CLI itself is provisioned via mise (`npm:@openai/codex`). Codex needs no skill symlinks: it scans `~/.agents/skills/` natively (its own `~/.codex/skills/` location is deprecated upstream). Codex plugins declared in [`scripts/dotfiles/agent-plugins.json`](./scripts/dotfiles/agent-plugins.json) are also converged by `install/common/agents.sh`.
 - [`target/home/.pi`](./target/home/.pi) deploys pi's `~/.pi/agent/settings.json` and the managed `~/.pi/agent/extensions/agentmemory` extension; the pi CLI is provisioned via mise (`npm:@earendil-works/pi-coding-agent`) and auto-discovers `~/.agents/skills`, so no per-skill wiring is needed.
-- [`agentmemory`](https://github.com/rohitg00/agentmemory) is the shared persistent memory layer for Claude Code, Codex, and pi. The CLI is provisioned via mise (`npm:@agentmemory/agentmemory`), Claude/Codex plugin installation is declared in `agent-plugins.json`, and pi uses the vendored extension under `target/home/.pi/agent/extensions/agentmemory`. Start the local server with `agentmemory`; it serves the memory API on `http://localhost:3111` and the viewer on `http://localhost:3113`.
+- [`agentmemory`](https://github.com/rohitg00/agentmemory) is the shared persistent memory layer for Claude Code, Codex, and pi. The CLI is provisioned via mise (`npm:@agentmemory/agentmemory`), Claude/Codex plugin installation is declared in `agent-plugins.json`, and pi uses the vendored extension under `target/home/.pi/agent/extensions/agentmemory`. Its memory API (`http://localhost:3111`) and viewer (`http://localhost:3113`) must be running for `memory_save`/`memory_search` to work, so the server runs as an always-on LaunchAgent rather than something started by hand — see [Always-on Background Services](#always-on-background-services). Manage it with `just agentmemory`.
 
 All three harnesses (Claude Code, Codex, pi) read the same first-party and vendored skills from `~/.agents/skills`. Plugin-delivered skills are host-specific; to expose a skill to every harness, vendor it into `~/.agents/skills` via `sync-skills`.
 

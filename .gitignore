@@ -331,6 +331,12 @@ Cargo.lock
 
 # End of https://www.toptal.com/developers/gitignore/api/python,node,rust
 
+# agentmemory's iii engine writes its KV store to a cwd-relative ./data dir, so
+# running `agentmemory` from this repo root drops a stray data/ here. The tracked
+# daemon pins WorkingDirectory=$HOME (store lives in ~/data), so this only guards
+# against accidental manual runs. Root-anchored; does not affect target/home.
+/data/
+
 # ---------------------------------------------------------------------------
 # Managed dotfiles source tree — keep it fully tracked.
 #

@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+  Managed by dotfiles: target/home/Library/LaunchAgents/com.agentmemory.daemon.plist
+
+  Keeps the agentmemory worker (https://github.com/rohitg00/agentmemory) running in
+  the login session so Claude Code, Codex, and pi can save and recall shared,
+  cross-session memory at any time. Without this the REST API on localhost:3111 is
+  only up while something started it by hand, so `memory_save` silently fails once
+  it stops.
+
+  Rendered by `mise dotfiles apply` (template mode) with the real $HOME baked in.
+  agentmemory is a mise tool (npm:@agentmemory/agentmemory). It is launched via
+  `mise exec` with an explicit backend rather than a shim, because a shim is not
+  always generated (e.g. on activate-mode machines) whereas
+  `mise exec npm:@agentmemory/agentmemory` always resolves.
+
+  The bare `agentmemory` command runs the worker in the foreground and auto-starts
+  its embedded iii engine (ws port $REST+46023), which the REST API needs — so no
+  `--no-engine` here, and no `--foreground` flag is required because the worker
+  does not self-daemonize (launchd keeps tracking the real process). Everything
+  binds localhost only (REST 3111, streams 3112, viewer 3113); nothing is exposed.
+  Load/manage it with `just agentmemory`.
+-->
+<plist version="1.0">
+<dict>
+  <key>Label</key>
+  <string>com.agentmemory.daemon</string>
+
+  <key>ProgramArguments</key>
+  <array>
+    <string>{{ env.HOME }}/.local/bin/mise</string>
+    <string>exec</string>
+    <string>npm:@agentmemory/agentmemory</string>
+    <string>--</string>
+    <string>agentmemory</string>
+  </array>
+
+  <key>EnvironmentVariables</key>
+  <dict>
+    <key>HOME</key>
+    <string>{{ env.HOME }}</string>
+    <key>PATH</key>
+    <string>{{ env.HOME }}/.local/share/mise/shims:{{ env.HOME }}/.local/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin</string>
+  </dict>
+
+  <key>WorkingDirectory</key>
+  <string>{{ env.HOME }}</string>
+
+  <key>RunAtLoad</key>
+  <true/>
+
+  <key>KeepAlive</key>
+  <true/>
+
+  <key>ProcessType</key>
+  <string>Background</string>
+
+  <key>StandardOutPath</key>
+  <string>{{ env.HOME }}/Library/Logs/agentmemory.daemon.log</string>
+
+  <key>StandardErrorPath</key>
+  <string>{{ env.HOME }}/Library/Logs/agentmemory.daemon.err.log</string>
+</dict>
+</plist>
