@@ -10,7 +10,7 @@ Three decisions shape the whole repository:
 - **One skills layer feeds three coding agents.** Claude Code, Codex, and pi all read the same `~/.agents/skills` directory. Third-party skills are vendored as real files and kept current from upstream by the `sync-skills` skill, with local modifications preserved as patches; shared instructions and persistent agent memory follow the same pattern. Details in [Agent Configuration](#agent-configuration).
 - **The repo tests itself.** `just doctor` syntax-checks every shell script, validates the mise task graph, runs the staged setup against a throwaway `$HOME`, and dry-runs the lockfile refresh for four platforms. CI runs it on every push; the badge above is the result.
 
-Beyond that, mise owns language runtimes and CLI tools, [nanobrew](https://github.com/justrach/nanobrew) owns GUI apps and fonts, and the tracked configuration covers zsh, fish, Git, GitHub CLI, Ghostty, tmux, Neovim/LazyVim, starship, hunk, ghui, uv, macOS defaults, and the coding-agent stack.
+Beyond that, mise owns language runtimes and CLI tools, [nanobrew](https://github.com/justrach/nanobrew) owns GUI apps and fonts, the tracked configuration covers zsh, fish, Git, GitHub CLI, Ghostty, tmux, Neovim/LazyVim, starship, hunk, ghui, uv, macOS defaults, and the coding-agent stack, and [Tailscale](https://tailscale.com), Screen Sharing, and [Paseo](https://paseo.sh) (drive local agents from your phone) make a Mac reachable remotely over the tailnet.
 
 ## Start Here
 
