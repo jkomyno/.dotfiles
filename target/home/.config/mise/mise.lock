@@ -815,7 +815,7 @@ version = "0.9.27"
 backend = "npm:@agentmemory/agentmemory"
 
 [[tools."npm:@earendil-works/pi-coding-agent"]]
-version = "0.80.2"
+version = "0.80.3"
 backend = "npm:@earendil-works/pi-coding-agent"
 
 [[tools."npm:@getpaseo/cli"]]
