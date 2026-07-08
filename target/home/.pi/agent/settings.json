@@ -8,7 +8,8 @@
   ],
   "packages": [
     "npm:@ff-labs/pi-fff",
-    "npm:pi-claude-bridge"
+    "npm:pi-claude-bridge",
+    "npm:pi-kilocode"
   ],
   "warnings": {
     "anthropicExtraUsage": false
