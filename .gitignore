@@ -338,6 +338,14 @@ Cargo.lock
 # affect target/home.
 /data/
 
+# FFmpeg's patcheck (shipped by the Homebrew `ffmpeg` formula, on PATH) and its
+# CVE cross-check dump patcheck.* / cvelist* into the current working directory.
+# When a patch review runs with cwd here (e.g. an agent session), they land at the
+# repo root and clutter `git status`. Throwaway tool output; never tracked.
+# Root-anchored; does not affect target/home.
+/patcheck.*
+/cvelist*
+
 # ---------------------------------------------------------------------------
 # Managed dotfiles source tree — keep it fully tracked.
 #
