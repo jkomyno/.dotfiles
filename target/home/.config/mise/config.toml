@@ -134,6 +134,8 @@ typos = "latest"
 # Enable the experimental [dotfiles] feature so `mise dotfiles ...` works from
 # any shell without a MISE_EXPERIMENTAL=true prefix.
 experimental = true
+# Disable mise's release-age cooldown for fuzzy versions such as "latest".
+minimum_release_age = "0s"
 idiomatic_version_file_enable_tools = ["node", "python", "rust"]
 
 [settings.node]

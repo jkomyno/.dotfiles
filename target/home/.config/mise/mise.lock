@@ -519,46 +519,46 @@ url = "https://github.com/agentstation/vhs/releases/download/v0.11.1/vhs_0.11.1_
 url_api = "https://api.github.com/repos/agentstation/vhs/releases/assets/323982841"
 
 [[tools."github:jkomyno/uniku"]]
-version = "0.0.12"
+version = "0.4.0"
 backend = "github:jkomyno/uniku"
 
 [tools."github:jkomyno/uniku".options]
 version_prefix = "uniku-cli-v"
 
 [tools."github:jkomyno/uniku"."platforms.linux-x64"]
-checksum = "sha256:294ecbeda21140a8fd3d26f35aadbbeed8dfe89694e6f6d9ee262513c8e2f5f4"
-url = "https://github.com/jkomyno/uniku/releases/download/uniku-cli-v0.0.12/uniku-linux-x64.tar.gz"
-url_api = "https://api.github.com/repos/jkomyno/uniku/releases/assets/352792172"
+checksum = "sha256:5ea6bcdcbf336bdc49d20696b39517992b8cf2f7e0c4787bdb03232dab6953c0"
+url = "https://github.com/jkomyno/uniku/releases/download/uniku-cli-v0.4.0/uniku-linux-x64.tar.gz"
+url_api = "https://api.github.com/repos/jkomyno/uniku/releases/assets/469117419"
 
 [tools."github:jkomyno/uniku"."platforms.linux-x64-baseline"]
-checksum = "sha256:294ecbeda21140a8fd3d26f35aadbbeed8dfe89694e6f6d9ee262513c8e2f5f4"
-url = "https://github.com/jkomyno/uniku/releases/download/uniku-cli-v0.0.12/uniku-linux-x64.tar.gz"
-url_api = "https://api.github.com/repos/jkomyno/uniku/releases/assets/352792172"
+checksum = "sha256:5ea6bcdcbf336bdc49d20696b39517992b8cf2f7e0c4787bdb03232dab6953c0"
+url = "https://github.com/jkomyno/uniku/releases/download/uniku-cli-v0.4.0/uniku-linux-x64.tar.gz"
+url_api = "https://api.github.com/repos/jkomyno/uniku/releases/assets/469117419"
 
 [tools."github:jkomyno/uniku"."platforms.linux-x64-musl"]
-checksum = "sha256:294ecbeda21140a8fd3d26f35aadbbeed8dfe89694e6f6d9ee262513c8e2f5f4"
-url = "https://github.com/jkomyno/uniku/releases/download/uniku-cli-v0.0.12/uniku-linux-x64.tar.gz"
-url_api = "https://api.github.com/repos/jkomyno/uniku/releases/assets/352792172"
+checksum = "sha256:5ea6bcdcbf336bdc49d20696b39517992b8cf2f7e0c4787bdb03232dab6953c0"
+url = "https://github.com/jkomyno/uniku/releases/download/uniku-cli-v0.4.0/uniku-linux-x64.tar.gz"
+url_api = "https://api.github.com/repos/jkomyno/uniku/releases/assets/469117419"
 
 [tools."github:jkomyno/uniku"."platforms.linux-x64-musl-baseline"]
-checksum = "sha256:294ecbeda21140a8fd3d26f35aadbbeed8dfe89694e6f6d9ee262513c8e2f5f4"
-url = "https://github.com/jkomyno/uniku/releases/download/uniku-cli-v0.0.12/uniku-linux-x64.tar.gz"
-url_api = "https://api.github.com/repos/jkomyno/uniku/releases/assets/352792172"
+checksum = "sha256:5ea6bcdcbf336bdc49d20696b39517992b8cf2f7e0c4787bdb03232dab6953c0"
+url = "https://github.com/jkomyno/uniku/releases/download/uniku-cli-v0.4.0/uniku-linux-x64.tar.gz"
+url_api = "https://api.github.com/repos/jkomyno/uniku/releases/assets/469117419"
 
 [tools."github:jkomyno/uniku"."platforms.macos-arm64"]
-checksum = "sha256:5a867bfdeb29a26d27cede03c513c14257101c35b1cc024ba742032a2d9140b1"
-url = "https://github.com/jkomyno/uniku/releases/download/uniku-cli-v0.0.12/uniku-darwin-arm64.tar.gz"
-url_api = "https://api.github.com/repos/jkomyno/uniku/releases/assets/352792171"
+checksum = "sha256:9d0dccc1561fb4a493b718183c933dbbf7aba63b0154b390d8b94cd14cc92cbe"
+url = "https://github.com/jkomyno/uniku/releases/download/uniku-cli-v0.4.0/uniku-darwin-arm64.tar.gz"
+url_api = "https://api.github.com/repos/jkomyno/uniku/releases/assets/469117420"
 
 [tools."github:jkomyno/uniku"."platforms.macos-x64"]
-checksum = "sha256:947f1f6683e45b9dc17cce0a6035bfe75c028ab080c90e2465c90328590196d8"
-url = "https://github.com/jkomyno/uniku/releases/download/uniku-cli-v0.0.12/uniku-darwin-x64.tar.gz"
-url_api = "https://api.github.com/repos/jkomyno/uniku/releases/assets/352792173"
+checksum = "sha256:47e895953b8398228c15d335647a5b31f33d8210304500211be3f5644746541b"
+url = "https://github.com/jkomyno/uniku/releases/download/uniku-cli-v0.4.0/uniku-darwin-x64.tar.gz"
+url_api = "https://api.github.com/repos/jkomyno/uniku/releases/assets/469117418"
 
 [tools."github:jkomyno/uniku"."platforms.macos-x64-baseline"]
-checksum = "sha256:947f1f6683e45b9dc17cce0a6035bfe75c028ab080c90e2465c90328590196d8"
-url = "https://github.com/jkomyno/uniku/releases/download/uniku-cli-v0.0.12/uniku-darwin-x64.tar.gz"
-url_api = "https://api.github.com/repos/jkomyno/uniku/releases/assets/352792173"
+checksum = "sha256:47e895953b8398228c15d335647a5b31f33d8210304500211be3f5644746541b"
+url = "https://github.com/jkomyno/uniku/releases/download/uniku-cli-v0.4.0/uniku-darwin-x64.tar.gz"
+url_api = "https://api.github.com/repos/jkomyno/uniku/releases/assets/469117418"
 
 [[tools."github:rtk-ai/rtk"]]
 version = "0.43.0"
@@ -763,52 +763,53 @@ url = "https://github.com/neovim/neovim/releases/download/v0.12.3/nvim-macos-arm
 url = "https://github.com/neovim/neovim/releases/download/v0.12.3/nvim-macos-x86_64.tar.gz"
 
 [[tools.node]]
-version = "24.18.0"
+version = "20.19.2"
 backend = "core:node"
 
 [tools.node."platforms.linux-arm64"]
-checksum = "sha256:6b4484c2190274175df9aa8f28e2d758a819cb1c1fe6ab481e2f95b463ab8508"
-url = "https://nodejs.org/dist/v24.18.0/node-v24.18.0-linux-arm64.tar.gz"
+checksum = "sha256:24c3090d4e8c3667cd57482263291ca4f562c2e0773d5e618a0c6ba32d21b39f"
+url = "https://nodejs.org/dist/v20.19.2/node-v20.19.2-linux-arm64.tar.gz"
 
 [tools.node."platforms.linux-arm64-musl"]
-checksum = "sha256:b1c6c2dc31b46dd8fb2322f4fe75b07e775c5120bc37251deeea28f529d4567b"
-url = "https://unofficial-builds.nodejs.org/download/release/v24.18.0/node-v24.18.0-linux-arm64-musl.tar.gz"
+checksum = "sha256:eaf8800608ffbcae7665beb4776d8e9d8484055fbb840ef44e346044f9b08ad5"
+url = "https://nodejs.org/dist/v20.19.2/node-v20.19.2.tar.gz"
+install = "source"
 
 [tools.node."platforms.linux-x64"]
-checksum = "sha256:783130984963db7ba9cbd01089eaf2c2efb055c7c1693c943174b967b3050cb8"
-url = "https://nodejs.org/dist/v24.18.0/node-v24.18.0-linux-x64.tar.gz"
+checksum = "sha256:eec2c7b9c6ac72e42885a42edfc0503c0e4ee455f855c4a17a6cbcf026656dd5"
+url = "https://nodejs.org/dist/v20.19.2/node-v20.19.2-linux-x64.tar.gz"
 
 [tools.node."platforms.linux-x64-baseline"]
-checksum = "sha256:783130984963db7ba9cbd01089eaf2c2efb055c7c1693c943174b967b3050cb8"
-url = "https://nodejs.org/dist/v24.18.0/node-v24.18.0-linux-x64.tar.gz"
+checksum = "sha256:eec2c7b9c6ac72e42885a42edfc0503c0e4ee455f855c4a17a6cbcf026656dd5"
+url = "https://nodejs.org/dist/v20.19.2/node-v20.19.2-linux-x64.tar.gz"
 
 [tools.node."platforms.linux-x64-musl"]
-checksum = "sha256:ea58409911e141ec6b19d9178efa2d9185a13295005b1cbf5521b3157eed1d95"
-url = "https://unofficial-builds.nodejs.org/download/release/v24.18.0/node-v24.18.0-linux-x64-musl.tar.gz"
+checksum = "sha256:546b63a97f0a929db3b50a02c9b5bac6c6fac5e63b3fed077f6e4a9f0e0a3b22"
+url = "https://unofficial-builds.nodejs.org/download/release/v20.19.2/node-v20.19.2-linux-x64-musl.tar.gz"
 
 [tools.node."platforms.linux-x64-musl-baseline"]
-checksum = "sha256:ea58409911e141ec6b19d9178efa2d9185a13295005b1cbf5521b3157eed1d95"
-url = "https://unofficial-builds.nodejs.org/download/release/v24.18.0/node-v24.18.0-linux-x64-musl.tar.gz"
+checksum = "sha256:546b63a97f0a929db3b50a02c9b5bac6c6fac5e63b3fed077f6e4a9f0e0a3b22"
+url = "https://unofficial-builds.nodejs.org/download/release/v20.19.2/node-v20.19.2-linux-x64-musl.tar.gz"
 
 [tools.node."platforms.macos-arm64"]
-checksum = "sha256:e1a97e14c99c803e96c7339403282ea05a499c32f8d83defe9ef5ec66f979ed1"
-url = "https://nodejs.org/dist/v24.18.0/node-v24.18.0-darwin-arm64.tar.gz"
+checksum = "sha256:5f96c725cd2be1151f08b25c05bf5a21866a2dc7db3803d351a6ea19fcc53665"
+url = "https://nodejs.org/dist/v20.19.2/node-v20.19.2-darwin-arm64.tar.gz"
 
 [tools.node."platforms.macos-x64"]
-checksum = "sha256:dfd0dbd3e721503434df7b7205e719f61b3a3a31b2bcf9729b8b91fea240f080"
-url = "https://nodejs.org/dist/v24.18.0/node-v24.18.0-darwin-x64.tar.gz"
+checksum = "sha256:29f91e05992a7d81498ab1d04938a184313cb4aaccab95bb4636e30e6424eae3"
+url = "https://nodejs.org/dist/v20.19.2/node-v20.19.2-darwin-x64.tar.gz"
 
 [tools.node."platforms.macos-x64-baseline"]
-checksum = "sha256:dfd0dbd3e721503434df7b7205e719f61b3a3a31b2bcf9729b8b91fea240f080"
-url = "https://nodejs.org/dist/v24.18.0/node-v24.18.0-darwin-x64.tar.gz"
+checksum = "sha256:29f91e05992a7d81498ab1d04938a184313cb4aaccab95bb4636e30e6424eae3"
+url = "https://nodejs.org/dist/v20.19.2/node-v20.19.2-darwin-x64.tar.gz"
 
 [tools.node."platforms.windows-x64"]
-checksum = "sha256:0ae68406b42d7725661da979b1403ec9926da205c6770827f33aac9d8f26e821"
-url = "https://nodejs.org/dist/v24.18.0/node-v24.18.0-win-x64.zip"
+checksum = "sha256:8735c9940b97548f6d9d4dda7cf5fd4471c062f15f44c2b890c9b0b430460feb"
+url = "https://nodejs.org/dist/v20.19.2/node-v20.19.2-win-x64.zip"
 
 [tools.node."platforms.windows-x64-baseline"]
-checksum = "sha256:0ae68406b42d7725661da979b1403ec9926da205c6770827f33aac9d8f26e821"
-url = "https://nodejs.org/dist/v24.18.0/node-v24.18.0-win-x64.zip"
+checksum = "sha256:8735c9940b97548f6d9d4dda7cf5fd4471c062f15f44c2b890c9b0b430460feb"
+url = "https://nodejs.org/dist/v20.19.2/node-v20.19.2-win-x64.zip"
 
 [[tools."npm:@agentmemory/agentmemory"]]
 version = "0.9.27"
@@ -827,7 +828,7 @@ version = "0.8.0"
 backend = "npm:@kitlangton/ghui"
 
 [[tools."npm:@openai/codex"]]
-version = "0.142.3"
+version = "0.144.0"
 backend = "npm:@openai/codex"
 
 [[tools."npm:ccstatusline"]]

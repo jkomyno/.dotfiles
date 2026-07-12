@@ -22,7 +22,7 @@ readonly DOTFILES_ROOT="${DOTFILES:-$(dotfiles_repo_root)}"
 readonly DOTFILES_MISE_DIR="${DOTFILES_ROOT}/target/home/.config/mise"
 readonly DOTFILES_MISE_CONFIG="${DOTFILES_MISE_DIR}/config.toml"
 readonly DOTFILES_MISE_PLATFORMS="${DOTFILES_MISE_PLATFORMS:-linux-x64,linux-arm64,macos-arm64,macos-x64}"
-readonly DOTFILES_MISE_MINIMUM_RELEASE_AGE="${DOTFILES_MISE_MINIMUM_RELEASE_AGE:-7d}"
+readonly DOTFILES_MISE_MINIMUM_RELEASE_AGE="${DOTFILES_MISE_MINIMUM_RELEASE_AGE:-0s}"
 
 log() {
   printf '==> %s\n' "$*" >&2
