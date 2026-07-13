@@ -45,6 +45,10 @@ git-lfs = "latest"
 "cargo:mergiraf" = "latest"
 # https://github.com/modem-dev/hunk - review-first terminal diff viewer
 hunk = "latest"
+# https://github.com/schpet/linear-cli - Linear issue tracker CLI: list/start issues
+# and open PRs from the terminal (command name `linear`); cargo-dist GitHub releases,
+# so the github backend picks linear-aarch64-apple-darwin.tar.xz over the -update binary
+"github:schpet/linear-cli" = "latest"
 
 # Shell tooling
 # https://github.com/tmux/tmux - terminal multiplexer; config in target/home/.config/tmux
