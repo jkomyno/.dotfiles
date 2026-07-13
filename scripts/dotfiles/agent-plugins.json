@@ -1,5 +1,5 @@
 {
-  "$comment": "Single source of truth for managed coding-agent plugins. Top-level marketplaces/plugins are Claude Code declarations; codex.marketplaces/plugins are Codex CLI declarations. install/common/agents.sh registers marketplaces and installs plugins idempotently; scripts/dotfiles/update.sh 'plugins' updates them. Claude marketplace names must match the source repo's .claude-plugin/marketplace.json because settings.json enabledPlugins keys on <plugin>@<name>.",
+  "$comment": "Single source of truth for managed coding-agent plugins. Top-level marketplaces/plugins/mcpServers are Claude Code declarations; codex.marketplaces/plugins are Codex CLI declarations (Codex MCP servers are tracked directly in target/home/.codex/config.toml as [mcp_servers.*]). install/common/agents.sh registers marketplaces, installs plugins, and adds each Claude mcpServers entry idempotently via `claude mcp add --scope user`; scripts/dotfiles/update.sh 'plugins' updates them. Claude marketplace names must match the source repo's .claude-plugin/marketplace.json because settings.json enabledPlugins keys on <plugin>@<name>.",
   "marketplaces": [
     {
       "name": "agentmemory",
@@ -24,6 +24,13 @@
     "frontend-design@claude-plugins-official",
     "rust-analyzer-lsp@claude-plugins-official",
     "interface-design@interface-design"
+  ],
+  "mcpServers": [
+    {
+      "name": "linear",
+      "transport": "http",
+      "url": "https://mcp.linear.app/mcp"
+    }
   ],
   "codex": {
     "marketplaces": [

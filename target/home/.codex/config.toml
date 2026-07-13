@@ -19,3 +19,10 @@ terminal_resize_reflow = true
 memories = true
 mentions_v2 = true
 prevent_idle_sleep = true
+
+# Curated MCP servers. Codex appends machine-local [mcp_servers.*] at runtime
+# (e.g. the Codex.app node_repl browser bridge); only portable, hosted servers
+# are tracked here. Linear's remote MCP (streamable HTTP, OAuth handled in-app)
+# lets Codex read and update Linear issues. Requires features.rmcp_client above.
+[mcp_servers.linear]
+url = "https://mcp.linear.app/mcp"

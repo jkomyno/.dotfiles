@@ -98,6 +98,36 @@ claude_plugin_ids() {
   jq -r '.plugins[]' "${DATA_FILE}"
 }
 
+claude_mcp_entries() {
+  jq -r '.mcpServers[]? | [.name, (.transport // "http"), .url] | @tsv' "${DATA_FILE}"
+}
+
+# `claude mcp get <name>` exits 0 when a server of that name is already
+# configured in any scope, so it doubles as the idempotency probe. MCP servers
+# are static (a name + transport + URL), so there is nothing to "update" once
+# present; update mode only ensures a missing declaration gets added.
+sync_claude_mcp_servers() {
+  local name transport url
+  while IFS=$'\t' read -r name transport url; do
+    [[ -n "${name}" ]] || continue
+    if "${CLAUDE}" mcp get "${name}" >/dev/null 2>&1; then
+      case "${MODE}" in
+        check) info "mcp: ${name} configured" ;;
+        *) info "mcp: ${name} already configured" ;;
+      esac
+    else
+      case "${MODE}" in
+        check) info "mcp: ${name} MISSING (would add ${url})" ;;
+        *)
+          log "mcp: adding ${name} (${transport}) ${url}"
+          "${CLAUDE}" mcp add --transport "${transport}" --scope user "${name}" "${url}" \
+            || { warn "mcp add failed: ${name}"; FAILURES=$((FAILURES + 1)); }
+          ;;
+      esac
+    fi
+  done < <(claude_mcp_entries)
+}
+
 codex_bin() {
   if command -v codex >/dev/null 2>&1; then
     command -v codex
@@ -272,6 +302,7 @@ sync_claude() {
   log "Claude plugin sync (${MODE}) using ${DATA_FILE#"${ROOT}"/}"
   sync_claude_marketplaces
   sync_claude_plugins
+  sync_claude_mcp_servers
 
   if [[ "${MODE}" != "check" ]]; then
     info "Restart Claude Code for plugin changes to take effect"
