@@ -1,9 +1,5 @@
 {
   "skills": {
-    "writing-clearly-and-concisely": {
-      "repo": "https://github.com/obra/the-elements-of-style.git",
-      "path": "skills/writing-clearly-and-concisely"
-    },
     "find-skills": {
       "repo": "https://github.com/vercel-labs/skills.git",
       "path": "skills/find-skills"
@@ -12,9 +8,13 @@
       "repo": "https://github.com/steipete/agent-scripts.git",
       "path": "skills/create-cli"
     },
-    "tdd": {
+    "wayfinder": {
       "repo": "https://github.com/mattpocock/skills.git",
-      "path": "skills/engineering/tdd"
+      "path": "skills/engineering/wayfinder"
+    },
+    "research": {
+      "repo": "https://github.com/mattpocock/skills.git",
+      "path": "skills/engineering/research"
     },
     "postgres-drizzle": {
       "repo": "https://github.com/ccheney/robust-skills.git",
@@ -39,6 +39,10 @@
     "grilling": {
       "repo": "https://github.com/mattpocock/skills.git",
       "path": "skills/productivity/grilling"
+    },
+    "writing-great-skills": {
+      "repo": "https://github.com/mattpocock/skills.git",
+      "path": "skills/productivity/writing-great-skills"
     },
     "domain-modeling": {
       "repo": "https://github.com/mattpocock/skills.git",

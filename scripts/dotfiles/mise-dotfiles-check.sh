@@ -8,6 +8,8 @@ source "${SCRIPT_DIR}/lib.sh"
 
 keep_temp="false"
 check_home=""
+legacy_home=""
+unrelated_home=""
 
 usage() {
   cat <<'USAGE'
@@ -28,7 +30,10 @@ cleanup() {
     return
   fi
 
-  [[ -z "${check_home}" ]] || rm -rf "${check_home}"
+  local temp_home
+  for temp_home in "${check_home}" "${legacy_home}" "${unrelated_home}"; do
+    [[ -z "${temp_home}" ]] || rm -rf "${temp_home}"
+  done
 }
 
 parse_args() {
@@ -77,7 +82,11 @@ verify_symlink() {
   fi
 
   actual_link="$(readlink "${target_path}")"
-  actual_resolved="$(cd -- "$(dirname -- "${actual_link}")" && pwd -P)/$(basename -- "${actual_link}")"
+  if [[ "${actual_link}" == /* ]]; then
+    actual_resolved="$(cd -- "$(dirname -- "${actual_link}")" && pwd -P)/$(basename -- "${actual_link}")"
+  else
+    actual_resolved="$(cd -- "$(dirname -- "${target_path}")/$(dirname -- "${actual_link}")" && pwd -P)/$(basename -- "${actual_link}")"
+  fi
   expected_resolved="$(cd -- "$(dirname -- "${source_path}")" && pwd -P)/$(basename -- "${source_path}")"
 
   if [[ "${actual_resolved}" != "${expected_resolved}" ]]; then
@@ -134,17 +143,101 @@ verify_json() {
 
 verify_agent_skill_links() {
   verify_symlink ".agents/skills" "target/home/.agents/skills"
-  verify_symlink ".claude/skills" "target/home/.agents/skills"
+
+  if [[ -L "${check_home}/.claude/skills" || ! -d "${check_home}/.claude/skills" ]]; then
+    error "Claude skills must remain a real directory for host-specific entries"
+    return 1
+  fi
 
   if [[ ! -f "${check_home}/.agents/skills/sync-skills/SKILL.md" ]]; then
     error "canonical agent skills symlink does not expose sync-skills"
     return 1
   fi
 
-  if [[ ! -f "${check_home}/.claude/skills/sync-skills/SKILL.md" ]]; then
-    error "Claude skills symlink does not expose sync-skills"
+  if [[ "$(<"${check_home}/.claude/skills/looper/SKILL.md")" != "local-only" ]]; then
+    error "Claude skill linking replaced the local-only looper skill"
     return 1
   fi
+
+  if [[ "$(readlink "${check_home}/.claude/skills/plugin-owned")" != "${check_home}/plugin-skills" ]]; then
+    error "Claude skill linking replaced the host-owned plugin symlink"
+    return 1
+  fi
+
+  if [[ "$(readlink "${check_home}/.claude/skills/alias-sync")" != "../../.agents/skills/sync-skills" ]]; then
+    error "Claude skill linking removed a host-owned alias into managed skills"
+    return 1
+  fi
+
+  if [[ -e "${check_home}/.claude/skills/retired" || -L "${check_home}/.claude/skills/retired" ]]; then
+    error "Claude skill linking preserved a stale managed link"
+    return 1
+  fi
+
+  verify_symlink ".claude/skills/sync-skills" "target/home/.agents/skills/sync-skills"
+
+  if [[ ! -f "${check_home}/.claude/skills/sync-skills/SKILL.md" ]]; then
+    error "Claude skill links do not expose sync-skills"
+    return 1
+  fi
+}
+
+seed_local_claude_skill() {
+  mkdir -p "${check_home}/.claude/skills/looper" "${check_home}/plugin-skills"
+  printf 'local-only\n' >"${check_home}/.claude/skills/looper/SKILL.md"
+  printf 'plugin-owned\n' >"${check_home}/plugin-skills/SKILL.md"
+  ln -s "${check_home}/plugin-skills" "${check_home}/.claude/skills/plugin-owned"
+  ln -s "../../.agents/skills/sync-skills" "${check_home}/.claude/skills/alias-sync"
+  ln -s "../../.agents/skills/retired" "${check_home}/.claude/skills/retired"
+}
+
+run_claude_skill_links() {
+  local target_home="$1"
+  shift
+  env \
+    HOME="${target_home}" \
+    DOTFILES="${DOTFILES_ROOT}" \
+    bash "${SCRIPT_DIR}/claude-skill-links.sh" "$@"
+}
+
+verify_check_mode() {
+  if run_claude_skill_links "${check_home}" --check; then
+    error "Claude skill-link check unexpectedly passed with pending changes"
+    return 1
+  fi
+
+  [[ "$(<"${check_home}/.claude/skills/looper/SKILL.md")" == "local-only" ]] || return 1
+  [[ "$(readlink "${check_home}/.claude/skills/plugin-owned")" == "${check_home}/plugin-skills" ]] || return 1
+  [[ -L "${check_home}/.claude/skills/retired" ]] || return 1
+}
+
+verify_legacy_directory_link_migration() {
+  legacy_home="$(mktemp -d)"
+  mkdir -p "${legacy_home}/.agents" "${legacy_home}/.claude"
+  ln -s "${DOTFILES_ROOT}/target/home/.agents/skills" "${legacy_home}/.agents/skills"
+  ln -s "../.agents/skills" "${legacy_home}/.claude/skills"
+
+  run_claude_skill_links "${legacy_home}"
+  if [[ -L "${legacy_home}/.claude/skills" || ! -d "${legacy_home}/.claude/skills" ]]; then
+    error "legacy Claude skills link was not migrated to a real directory"
+    return 1
+  fi
+  [[ -L "${legacy_home}/.claude/skills/sync-skills" ]] || return 1
+  run_claude_skill_links "${legacy_home}" --check
+}
+
+verify_unrelated_directory_link_is_preserved() {
+  unrelated_home="$(mktemp -d)"
+  mkdir -p "${unrelated_home}/.agents" "${unrelated_home}/.claude" "${unrelated_home}/host-skills"
+  printf 'host-owned\n' >"${unrelated_home}/host-skills/SKILL.md"
+  ln -s "../host-skills" "${unrelated_home}/.claude/skills"
+
+  if run_claude_skill_links "${unrelated_home}"; then
+    error "unrelated Claude skills directory link was replaced"
+    return 1
+  fi
+  [[ "$(readlink "${unrelated_home}/.claude/skills")" == "../host-skills" ]] || return 1
+  [[ "$(<"${unrelated_home}/.claude/skills/SKILL.md")" == "host-owned" ]] || return 1
 }
 
 verify_dotfiles() {
@@ -180,6 +273,7 @@ main() {
   }
 
   check_home="$(mktemp -d)"
+  seed_local_claude_skill
 
   log "Checking repository mise dotfiles status against temporary HOME"
   run_mise_dotfiles "${mise_cmd}" status
@@ -189,7 +283,13 @@ main() {
 
   log "Applying repository mise dotfiles into temporary HOME"
   run_mise_dotfiles "${mise_cmd}" apply --yes
+  verify_check_mode
+  run_claude_skill_links "${check_home}"
+  run_claude_skill_links "${check_home}" --check
   verify_dotfiles
+  verify_legacy_directory_link_migration
+  verify_unrelated_directory_link_is_preserved
+  bash "${SCRIPT_DIR}/update-flow-check.sh"
 }
 
 main "$@"

@@ -7,6 +7,10 @@ model_reasoning_effort = "xhigh"
 personality = "pragmatic"
 service_tier = "fast"
 
+# Codex is updated through mise (just update codex). Its npm self-updater
+# targets the active Node prefix instead of mise's isolated package install.
+check_for_update_on_startup = false
+
 # Auto-commit checkpoint on turn completion, shared with Claude Code + pi.
 # Codex fires this on the `agent-turn-complete` event with the event JSON as an
 # argv arg; the wrapper filters + delegates to ~/.agents/bin/agent-checkpoint.sh.

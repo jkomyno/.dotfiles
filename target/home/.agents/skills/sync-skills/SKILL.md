@@ -64,14 +64,14 @@ Frontmatter values that should be preserved without turning into one-line text p
 
 1. Add an entry to `manifest.json` with `repo` and `path` (the directory containing `SKILL.md`).
 2. Run `apply-upstream.sh <name> <upstream_skill_dir>` to vendor it under `target/home/.agents/skills/<name>/`.
-3. No Claude-specific skill symlink is needed: mise points `~/.claude/skills` at the same canonical `~/.agents/skills` directory.
+3. No manual Claude-specific symlink is needed: `bash "$DOTFILES/scripts/dotfiles/claude-skill-links.sh"` adds the managed skill link while preserving plugin and local-only entries in Claude's host-owned skills directory.
 
 ### 5. Verify and summarise
 
 1. Rerun `sync.sh` and confirm `UPSTREAM_CHANGES` is clean (or only intentionally-divergent entries remain).
 2. Confirm `UNPATCHED_PATTERNS` is empty or only contains intentionally accepted wording.
 3. Run `git -C "$DOTFILES" diff --stat` and read the per-skill diffs before reporting; separate metadata-only changes from instruction-body changes.
-4. Remind the user that deployed copies in `~/.agents/skills` update on the next `mise dotfiles apply`.
+4. Remind the user that `~/.agents/skills` updates on the next dotfiles apply and new Claude child links converge through `bash "$DOTFILES/scripts/dotfiles/update.sh" self` or `bash "$DOTFILES/scripts/dotfiles/claude-skill-links.sh"`.
 
 Report: skills updated, patches created or re-applied, conflicts needing attention, new skills offered/excluded, and the net diff.
 

@@ -10,7 +10,7 @@
 #   codex     Upgrade just the Codex CLI via mise (subset of `mise`).
 #   pi        Upgrade just the pi coding agent via mise (subset of `mise`).
 #   agentmemory Upgrade just the agentmemory CLI via mise (subset of `mise`).
-#   self      git pull --ff-only, then re-apply mise dotfiles to $HOME.
+#   self      Pull, re-apply mise dotfiles, then restore agent adapters.
 #   all       Everything above in a safe order (default).
 #
 # Each component mutates its own store, not just tracked files: `mise` upgrades
@@ -33,6 +33,7 @@ source "${SCRIPT_DIR}/lib.sh"
 
 CHECK_ONLY=false
 COMPONENTS=()
+UPDATE_FAILURES=0
 
 CODEX_MISE_TOOL="npm:@openai/codex"
 PI_MISE_TOOL="npm:@earendil-works/pi-coding-agent"
@@ -81,6 +82,11 @@ fi
 # --- helpers ---------------------------------------------------------------
 
 versions_script() { printf '%s/versions.sh' "${SCRIPT_DIR}"; }
+
+record_failure() {
+  warn "$1"
+  UPDATE_FAILURES=$((UPDATE_FAILURES + 1))
+}
 
 bundle_package_names() {
   # Print bare package names from a Brewfile for a given kind (brew|cask).
@@ -204,31 +210,52 @@ self_pull() {
     git -C "${DOTFILES_ROOT}" fetch --dry-run 2>&1 | sed 's/^/  /' || true
     return 0
   fi
-  git -C "${DOTFILES_ROOT}" pull --ff-only || warn "self: git pull --ff-only failed"
+  if ! git -C "${DOTFILES_ROOT}" pull --ff-only; then
+    warn "self: git pull --ff-only failed"
+    return 1
+  fi
 }
 
 self_apply() {
   local mise_cmd
   mise_cmd="$(mise_bin)" || {
     warn "self: mise not available; cannot apply dotfiles"
-    return 0
+    return 1
   }
   local -a apply=(dotfiles apply)
   if [[ "${CHECK_ONLY}" == true ]]; then apply+=(--dry-run); else apply+=(--yes); fi
   # A non-zero exit here is informational, not fatal: `--dry-run` returns non-zero
   # when there are pending changes, and apply refuses to overwrite existing
-  # whole-file targets without --force. Warn and continue rather than abort — an
-  # already-provisioned machine almost always has such targets.
-  MISE_EXPERIMENTAL=true \
+  # whole-file targets. Warn and continue rather than abort so the other managed
+  # layers still update.
+  if ! MISE_EXPERIMENTAL=true \
     MISE_TRUSTED_CONFIG_PATHS="${DOTFILES_ROOT}/mise.toml${MISE_TRUSTED_CONFIG_PATHS:+:${MISE_TRUSTED_CONFIG_PATHS}}" \
-    "${mise_cmd}" -C "${DOTFILES_ROOT}" "${apply[@]}" \
-    || warn "self: mise dotfiles reported pending changes or refused existing whole-file targets (use 'mise dotfiles apply --force' to overwrite them)"
+    "${mise_cmd}" -C "${DOTFILES_ROOT}" "${apply[@]}"; then
+    warn "self: mise dotfiles reported pending changes or refused existing whole-file targets; inspect 'mise dotfiles status', preserve live-only content, and force only reviewed targets"
+    return 1
+  fi
+}
+
+restore_agent_adapters() {
+  # Codex appends marketplace/plugin state to its copy-mode config, so every
+  # standalone dotfiles re-apply must restore agent adapters afterward. The
+  # all-components path instead performs its full plugin update last.
+  local agents="${DOTFILES_ROOT}/install/common/agents.sh"
+  local -a agent_args=()
+  [[ "${CHECK_ONLY}" == true ]] && agent_args+=(--check)
+  if ! bash "${agents}" ${agent_args[@]+"${agent_args[@]}"}; then
+    warn "self: agent adapters did not fully converge after dotfiles apply"
+    return 1
+  fi
 }
 
 update_self() {
-  log "self: updating the dotfiles checkout and re-applying to \$HOME"
-  self_pull
-  self_apply
+  local rc=0
+  log "self: updating the checkout, re-applying dotfiles, and restoring agent adapters"
+  self_pull || rc=1
+  self_apply || rc=1
+  restore_agent_adapters || rc=1
+  return "${rc}"
 }
 
 run_component() {
@@ -243,18 +270,18 @@ run_component() {
     skills) update_skills ;;
     self) update_self ;;
     all)
-      # Pull the checkout FIRST so tools/plugins update from the freshest
-      # manifests, then update tools, packages, and agent plugins, report skill
-      # drift, and re-apply managed files to $HOME LAST so refreshed
-      # lockfiles/configs are deployed. Each step is fault-tolerant: one failure
-      # warns and the rest still run, so a single flaky layer never aborts.
-      self_pull || warn "update: self (pull) reported issues"
-      update_mise || warn "update: mise component reported issues"
-      update_casks || warn "update: casks component reported issues"
-      update_formulae || warn "update: formulae component reported issues"
-      update_plugins || warn "update: plugins component reported issues"
-      update_skills || warn "update: skills component reported issues"
-      self_apply || warn "update: self (apply) reported issues"
+      # Pull the checkout first so every layer uses the freshest manifests, then
+      # update tools/packages, report skill drift, and apply managed files. Agent
+      # plugins converge last because Codex stores marketplace/plugin state in
+      # ~/.codex/config.toml and the copy-mode dotfiles apply replaces that file.
+      # Each step is fault-tolerant: one failure warns and the rest still run.
+      self_pull || record_failure "update: self (pull) reported issues"
+      update_mise || record_failure "update: mise component reported issues"
+      update_casks || record_failure "update: casks component reported issues"
+      update_formulae || record_failure "update: formulae component reported issues"
+      update_skills || record_failure "update: skills component reported issues"
+      self_apply || record_failure "update: self (apply) reported issues"
+      update_plugins || record_failure "update: plugins component reported issues"
       ;;
     *)
       error "unknown component: $1"
@@ -269,8 +296,12 @@ main() {
   log "update (${mode}): ${COMPONENTS[*]}"
   local component
   for component in "${COMPONENTS[@]}"; do
-    run_component "${component}"
+    run_component "${component}" || record_failure "update: ${component} component reported issues"
   done
+  if [[ "${UPDATE_FAILURES}" -gt 0 ]]; then
+    warn "update completed with ${UPDATE_FAILURES} failed component(s)"
+    return 1
+  fi
   log "update complete"
 }
 

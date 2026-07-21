@@ -21,7 +21,7 @@ These instructions apply to every coding agent on this machine (Claude Code, Cod
 
 ## Skills
 
-Shared skills live in `~/.agents/skills/`. Codex scans that directory natively; Claude Code reaches it through the `~/.claude/skills` directory symlink. Edit skills in `target/home/.agents/skills/` in the dotfiles repository, not in the deployed copies.
+Shared skills live in `~/.agents/skills/`. Codex scans that directory natively; Claude Code receives per-skill links inside its host-owned `~/.claude/skills/` directory through `scripts/dotfiles/claude-skill-links.sh`. Edit skills in `target/home/.agents/skills/` in the dotfiles repository, not in the deployed copies.
 
 Conventions for authoring first-party skills, so one SKILL.md serves both harnesses:
 
