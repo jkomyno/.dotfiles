@@ -1,7 +1,7 @@
 {
   "lastChangelogVersion": "0.75.5",
-  "defaultProvider": "openai-codex",
-  "defaultModel": "gpt-5.5",
+  "defaultProvider": "kilocode",
+  "defaultModel": "moonshotai/kimi-k3",
   "defaultThinkingLevel": "medium",
   "extensions": [
     "~/.pi/agent/extensions/agentmemory",
