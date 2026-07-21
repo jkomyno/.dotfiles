@@ -95,8 +95,11 @@ Key flags:
 Use `proxy` when a toolkit supports a raw API operation that is easier than finding a dedicated tool slug.
 
 ```bash
-composio proxy https://api.github.com/user --toolkit github --method GET </dev/null
+composio proxy https://api.github.com/user --toolkit github --account work --method GET </dev/null
 ```
+
+Key flags:
+- `--account`: Select which connected account to use by alias, word_id, or account id.
 
 ## `run` - Scripting, LLMs, and Programmatic Workflows
 
