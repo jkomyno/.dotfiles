@@ -84,6 +84,7 @@ includes = ["tasks"]
 "~/.config/nvim/lua/plugins/colorscheme.lua" = { source = "target/home/.config/nvim/lua/plugins/colorscheme.lua", mode = "symlink" }
 "~/.config/nvim/lua/plugins/diffview.lua" = { source = "target/home/.config/nvim/lua/plugins/diffview.lua", mode = "symlink" }
 "~/.config/nvim/lua/plugins/languages.lua" = { source = "target/home/.config/nvim/lua/plugins/languages.lua", mode = "symlink" }
+"~/.config/nvim/spell/custom.utf-8.add" = { source = "target/home/.config/nvim/spell/custom.utf-8.add", mode = "symlink" }
 "~/.config/nvim/stylua.toml" = { source = "target/home/.config/nvim/stylua.toml", mode = "symlink" }
 "~/.config/ripgrep/config" = { source = "target/home/.config/ripgrep/config", mode = "symlink" }
 "~/.config/starship.toml" = { source = "target/home/.config/starship.toml", mode = "symlink" }
