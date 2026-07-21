@@ -59,6 +59,7 @@ Key flags:
 - `--dry-run`: Preview the request shape without performing the action.
 - `--file`: Inject a local file path into a tool that exposes exactly one uploadable file argument.
 - `--parallel`: Execute multiple independent tool calls in the same invocation.
+- `--account`: Select which connected account to use by alias, word_id, or account id when multiple accounts exist for the same toolkit.
 
 - `--file` only works when the tool exposes a single uploadable file input. Otherwise use explicit `-d` JSON.
 
@@ -83,6 +84,9 @@ Use `link` when `execute` reports that a toolkit is not connected, or when the u
 composio link gmail
 composio link googlecalendar --no-browser
 ```
+
+Key flags:
+- `--alias`: Assign an alias to the connected account. Required when creating an additional account for the same toolkit.
 
 - Retry the original `execute` command after linking succeeds.
 
