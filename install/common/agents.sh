@@ -77,10 +77,28 @@ claude_bin() {
 
 ROOT="$(repo_root)"
 DATA_FILE="${ROOT}/scripts/dotfiles/agent-plugins.json"
+CLAUDE_SKILL_LINKS="${ROOT}/scripts/dotfiles/claude-skill-links.sh"
 
 CLAUDE=""
 CODEX=""
 FAILURES=0
+
+sync_claude_skill_links() {
+  local -a args=()
+  [[ "${MODE}" == "check" ]] && args+=(--check)
+
+  if ! bash "${CLAUDE_SKILL_LINKS}" ${args[@]+"${args[@]}"}; then
+    warn "Claude managed-skill links did not converge"
+    FAILURES=$((FAILURES + 1))
+  fi
+}
+
+report_failures() {
+  if [[ "${FAILURES}" -gt 0 ]]; then
+    warn "${FAILURES} agent operation(s) failed; declared agent state not fully reproduced"
+    return 1
+  fi
+}
 
 claude_known_marketplaces() {
   "${CLAUDE}" plugin marketplace list --json 2>/dev/null | jq -r '.[].name' 2>/dev/null || true
@@ -332,13 +350,16 @@ sync_codex() {
 
 main() {
   [[ -f "${DATA_FILE}" ]] || die "missing plugin manifest: ${DATA_FILE}"
+  [[ -f "${CLAUDE_SKILL_LINKS}" ]] || die "missing Claude skill-link helper: ${CLAUDE_SKILL_LINKS}"
 
+  sync_claude_skill_links
   activate_mise
   export PATH="${HOME}/.local/bin:${PATH}"
 
   if ! command -v jq >/dev/null 2>&1; then
     warn "jq is not available yet; skipping agent plugin sync"
-    return 0
+    report_failures
+    return
   fi
 
   sync_claude
@@ -348,10 +369,7 @@ main() {
   # to skip). A real command failure once a host CLI is present is a genuine
   # error: tracked config still declares these plugins, so report non-zero so
   # callers can see the declared plugin state was not fully reproduced.
-  if [[ "${FAILURES}" -gt 0 ]]; then
-    warn "${FAILURES} agent plugin operation(s) failed; declared plugin state not fully reproduced"
-    return 1
-  fi
+  report_failures
 }
 
 if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
