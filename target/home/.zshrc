@@ -15,9 +15,11 @@ export INFOPATH="/opt/nanobrew/prefix/share/info:${INFOPATH:-}"
 
 export PNPM_HOME="$HOME/Library/pnpm"
 export BUN_INSTALL="$HOME/.bun"
+export COMPOSIO_INSTALL_DIR="$HOME/.composio"
 
 # (N-/) drops entries that don't exist, so this stays portable.
 path=(
+  $COMPOSIO_INSTALL_DIR(N-/)
   $HOME/.local/bin
   $BUN_INSTALL/bin(N-/)
   $PNPM_HOME(N-/)
