@@ -255,12 +255,13 @@ bash scripts/dotfiles/versions.sh --write
 One command updates every managed layer, or just one component:
 
 ```sh
-just update              # mise tools, casks, formulae, agent plugins, skills report, dotfiles apply
+just update              # mise tools, casks, formulae, VS Code extensions, agent plugins, skills report, dotfiles apply
 just update-check        # non-mutating preview of the same
 
 just update mise         # upgrade mise-managed CLIs/runtimes and refresh the lockfile
 just update casks        # converge and upgrade GUI apps and fonts (nanobrew)
 just update plugins      # register Claude/Codex marketplaces and update enabled plugins
+just update vscode       # install managed VS Code extensions that are missing
 just update skills       # report vendored agent-skill drift (apply with /sync-skills)
 just update codex        # upgrade just the Codex CLI (subset of `just update mise`)
 just update agentmemory  # upgrade just the agentmemory CLI (subset of `just update mise`)
@@ -271,7 +272,9 @@ Like every recipe, the updater is backed by a plain script so a machine without
 `just` can run it directly: `bash scripts/dotfiles/update.sh [--check] [component ...]`.
 Each component updates its own store: `mise` upgrades installed tools and refreshes
 the tracked lockfile, `casks`/`formulae` update installed apps, `plugins` updates
-agent plugin state, and `skills` only reports. Only `self` re-applies managed
+agent plugin state, `vscode` installs missing managed VS Code extensions (the
+list lives in [`install/common/vscode-extensions.sh`](./install/common/vscode-extensions.sh)),
+and `skills` only reports. Only `self` re-applies managed
 dotfiles to `$HOME`, and `mise dotfiles apply` refuses to overwrite existing
 whole-file targets without `--force`.
 

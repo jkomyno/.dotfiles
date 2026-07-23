@@ -21,6 +21,7 @@
 - Keep `install/macos/common/nanobrew-formulae.Brewfile` empty unless a required package has no practical mise backend.
 - Do not duplicate a CLI between mise and nanobrew.
 - Declare Claude Code marketplaces and plugins in `scripts/dotfiles/agent-plugins.json`; keep `settings.json` `enabledPlugins` ids in sync with it.
+- Declare VS Code extensions in the `DEFAULT_VSCODE_EXTENSIONS` list in `install/common/vscode-extensions.sh`.
 
 ## Working Rules
 

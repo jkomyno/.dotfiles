@@ -27,7 +27,7 @@ versions:
 versions-update:
     @scripts/dotfiles/versions.sh --write
 
-# Update every managed layer, or one component: just update [all|mise|casks|formulae|plugins|skills|codex|pi|agentmemory|self]
+# Update every managed layer, or one component: just update [all|mise|casks|formulae|plugins|vscode|skills|codex|pi|agentmemory|self]
 update *args:
     @scripts/dotfiles/update.sh {{args}}
 

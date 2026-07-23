@@ -34,6 +34,7 @@ setup_plan=(
   "task|install:common:claude|install/common/claude.sh|install/common/claude.sh"
   "task|install:common:agents|install/common/agents.sh|install/common/agents.sh"
   "task|install:common:amp|install/common/amp.sh|install/common/amp.sh"
+  "task|install:common:vscode-extensions|install/common/vscode-extensions.sh|install/common/vscode-extensions.sh"
   "task|install:common:ollama-models|install/common/ollama-models.sh|install/common/ollama-models.sh"
   "task|install:common:mlx|install/common/mlx.sh|install/common/mlx.sh"
   "task|install:macos:defaults|install/macos/common/defaults.sh|install/macos/common/defaults.sh"
@@ -54,6 +55,7 @@ optional_steps=(
   "install:common:claude"
   "install:common:agents"
   "install:common:amp"
+  "install:common:vscode-extensions"
   "install:common:ollama-models"
   "install:common:mlx"
 )

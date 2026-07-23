@@ -6,6 +6,7 @@
 #   casks     Converge and upgrade nanobrew GUI apps and fonts (macOS).
 #   formulae  Converge and upgrade nanobrew exceptional formulae (macOS).
 #   plugins   Register/update managed coding-agent marketplaces and plugins.
+#   vscode    Install managed VS Code extensions that are missing.
 #   skills    Report vendored agent-skill drift vs upstream (apply via /sync-skills).
 #   codex     Upgrade just the Codex CLI via mise (subset of `mise`).
 #   pi        Upgrade just the pi coding agent via mise (subset of `mise`).
@@ -45,7 +46,7 @@ Usage: scripts/dotfiles/update.sh [--check] [COMPONENT ...]
 
 Update every managed layer of these dotfiles with one interface.
 
-Components: all (default) mise casks formulae plugins skills codex pi agentmemory self
+Components: all (default) mise casks formulae plugins vscode skills codex pi agentmemory self
 
 Options:
   --check   Non-mutating preview: show what each component would change.
@@ -63,7 +64,7 @@ while [[ $# -gt 0 ]]; do
       usage
       exit 0
       ;;
-    all | mise | casks | formulae | plugins | skills | codex | pi | agentmemory | self)
+    all | mise | casks | formulae | plugins | vscode | skills | codex | pi | agentmemory | self)
       COMPONENTS+=("$1")
       shift
       ;;
@@ -183,6 +184,21 @@ update_plugins() {
   fi
 }
 
+update_vscode() {
+  local installer="${DOTFILES_ROOT}/install/common/vscode-extensions.sh"
+  [[ -f "${installer}" ]] || {
+    warn "vscode: installer not found: ${installer#"${DOTFILES_ROOT}"/}"
+    return 0
+  }
+  if [[ "${CHECK_ONLY}" == true ]]; then
+    log "vscode: reporting missing managed VS Code extensions"
+    bash "${installer}" --check
+  else
+    log "vscode: installing missing managed VS Code extensions"
+    bash "${installer}"
+  fi
+}
+
 update_skills() {
   local sync="${DOTFILES_ROOT}/target/home/.agents/skills/sync-skills/scripts/sync.sh"
   [[ -f "${sync}" ]] || {
@@ -267,6 +283,7 @@ run_component() {
     casks) update_casks ;;
     formulae) update_formulae ;;
     plugins) update_plugins ;;
+    vscode) update_vscode ;;
     skills) update_skills ;;
     self) update_self ;;
     all)
@@ -279,6 +296,7 @@ run_component() {
       update_mise || record_failure "update: mise component reported issues"
       update_casks || record_failure "update: casks component reported issues"
       update_formulae || record_failure "update: formulae component reported issues"
+      update_vscode || record_failure "update: vscode component reported issues"
       update_skills || record_failure "update: skills component reported issues"
       self_apply || record_failure "update: self (apply) reported issues"
       update_plugins || record_failure "update: plugins component reported issues"
