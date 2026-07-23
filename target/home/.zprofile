@@ -31,4 +31,8 @@ fi
 
 if [ -d /opt/nanobrew/prefix/bin ]; then
   path=(/opt/nanobrew/prefix/bin $path)
+  # Nanobrew relocates Homebrew bottles from /opt/homebrew, but ncurses keeps
+  # its compiled terminfo path. Use the relocated and system databases as
+  # fallbacks while Ghostty's explicit TERMINFO entry retains precedence.
+  export TERMINFO_DIRS="/opt/nanobrew/prefix/share/terminfo:/usr/share/terminfo"
 fi
