@@ -822,7 +822,7 @@ version = "0.9.28"
 backend = "npm:@agentmemory/agentmemory"
 
 [[tools."npm:@earendil-works/pi-coding-agent"]]
-version = "0.80.10"
+version = "0.81.1"
 backend = "npm:@earendil-works/pi-coding-agent"
 
 [[tools."npm:@getpaseo/cli"]]
@@ -834,7 +834,7 @@ version = "0.9.0"
 backend = "npm:@kitlangton/ghui"
 
 [[tools."npm:@openai/codex"]]
-version = "0.144.6"
+version = "0.145.0"
 backend = "npm:@openai/codex"
 
 [[tools."npm:ccstatusline"]]
@@ -846,7 +846,7 @@ version = "20.0.18"
 backend = "npm:ccusage"
 
 [[tools."npm:pnpm"]]
-version = "11.15.1"
+version = "11.16.0"
 backend = "npm:pnpm"
 
 [[tools.ollama]]
@@ -1300,62 +1300,62 @@ version = "1.7.7"
 backend = "aqua:tsl0922/ttyd"
 
 [[tools.ty]]
-version = "0.0.61"
+version = "0.0.62"
 backend = "aqua:astral-sh/ty"
 
 [tools.ty."platforms.linux-arm64"]
-checksum = "sha256:a273d6afabdf815251f6d5fc57821c9576c1f627654602b8986e990cf6f79fe0"
-url = "https://github.com/astral-sh/ty/releases/download/0.0.61/ty-aarch64-unknown-linux-musl.tar.gz"
+checksum = "sha256:0958ec0d460353c743755f9dcacd089e1f7c7ada7149d82478d250385b9abc66"
+url = "https://github.com/astral-sh/ty/releases/download/0.0.62/ty-aarch64-unknown-linux-musl.tar.gz"
 provenance = "github-attestations"
 
 [tools.ty."platforms.linux-arm64-musl"]
-checksum = "sha256:a273d6afabdf815251f6d5fc57821c9576c1f627654602b8986e990cf6f79fe0"
-url = "https://github.com/astral-sh/ty/releases/download/0.0.61/ty-aarch64-unknown-linux-musl.tar.gz"
+checksum = "sha256:0958ec0d460353c743755f9dcacd089e1f7c7ada7149d82478d250385b9abc66"
+url = "https://github.com/astral-sh/ty/releases/download/0.0.62/ty-aarch64-unknown-linux-musl.tar.gz"
 provenance = "github-attestations"
 
 [tools.ty."platforms.linux-x64"]
-checksum = "sha256:99fa3eb57e633256ed849cabb97fe6b2166a343bedadcf9f9c6c13479b220ac1"
-url = "https://github.com/astral-sh/ty/releases/download/0.0.61/ty-x86_64-unknown-linux-musl.tar.gz"
+checksum = "sha256:90b7ce41a686e3748699deeb93b5482503bafdaef3788b263daf8d37a6c2565b"
+url = "https://github.com/astral-sh/ty/releases/download/0.0.62/ty-x86_64-unknown-linux-musl.tar.gz"
 provenance = "github-attestations"
 
 [tools.ty."platforms.linux-x64-baseline"]
-checksum = "sha256:99fa3eb57e633256ed849cabb97fe6b2166a343bedadcf9f9c6c13479b220ac1"
-url = "https://github.com/astral-sh/ty/releases/download/0.0.61/ty-x86_64-unknown-linux-musl.tar.gz"
+checksum = "sha256:90b7ce41a686e3748699deeb93b5482503bafdaef3788b263daf8d37a6c2565b"
+url = "https://github.com/astral-sh/ty/releases/download/0.0.62/ty-x86_64-unknown-linux-musl.tar.gz"
 provenance = "github-attestations"
 
 [tools.ty."platforms.linux-x64-musl"]
-checksum = "sha256:99fa3eb57e633256ed849cabb97fe6b2166a343bedadcf9f9c6c13479b220ac1"
-url = "https://github.com/astral-sh/ty/releases/download/0.0.61/ty-x86_64-unknown-linux-musl.tar.gz"
+checksum = "sha256:90b7ce41a686e3748699deeb93b5482503bafdaef3788b263daf8d37a6c2565b"
+url = "https://github.com/astral-sh/ty/releases/download/0.0.62/ty-x86_64-unknown-linux-musl.tar.gz"
 provenance = "github-attestations"
 
 [tools.ty."platforms.linux-x64-musl-baseline"]
-checksum = "sha256:99fa3eb57e633256ed849cabb97fe6b2166a343bedadcf9f9c6c13479b220ac1"
-url = "https://github.com/astral-sh/ty/releases/download/0.0.61/ty-x86_64-unknown-linux-musl.tar.gz"
+checksum = "sha256:90b7ce41a686e3748699deeb93b5482503bafdaef3788b263daf8d37a6c2565b"
+url = "https://github.com/astral-sh/ty/releases/download/0.0.62/ty-x86_64-unknown-linux-musl.tar.gz"
 provenance = "github-attestations"
 
 [tools.ty."platforms.macos-arm64"]
-checksum = "sha256:3b80f713c76584ae0fb386236752ca130507b381581fd03f874c0077c219b8e9"
-url = "https://github.com/astral-sh/ty/releases/download/0.0.61/ty-aarch64-apple-darwin.tar.gz"
+checksum = "sha256:50fa1641dca8525fc57eb5d0cc4bf5fee92d8dca53972504667870dabfa0a4e7"
+url = "https://github.com/astral-sh/ty/releases/download/0.0.62/ty-aarch64-apple-darwin.tar.gz"
 provenance = "github-attestations"
 
 [tools.ty."platforms.macos-x64"]
-checksum = "sha256:acce284df5716a9843e0c39ebf5b8a3440dc44aea76bee476c84e18a90f78ec5"
-url = "https://github.com/astral-sh/ty/releases/download/0.0.61/ty-x86_64-apple-darwin.tar.gz"
+checksum = "sha256:6f3d0912fa17b10b1b5a26870a90b3dcefe7b3c881a41bb08b3edf8960208bab"
+url = "https://github.com/astral-sh/ty/releases/download/0.0.62/ty-x86_64-apple-darwin.tar.gz"
 provenance = "github-attestations"
 
 [tools.ty."platforms.macos-x64-baseline"]
-checksum = "sha256:acce284df5716a9843e0c39ebf5b8a3440dc44aea76bee476c84e18a90f78ec5"
-url = "https://github.com/astral-sh/ty/releases/download/0.0.61/ty-x86_64-apple-darwin.tar.gz"
+checksum = "sha256:6f3d0912fa17b10b1b5a26870a90b3dcefe7b3c881a41bb08b3edf8960208bab"
+url = "https://github.com/astral-sh/ty/releases/download/0.0.62/ty-x86_64-apple-darwin.tar.gz"
 provenance = "github-attestations"
 
 [tools.ty."platforms.windows-x64"]
-checksum = "sha256:07b95c84b1c4c49a359d3c921e58b179f83894abbc891ed402eda6e9135f5ddf"
-url = "https://github.com/astral-sh/ty/releases/download/0.0.61/ty-x86_64-pc-windows-msvc.zip"
+checksum = "sha256:ae24a87528beed6d0dfccb6d5bc6847add2ee86210787bd6311d58693e8a8b84"
+url = "https://github.com/astral-sh/ty/releases/download/0.0.62/ty-x86_64-pc-windows-msvc.zip"
 provenance = "github-attestations"
 
 [tools.ty."platforms.windows-x64-baseline"]
-checksum = "sha256:07b95c84b1c4c49a359d3c921e58b179f83894abbc891ed402eda6e9135f5ddf"
-url = "https://github.com/astral-sh/ty/releases/download/0.0.61/ty-x86_64-pc-windows-msvc.zip"
+checksum = "sha256:ae24a87528beed6d0dfccb6d5bc6847add2ee86210787bd6311d58693e8a8b84"
+url = "https://github.com/astral-sh/ty/releases/download/0.0.62/ty-x86_64-pc-windows-msvc.zip"
 provenance = "github-attestations"
 
 [[tools.typos]]
@@ -1407,60 +1407,60 @@ checksum = "sha256:ce018a2352da7c1b23bd2684019ee279d2080dc063087020e80c1247d11b0
 url = "https://github.com/crate-ci/typos/releases/download/v1.48.0/typos-v1.48.0-x86_64-pc-windows-msvc.zip"
 
 [[tools.uv]]
-version = "0.11.30"
+version = "0.11.31"
 backend = "aqua:astral-sh/uv"
 
 [tools.uv."platforms.linux-arm64"]
-checksum = "sha256:7562a40e4e08b1bfd566bd6aeca55a16ee5ac45211554543e8cdb3c395b47416"
-url = "https://github.com/astral-sh/uv/releases/download/0.11.30/uv-aarch64-unknown-linux-musl.tar.gz"
+checksum = "sha256:49cb5ffce40cc9c85355caa8104f7b61c40a8daac7334f4bc841cad1a7bb359e"
+url = "https://github.com/astral-sh/uv/releases/download/0.11.31/uv-aarch64-unknown-linux-musl.tar.gz"
 provenance = "github-attestations"
 
 [tools.uv."platforms.linux-arm64-musl"]
-checksum = "sha256:7562a40e4e08b1bfd566bd6aeca55a16ee5ac45211554543e8cdb3c395b47416"
-url = "https://github.com/astral-sh/uv/releases/download/0.11.30/uv-aarch64-unknown-linux-musl.tar.gz"
+checksum = "sha256:49cb5ffce40cc9c85355caa8104f7b61c40a8daac7334f4bc841cad1a7bb359e"
+url = "https://github.com/astral-sh/uv/releases/download/0.11.31/uv-aarch64-unknown-linux-musl.tar.gz"
 provenance = "github-attestations"
 
 [tools.uv."platforms.linux-x64"]
-checksum = "sha256:023fdd3b59fccfb67b365c69fb34182aaaed1d685d367a57571e3c1468a4c70c"
-url = "https://github.com/astral-sh/uv/releases/download/0.11.30/uv-x86_64-unknown-linux-musl.tar.gz"
+checksum = "sha256:89048b7e30a6c459fa7e8f2e91cfdc413dc004dcbddc6c2af5e09df123e3246d"
+url = "https://github.com/astral-sh/uv/releases/download/0.11.31/uv-x86_64-unknown-linux-musl.tar.gz"
 provenance = "github-attestations"
 
 [tools.uv."platforms.linux-x64-baseline"]
-checksum = "sha256:023fdd3b59fccfb67b365c69fb34182aaaed1d685d367a57571e3c1468a4c70c"
-url = "https://github.com/astral-sh/uv/releases/download/0.11.30/uv-x86_64-unknown-linux-musl.tar.gz"
+checksum = "sha256:89048b7e30a6c459fa7e8f2e91cfdc413dc004dcbddc6c2af5e09df123e3246d"
+url = "https://github.com/astral-sh/uv/releases/download/0.11.31/uv-x86_64-unknown-linux-musl.tar.gz"
 provenance = "github-attestations"
 
 [tools.uv."platforms.linux-x64-musl"]
-checksum = "sha256:023fdd3b59fccfb67b365c69fb34182aaaed1d685d367a57571e3c1468a4c70c"
-url = "https://github.com/astral-sh/uv/releases/download/0.11.30/uv-x86_64-unknown-linux-musl.tar.gz"
+checksum = "sha256:89048b7e30a6c459fa7e8f2e91cfdc413dc004dcbddc6c2af5e09df123e3246d"
+url = "https://github.com/astral-sh/uv/releases/download/0.11.31/uv-x86_64-unknown-linux-musl.tar.gz"
 provenance = "github-attestations"
 
 [tools.uv."platforms.linux-x64-musl-baseline"]
-checksum = "sha256:023fdd3b59fccfb67b365c69fb34182aaaed1d685d367a57571e3c1468a4c70c"
-url = "https://github.com/astral-sh/uv/releases/download/0.11.30/uv-x86_64-unknown-linux-musl.tar.gz"
+checksum = "sha256:89048b7e30a6c459fa7e8f2e91cfdc413dc004dcbddc6c2af5e09df123e3246d"
+url = "https://github.com/astral-sh/uv/releases/download/0.11.31/uv-x86_64-unknown-linux-musl.tar.gz"
 provenance = "github-attestations"
 
 [tools.uv."platforms.macos-arm64"]
-checksum = "sha256:9bed3567d496d8dab84ecf7a1247551ac94ef1baaebb7b65df008dd93e9dc357"
-url = "https://github.com/astral-sh/uv/releases/download/0.11.30/uv-aarch64-apple-darwin.tar.gz"
+checksum = "sha256:b2b93e82a6786f9c7cb89fd4ca0e859a147b292ae8f6f95784f9742f0efec39e"
+url = "https://github.com/astral-sh/uv/releases/download/0.11.31/uv-aarch64-apple-darwin.tar.gz"
 provenance = "github-attestations"
 
 [tools.uv."platforms.macos-x64"]
-checksum = "sha256:ce285fbbfbe294b1e1bc6c87c8b59d9622b85383b88b2b132a2df5c73e83d7c1"
-url = "https://github.com/astral-sh/uv/releases/download/0.11.30/uv-x86_64-apple-darwin.tar.gz"
+checksum = "sha256:33ee6bd62b57fcd77a499deb54e4432dc1e1a2f3d34930ba987ad8b43f9c7bc7"
+url = "https://github.com/astral-sh/uv/releases/download/0.11.31/uv-x86_64-apple-darwin.tar.gz"
 provenance = "github-attestations"
 
 [tools.uv."platforms.macos-x64-baseline"]
-checksum = "sha256:ce285fbbfbe294b1e1bc6c87c8b59d9622b85383b88b2b132a2df5c73e83d7c1"
-url = "https://github.com/astral-sh/uv/releases/download/0.11.30/uv-x86_64-apple-darwin.tar.gz"
+checksum = "sha256:33ee6bd62b57fcd77a499deb54e4432dc1e1a2f3d34930ba987ad8b43f9c7bc7"
+url = "https://github.com/astral-sh/uv/releases/download/0.11.31/uv-x86_64-apple-darwin.tar.gz"
 provenance = "github-attestations"
 
 [tools.uv."platforms.windows-x64"]
-checksum = "sha256:be8d78c992312212e5cc05e9f9de3fa996db73b7c86a186dfb9231eb9f91d33e"
-url = "https://github.com/astral-sh/uv/releases/download/0.11.30/uv-x86_64-pc-windows-msvc.zip"
+checksum = "sha256:410c2fd3126ff621c9450a21cfc200002c7540dc48d130069a8f619cdb0a811b"
+url = "https://github.com/astral-sh/uv/releases/download/0.11.31/uv-x86_64-pc-windows-msvc.zip"
 provenance = "github-attestations"
 
 [tools.uv."platforms.windows-x64-baseline"]
-checksum = "sha256:be8d78c992312212e5cc05e9f9de3fa996db73b7c86a186dfb9231eb9f91d33e"
-url = "https://github.com/astral-sh/uv/releases/download/0.11.30/uv-x86_64-pc-windows-msvc.zip"
+checksum = "sha256:410c2fd3126ff621c9450a21cfc200002c7540dc48d130069a8f619cdb0a811b"
+url = "https://github.com/astral-sh/uv/releases/download/0.11.31/uv-x86_64-pc-windows-msvc.zip"
 provenance = "github-attestations"
