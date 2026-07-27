@@ -55,7 +55,7 @@
 	rebase = false
 
 [push]
-	default = tracking
+	default = simple
 
 [color]
 	ui = true
