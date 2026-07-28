@@ -103,6 +103,7 @@ check_required_files() {
     "target/home/.config/nvim/lua/plugins/colorscheme.lua"
     "target/home/.config/nvim/lua/plugins/diffview.lua"
     "target/home/.config/nvim/lua/plugins/languages.lua"
+    "target/home/.config/nvim/spell/custom.utf-8.add"
     "target/home/.config/nvim/stylua.toml"
     "target/home/.config/ripgrep/config"
     "target/home/.config/starship.toml"
