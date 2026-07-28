@@ -16,6 +16,10 @@
       "repo": "https://github.com/mattpocock/skills.git",
       "path": "skills/engineering/research"
     },
+    "prototype": {
+      "repo": "https://github.com/mattpocock/skills.git",
+      "path": "skills/engineering/prototype"
+    },
     "postgres-drizzle": {
       "repo": "https://github.com/ccheney/robust-skills.git",
       "path": "skills/postgres-drizzle"
