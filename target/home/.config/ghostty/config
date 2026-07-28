@@ -23,9 +23,6 @@ mouse-scroll-multiplier = 2
 keybind = cmd+s>r=reload_config
 keybind = cmd+s>x=close_surface
 
-# pastessh: cmd+s then v emits the paste sentinel so pastessh uploads the clipboard
-keybind = cmd+s>v=text:\x1fPASTESSH/1:paste:auto\x1f
-
 # tabs
 keybind = cmd+t=new_tab
 keybind = cmd+j=previous_tab
