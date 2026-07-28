@@ -6,7 +6,7 @@ if [[ -n "${DOTFILES_DEBUG:-}" ]]; then
   set -x
 fi
 
-readonly DEFAULT_MISE_BOOTSTRAP_VERSION="v2026.6.14"
+readonly DEFAULT_MISE_BOOTSTRAP_VERSION="v2026.7.15"
 readonly MISE_BOOTSTRAP_VERSION="${MISE_BOOTSTRAP_VERSION:-${DEFAULT_MISE_BOOTSTRAP_VERSION}}"
 readonly MISE_INSTALL_PATH="${MISE_INSTALL_PATH:-${HOME}/.local/bin/mise}"
 readonly MISE_INSTALLER_URL="https://github.com/jdx/mise/releases/download/${MISE_BOOTSTRAP_VERSION}/install.sh"
