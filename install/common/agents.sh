@@ -83,6 +83,51 @@ CLAUDE=""
 CODEX=""
 FAILURES=0
 
+remove_legacy_lattice_hooks_from() {
+  local file="$1" tmp file_mode
+  [[ -f "${file}" ]] || return 0
+
+  tmp="$(mktemp)"
+  if ! jq '
+    if (.hooks? | type) != "object" then .
+    else
+      .hooks |= with_entries(
+        .value |= map(
+          .hooks |= map(select((.command // "") | test("lattice"; "i") | not))
+          | select((.hooks | length) > 0)
+        )
+        | select((.value | length) > 0)
+      )
+    end
+  ' "${file}" >"${tmp}"; then
+    rm -f "${tmp}"
+    warn "could not parse agent hook config: ${file}"
+    FAILURES=$((FAILURES + 1))
+    return 0
+  fi
+
+  if cmp -s "${file}" "${tmp}"; then
+    rm -f "${tmp}"
+    return 0
+  fi
+
+  if [[ "${MODE}" == "check" ]]; then
+    rm -f "${tmp}"
+    info "legacy Lattice hooks present in ${file} (would remove)"
+    return 0
+  fi
+
+  file_mode="$(stat -f '%Lp' "${file}" 2>/dev/null || stat -c '%a' "${file}")"
+  chmod "${file_mode}" "${tmp}"
+  mv "${tmp}" "${file}"
+  info "removed legacy Lattice hooks from ${file}"
+}
+
+remove_legacy_lattice_hooks() {
+  remove_legacy_lattice_hooks_from "${HOME}/.claude/settings.json"
+  remove_legacy_lattice_hooks_from "${CODEX_HOME:-${HOME}/.codex}/hooks.json"
+}
+
 sync_claude_skill_links() {
   local -a args=()
   [[ "${MODE}" == "check" ]] && args+=(--check)
@@ -362,6 +407,7 @@ main() {
     return
   fi
 
+  remove_legacy_lattice_hooks
   sync_claude
   sync_codex
 
