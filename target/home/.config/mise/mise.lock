@@ -837,6 +837,10 @@ backend = "npm:@kitlangton/ghui"
 version = "0.145.0"
 backend = "npm:@openai/codex"
 
+[[tools."npm:agent-browser"]]
+version = "0.33.1"
+backend = "npm:agent-browser"
+
 [[tools."npm:ccstatusline"]]
 version = "2.2.25"
 backend = "npm:ccstatusline"
