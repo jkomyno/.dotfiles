@@ -244,8 +244,7 @@ self_apply() {
   # when there are pending changes, and apply refuses to overwrite existing
   # whole-file targets. Warn and continue rather than abort so the other managed
   # layers still update.
-  if ! MISE_EXPERIMENTAL=true \
-    MISE_TRUSTED_CONFIG_PATHS="${DOTFILES_ROOT}/mise.toml${MISE_TRUSTED_CONFIG_PATHS:+:${MISE_TRUSTED_CONFIG_PATHS}}" \
+  if ! MISE_TRUSTED_CONFIG_PATHS="${DOTFILES_ROOT}/mise.toml${MISE_TRUSTED_CONFIG_PATHS:+:${MISE_TRUSTED_CONFIG_PATHS}}" \
     "${mise_cmd}" -C "${DOTFILES_ROOT}" "${apply[@]}"; then
     warn "self: mise dotfiles reported pending changes or refused existing whole-file targets; inspect 'mise dotfiles status', preserve live-only content, and force only reviewed targets"
     return 1

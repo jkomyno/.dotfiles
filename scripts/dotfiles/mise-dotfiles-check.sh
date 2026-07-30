@@ -15,8 +15,8 @@ usage() {
   cat <<'USAGE'
 Usage: scripts/dotfiles/mise-dotfiles-check.sh [options]
 
-Validate the repository's experimental mise [dotfiles] entries against a
-temporary HOME. This does not write to the real HOME.
+Validate the repository's mise [dotfiles] entries against a temporary HOME.
+This does not write to the real HOME.
 
 Options:
   --keep-temp   Keep the temporary HOME for inspection.
@@ -62,7 +62,6 @@ run_mise_dotfiles() {
 
   env \
     HOME="${check_home}" \
-    MISE_EXPERIMENTAL=true \
     MISE_TRUSTED_CONFIG_PATHS="${DOTFILES_ROOT}/mise.toml${MISE_TRUSTED_CONFIG_PATHS:+:${MISE_TRUSTED_CONFIG_PATHS}}" \
     "${mise_cmd}" -C "${DOTFILES_ROOT}" dotfiles "$@"
 }

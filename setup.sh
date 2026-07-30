@@ -367,8 +367,8 @@ ensure_mise() {
     die "mise install did not create ${MISE_INSTALL_PATH}"
   fi
 
-  MISE_EXPERIMENTAL=true "${mise_cmd}" dotfiles status --help >/dev/null 2>&1 ||
-    die "mise at ${mise_cmd} does not expose the experimental dotfiles command"
+  "${mise_cmd}" dotfiles status --help >/dev/null 2>&1 ||
+    die "mise at ${mise_cmd} does not expose the dotfiles command"
 
   printf '%s\n' "${mise_cmd}"
 }

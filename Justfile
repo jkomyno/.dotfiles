@@ -13,7 +13,7 @@ status:
 
 # Show a mise dotfiles dry-run against the current HOME.
 diff:
-    @MISE_EXPERIMENTAL=true MISE_TRUSTED_CONFIG_PATHS="$PWD/mise.toml" mise -C "$PWD" dotfiles apply --dry-run
+    @MISE_TRUSTED_CONFIG_PATHS="$PWD/mise.toml" mise -C "$PWD" dotfiles apply --dry-run
 
 # Validate and report macOS package bundle ownership.
 packages:

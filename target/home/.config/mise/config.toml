@@ -147,8 +147,7 @@ _.path = { path = [
 ], tools = true }
 
 [settings]
-# Enable the experimental [dotfiles] feature so `mise dotfiles ...` works from
-# any shell without a MISE_EXPERIMENTAL=true prefix.
+# Direct age encryption remains experimental and requires this opt-in.
 experimental = true
 # Disable mise's release-age cooldown for fuzzy versions such as "latest".
 minimum_release_age = "0s"

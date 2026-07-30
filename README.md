@@ -6,7 +6,7 @@ My ([jkomyno](https://x.com/jkomyno)) personal development environment for Apple
 
 Three decisions shape the whole repository:
 
-- **mise manages the dotfiles themselves, not just the toolchain.** Most dotfiles managers make you encode metadata in filenames (chezmoi's `dot_zshrc` and `exact_` prefixes) or maintain a symlink farm by hand. This repo uses mise's experimental [`[dotfiles]`](https://mise.jdx.dev/) feature instead: the source tree under [`target/home`](./target/home) reads exactly like `$HOME`, and a table in [`mise.toml`](./mise.toml) declares how each entry deploys (symlink, copy, or template). The tool that pins my language runtimes and CLIs also places my config files, so one manager does the work of two.
+- **mise manages the dotfiles themselves, not just the toolchain.** Most dotfiles managers make you encode metadata in filenames (chezmoi's `dot_zshrc` and `exact_` prefixes) or maintain a symlink farm by hand. This repo uses mise's [`[dotfiles]`](https://mise.jdx.dev/dotfiles.html) feature instead: the source tree under [`target/home`](./target/home) reads exactly like `$HOME`, and a table in [`mise.toml`](./mise.toml) declares how each entry deploys (symlink, copy, or template). The tool that pins my language runtimes and CLIs also places my config files, so one manager does the work of two.
 - **One skills layer feeds three coding agents.** Claude Code, Codex, and pi all read the same `~/.agents/skills` directory. Third-party skills are vendored as real files and kept current from upstream by the `sync-skills` skill, with local modifications preserved as patches; shared instructions and persistent agent memory follow the same pattern. Details in [Agent Configuration](#agent-configuration).
 - **The repo tests itself.** `just doctor` syntax-checks every shell script, validates the mise task graph, runs the staged setup against a throwaway `$HOME`, and dry-runs the lockfile refresh for four platforms. CI runs it on every push; the badge above is the result.
 
@@ -286,12 +286,11 @@ git pull --ff-only
 mise dotfiles apply --yes
 ```
 
-The managed [`mise.toml`](./mise.toml) and `~/.config/mise/config.toml` both set
-`experimental = true`, so `mise dotfiles` commands run without a
-`MISE_EXPERIMENTAL=true` prefix. `setup.sh` also marks this repo's `mise.toml` as
-trusted so these commands work directly. If mise ever reports the config is not
-trusted (for example on a machine provisioned before this was added), run `mise
-trust` once from the checkout.
+The managed [`mise.toml`](./mise.toml) uses mise's stable `dotfiles` commands
+without an experimental opt-in. `setup.sh` marks this repo's config as trusted
+so these commands work directly. If mise ever reports the config is not trusted
+(for example on a machine provisioned before this was added), run `mise trust`
+once from the checkout.
 
 ## Testing Changes Safely
 

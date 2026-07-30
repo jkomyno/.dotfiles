@@ -267,7 +267,7 @@ run_repo_mise_dotfiles() {
     args+=(--force)
   fi
 
-  MISE_EXPERIMENTAL=true run_repo_mise dotfiles "${args[@]}"
+  run_repo_mise dotfiles "${args[@]}"
 }
 
 print_plan() {
