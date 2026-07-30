@@ -25,6 +25,7 @@ keybind = cmd+s>x=close_surface
 
 # tabs
 keybind = cmd+t=new_tab
+keybind = cmd+w=close_tab:this
 keybind = cmd+j=previous_tab
 keybind = cmd+k=next_tab
 
