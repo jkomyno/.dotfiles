@@ -156,6 +156,14 @@ defaults_input_devices() {
   defaults write com.apple.driver.AppleBluetoothMultitouch.trackpad TrackpadThreeFingerDrag -bool true
 }
 
+defaults_application_shortcuts() {
+  # Match Ghostty's cmd+j/cmd+k tab navigation. macOS requires the Chrome menu
+  # item titles exactly as shown; "@" is the NSUserKeyEquivalents command key.
+  defaults write com.google.Chrome NSUserKeyEquivalents -dict-add \
+    "Select Previous Tab" "@j" \
+    "Select Next Tab" "@k"
+}
+
 defaults_screen_and_screenshots() {
   # Require the password immediately after sleep or screen saver starts.
   defaults write com.apple.screensaver askForPassword -int 1
@@ -323,6 +331,7 @@ main() {
   quit_system_settings
   apply_section "General UI defaults" defaults_general_ui
   apply_section "Trackpad, mouse, keyboard, Bluetooth accessories, and input defaults" defaults_input_devices
+  apply_section "Application keyboard shortcuts" defaults_application_shortcuts
   apply_section "Screen and screenshot defaults" defaults_screen_and_screenshots
   apply_section "Finder defaults" defaults_finder
   apply_section "Dock and Mission Control defaults" defaults_dock_and_mission_control
