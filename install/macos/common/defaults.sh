@@ -167,12 +167,41 @@ defaults_application_shortcuts() {
 
 defaults_file_associations() {
   local duti_bin="${NANOBREW_BIN_DIR}/duti"
+  local vscode_bundle_id="com.microsoft.VSCode"
+  local extensions=(
+    ts
+    tsx
+    js
+    mjs
+    cjs
+    css
+    toml
+    rs
+    go
+    json
+    yaml
+    sh
+    bash
+    zsh
+    py
+    c
+    cpp
+    h
+    hpp
+  )
+  local extension
 
   [[ -x "${duti_bin}" ]] || die "duti is not installed; run install:macos:nanobrew-formulae first"
 
   # VS Code declares support for Markdown's UTI; assigning every role makes it
   # the default app for opening both .md and .markdown documents.
-  "${duti_bin}" -s com.microsoft.VSCode net.daringfireball.markdown all
+  "${duti_bin}" -s "${vscode_bundle_id}" net.daringfireball.markdown all
+
+  # Keep this list extension-specific so setup changes only the explicitly
+  # requested developer formats, not every type inheriting a broad source UTI.
+  for extension in "${extensions[@]}"; do
+    "${duti_bin}" -s "${vscode_bundle_id}" ".${extension}" all
+  done
 }
 
 defaults_screen_and_screenshots() {
