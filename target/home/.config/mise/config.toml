@@ -101,6 +101,8 @@ ast-grep = "latest"
 # the always-on daemon is a tracked LaunchAgent (target/home/Library/LaunchAgents/sh.paseo.daemon.plist)
 # loaded by install/common/paseo.sh, reachable from the phone over Tailscale
 "npm:@getpaseo/cli" = "latest"
+# https://tryglen.com - shared team memory and transcript handoff CLI for coding agents
+"npm:@tryglen/cli" = "latest"
 # Amp (https://ampcode.com) is NOT a mise tool: every @sourcegraph/amp npm release
 # carries a -g<hash> suffix mise reads as a prerelease, so `mise ls-remote` returns
 # nothing and "latest" never resolves (an exact pin installs but never auto-updates).

@@ -2,10 +2,6 @@
   "$comment": "Single source of truth for managed coding-agent plugins. Top-level marketplaces/plugins/mcpServers are Claude Code declarations; codex.marketplaces/plugins are Codex CLI declarations (Codex MCP servers are tracked directly in target/home/.codex/config.toml as [mcp_servers.*]). install/common/agents.sh registers marketplaces, installs plugins, and adds each Claude mcpServers entry idempotently via `claude mcp add --scope user`; scripts/dotfiles/update.sh 'plugins' updates them. Claude marketplace names must match the source repo's .claude-plugin/marketplace.json because settings.json enabledPlugins keys on <plugin>@<name>.",
   "marketplaces": [
     {
-      "name": "agentmemory",
-      "source": "rohitg00/agentmemory"
-    },
-    {
       "name": "compound-engineering-plugin",
       "source": "EveryInc/compound-engineering-plugin"
     },
@@ -19,7 +15,6 @@
     }
   ],
   "plugins": [
-    "agentmemory@agentmemory",
     "compound-engineering@compound-engineering-plugin",
     "frontend-design@claude-plugins-official",
     "rust-analyzer-lsp@claude-plugins-official",

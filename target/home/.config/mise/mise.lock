@@ -1056,6 +1056,10 @@ backend = "npm:@kitlangton/ghui"
 version = "0.145.0"
 backend = "npm:@openai/codex"
 
+[[tools."npm:@tryglen/cli"]]
+version = "0.28.5"
+backend = "npm:@tryglen/cli"
+
 [[tools."npm:agent-browser"]]
 version = "0.33.1"
 backend = "npm:agent-browser"

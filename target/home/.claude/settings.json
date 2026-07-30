@@ -107,16 +107,6 @@
           }
         ]
       }
-    ],
-    "Stop": [
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "{{ env.HOME }}/.agents/bin/agent-checkpoint.sh commit --agent claude"
-          }
-        ]
-      }
     ]
   },
   "statusLine": {
@@ -124,7 +114,6 @@
     "command": "{{ env.HOME }}/.local/share/mise/shims/ccstatusline"
   },
   "enabledPlugins": {
-    "agentmemory@agentmemory": true,
     "compound-engineering@compound-engineering-plugin": true,
     "frontend-design@claude-plugins-official": true,
     "interface-design@interface-design": true,

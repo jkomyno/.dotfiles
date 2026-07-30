@@ -4,8 +4,7 @@
   "defaultModel": "moonshotai/kimi-k3",
   "defaultThinkingLevel": "medium",
   "extensions": [
-    "~/.pi/agent/extensions/agentmemory",
-    "~/.pi/agent/extensions/autocheckpoint"
+    "~/.pi/agent/extensions/agentmemory"
   ],
   "packages": [
     "npm:@ff-labs/pi-fff",
