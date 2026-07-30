@@ -5,6 +5,7 @@
 
 ## Codex Only
 
+- Do not use the words `seam`, `wart`, or `wedge` in prose.
 - Default to concise, outcome-first responses. Omit routine narration and
   explanations unless they clarify a risk, tradeoff, or blocker.
 - Keep verification proportional to the change's scope and risk. Prefer existing

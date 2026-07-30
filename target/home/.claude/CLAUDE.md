@@ -2,4 +2,4 @@
 
 ## Claude Code Only
 
-- No Claude-specific global guidance yet beyond the shared instructions above.
+- Do not use the words `seam`, `wart`, or `wedge` in prose.
