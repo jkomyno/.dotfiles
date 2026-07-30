@@ -20,6 +20,7 @@ readonly MACOS_STANDBY_DELAY_SECONDS="86400"
 readonly MACOS_HIBERNATE_MODE="3"
 readonly MACOS_AC_SLEEP_MINUTES="0"
 readonly MACOS_FINDER_ICON_ARRANGE_BY="grid"
+readonly NANOBREW_BIN_DIR="${NANOBREW_BIN_DIR:-/opt/nanobrew/prefix/bin}"
 
 log() {
   printf '==> %s\n' "$*" >&2
@@ -162,6 +163,16 @@ defaults_application_shortcuts() {
   defaults write com.google.Chrome NSUserKeyEquivalents -dict-add \
     "Select Previous Tab" "@j" \
     "Select Next Tab" "@k"
+}
+
+defaults_file_associations() {
+  local duti_bin="${NANOBREW_BIN_DIR}/duti"
+
+  [[ -x "${duti_bin}" ]] || die "duti is not installed; run install:macos:nanobrew-formulae first"
+
+  # VS Code declares support for Markdown's UTI; assigning every role makes it
+  # the default app for opening both .md and .markdown documents.
+  "${duti_bin}" -s com.microsoft.VSCode net.daringfireball.markdown all
 }
 
 defaults_screen_and_screenshots() {
@@ -332,6 +343,7 @@ main() {
   apply_section "General UI defaults" defaults_general_ui
   apply_section "Trackpad, mouse, keyboard, Bluetooth accessories, and input defaults" defaults_input_devices
   apply_section "Application keyboard shortcuts" defaults_application_shortcuts
+  apply_section "Default file associations" defaults_file_associations
   apply_section "Screen and screenshot defaults" defaults_screen_and_screenshots
   apply_section "Finder defaults" defaults_finder
   apply_section "Dock and Mission Control defaults" defaults_dock_and_mission_control

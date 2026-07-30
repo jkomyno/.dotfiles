@@ -1,6 +1,11 @@
 # Brewfile-style formula bundle consumed by nanobrew.
 # Keep GUI apps and fonts in nanobrew-casks.Brewfile.
 
+# Desktop integration
+# https://github.com/moretension/duti - manages macOS default application
+# associations. It has no mise registry entry or prebuilt GitHub releases.
+brew "duti"
+
 # Shells
 # https://github.com/fish-shell/fish-shell - friendly interactive shell.
 # Lives here instead of mise: a login shell needs a stable path for
