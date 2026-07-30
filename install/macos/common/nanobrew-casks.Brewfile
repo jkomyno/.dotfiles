@@ -4,6 +4,7 @@
 # Fonts
 cask "font-fira-code"
 cask "font-hack-nerd-font"
+cask "font-jetbrains-mono"
 
 # Browsers
 cask "brave-browser"
