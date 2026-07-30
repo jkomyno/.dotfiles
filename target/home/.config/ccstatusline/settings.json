@@ -70,7 +70,10 @@
       },
       {
         "id": "f3489e7a-65b1-4285-af5b-a3b1f13408ad",
-        "type": "context-percentage-usable"
+        "type": "context-percentage-usable",
+        "metadata": {
+          "inverse": "true"
+        }
       },
       {
         "id": "ad7c4afa-916e-47d9-ba47-168dcc373b99",
@@ -86,7 +89,7 @@
     ],
     []
   ],
-  "flexMode": "full-minus-40",
+  "flexMode": "full",
   "compactThreshold": 60,
   "colorLevel": 2,
   "inheritSeparatorColors": false,
