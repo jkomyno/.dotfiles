@@ -1,6 +1,8 @@
 [tools]
 # Programming languages
 node = "24"
+# Track npm independently from the older version bundled with Node.
+"npm:npm" = "11"
 python = "3.13"
 rust = { version = "1.96.0", targets = "wasm32-unknown-unknown" }
 erlang = "29.0.2"
@@ -135,6 +137,14 @@ typos = "latest"
 # version_prefix restricts "latest" to uniku-cli-v* release tags, since the repo also
 # tags unrelated library releases (e.g. bare "0.0.12", "@uniku/cli@0.0.12")
 "github:jkomyno/uniku" = { version = "latest", version_prefix = "uniku-cli-v" }
+
+[env]
+# Node also ships npm and Corepack shims, so prefer the independently managed
+# npm and pnpm binaries when their names overlap.
+_.path = { path = [
+  "{{ tools['npm:npm'].path }}/node_modules/.bin",
+  "{{ tools['npm:pnpm'].path }}/node_modules/.bin",
+], tools = true }
 
 [settings]
 # Enable the experimental [dotfiles] feature so `mise dotfiles ...` works from
