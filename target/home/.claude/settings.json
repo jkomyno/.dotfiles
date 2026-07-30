@@ -7,9 +7,6 @@
     "allow": [
       "Read(**)",
       "Edit(**)",
-      "MultiEdit(**)",
-      "Write(**)",
-      "Glob(**)",
       "Grep(**)",
       "LS(**)",
       "Agent(compound-engineering:*)",
