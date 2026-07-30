@@ -92,7 +92,7 @@ source "$HOME/.config/zsh/plugins.zsh"
 # ----------------------------------------------------------------------------
 # History
 # ----------------------------------------------------------------------------
-HISTSIZE=50000
+HISTSIZE=999999999
 HISTFILE="${XDG_STATE_HOME:-$HOME/.local/state}/zsh/history"
 SAVEHIST=$HISTSIZE
 mkdir -p "${HISTFILE:h}"
@@ -100,8 +100,10 @@ mkdir -p "${HISTFILE:h}"
 if [[ -f ~/.zsh_history && ! -f "$HISTFILE" ]]; then
   mv ~/.zsh_history "$HISTFILE"
 fi
+setopt extended_history
+setopt inc_append_history
 setopt appendhistory
-setopt sharehistory
+setopt share_history
 setopt hist_ignore_space
 setopt hist_ignore_all_dups
 setopt hist_save_no_dups
