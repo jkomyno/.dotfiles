@@ -180,6 +180,7 @@ defaults_file_associations() {
     go
     json
     yaml
+    yml
     sh
     bash
     zsh
