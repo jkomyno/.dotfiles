@@ -214,7 +214,7 @@ defaults_screen_and_screenshots() {
   mkdir -p "${HOME}/Desktop"
   defaults write com.apple.screencapture location -string "${HOME}/Desktop"
   defaults write com.apple.screencapture type -string "png"
-  defaults write com.apple.screencapture show-thumbnail -bool false
+  defaults write com.apple.screencapture show-thumbnail -bool true
 }
 
 defaults_finder() {
