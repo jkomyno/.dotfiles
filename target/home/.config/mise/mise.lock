@@ -222,6 +222,10 @@ backend = "cargo:cargo-audit"
 version = "0.20.2"
 backend = "cargo:cargo-deny"
 
+[[tools."cargo:eza"]]
+version = "0.23.5"
+backend = "cargo:eza"
+
 [[tools."cargo:mergiraf"]]
 version = "0.18.0"
 backend = "cargo:mergiraf"
@@ -432,10 +436,6 @@ url = "https://builds.hex.pm/builds/otp/amd64/ubuntu-24.04/OTP-29.0.2.tar.gz"
 
 [tools.erlang."platforms.linux-x64-baseline"]
 url = "https://builds.hex.pm/builds/otp/amd64/ubuntu-24.04/OTP-29.0.2.tar.gz"
-
-[[tools.eza]]
-version = "0.23.5"
-backend = "asdf:eza"
 
 [[tools.fd]]
 version = "10.4.2"
@@ -1071,6 +1071,9 @@ url = "https://nodejs.org/dist/v24.18.1/node-v24.18.1-win-x64.zip"
 version = "0.9.28"
 backend = "npm:@agentmemory/agentmemory"
 
+[tools."npm:@agentmemory/agentmemory".options]
+trust_policy_excludes = '["@agentmemory/agentmemory@0.9.28", "protobufjs@6.11.6"]'
+
 [[tools."npm:@earendil-works/pi-coding-agent"]]
 version = "0.83.0"
 backend = "npm:@earendil-works/pi-coding-agent"
@@ -1531,6 +1534,7 @@ url = "https://github.com/tamasfe/taplo/releases/download/0.10.0/taplo-linux-aar
 url_api = "https://api.github.com/repos/tamasfe/taplo/releases/assets/257322597"
 
 [tools.taplo."platforms.linux-x64"]
+checksum = "blake3:4871fab0e60275a1eb46e7190726e144f56c9a9527f59b0d1da5a042baead8e2"
 url = "https://github.com/tamasfe/taplo/releases/download/0.10.0/taplo-linux-x86_64.gz"
 url_api = "https://api.github.com/repos/tamasfe/taplo/releases/assets/257322600"
 

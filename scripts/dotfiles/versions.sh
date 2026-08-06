@@ -81,7 +81,7 @@ check_versions() {
 
   if is_linux; then
     log "Checking Linux lock refresh for ${DOTFILES_MISE_LINUX_PLATFORMS}"
-    run_source_mise lock \
+    run_source_mise lock --global \
       --dry-run \
       --platform "${DOTFILES_MISE_LINUX_PLATFORMS}" \
       --minimum-release-age "${MINIMUM_RELEASE_AGE}" \
@@ -106,7 +106,7 @@ write_versions() {
 
   if is_linux; then
     log "Refreshing Linux mise.linux.lock for ${DOTFILES_MISE_LINUX_PLATFORMS}"
-    run_source_mise lock \
+    run_source_mise lock --global \
       --platform "${DOTFILES_MISE_LINUX_PLATFORMS}" \
       --minimum-release-age "${MINIMUM_RELEASE_AGE}" \
       ${TOOL_ARGS[@]+"${TOOL_ARGS[@]}"}

@@ -70,7 +70,7 @@ ripgrep = "latest"
 # https://github.com/sharkdp/fd - fast, user-friendly file search
 fd = "latest"
 # https://github.com/eza-community/eza - modern ls replacement
-eza = "latest"
+"cargo:eza" = "latest"
 # https://github.com/sharkdp/bat - cat clone with syntax highlighting and git integration
 bat = "latest"
 # https://github.com/junegunn/fzf - command-line fuzzy finder
@@ -89,7 +89,10 @@ ast-grep = "latest"
 "npm:@earendil-works/pi-coding-agent" = "latest"
 # https://github.com/rohitg00/agentmemory - shared persistent memory server for coding agents;
 # Claude/Codex plugins and pi extension wiring are tracked in the agent dotfiles
-"npm:@agentmemory/agentmemory" = "latest"
+# 0.9.28 is signed by the expected npm publisher and points to the matching
+# upstream release source, but npm provenance was omitted. Keep the exception
+# exact so the verifier evaluates every future version normally.
+"npm:@agentmemory/agentmemory" = { version = "latest", trust_policy_excludes = ["@agentmemory/agentmemory@0.9.28", "protobufjs@6.11.6"] }
 # https://github.com/vercel-labs/agent-browser - browser automation CLI for AI agents
 "npm:agent-browser" = "latest"
 # https://github.com/rtk-ai/rtk - rewrites agent shell commands into token-efficient equivalents;
@@ -103,7 +106,7 @@ ast-grep = "latest"
 "npm:ccusage" = "latest"
 # https://paseo.sh - run local coding agents (Claude Code, Codex, pi) from the phone/web app;
 # the always-on daemon uses a tracked LaunchAgent on macOS and user unit on Linux
-# loaded by install/common/paseo.sh, reachable from the phone over Tailscale
+# loaded by install/common/paseo.sh, with remote access through SSH forwarding
 "npm:@getpaseo/cli" = "latest"
 # https://tryglen.com - shared team memory and transcript handoff CLI for coding agents
 "npm:@tryglen/cli" = "latest"
