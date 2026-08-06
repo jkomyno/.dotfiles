@@ -11,14 +11,14 @@
 #   codex     Upgrade just the Codex CLI via mise (subset of `mise`).
 #   pi        Upgrade just the pi coding agent via mise (subset of `mise`).
 #   agentmemory Upgrade just the agentmemory CLI via mise (subset of `mise`).
-#   self      Pull, re-apply mise dotfiles, then restore agent adapters.
+#   self      Pull, re-apply mise bootstrap dotfiles, then restore agent adapters.
 #   all       Everything above in a safe order (default).
 #
 # Each component mutates its own store, not just tracked files: `mise` upgrades
 # installed tools and refreshes the source lockfile, `casks`/`formulae` update
 # installed apps, `plugins` updates managed agent plugin state under $HOME,
 # `skills` only reports. Only `self` re-applies managed dotfiles to $HOME (via
-# `mise dotfiles apply`, which won't overwrite whole-file targets without --force).
+# `mise bootstrap dotfiles apply`, which won't overwrite whole-file targets without --force).
 #
 # Usage:
 #   scripts/dotfiles/update.sh [--check] [COMPONENT ...]
@@ -238,7 +238,7 @@ self_apply() {
     warn "self: mise not available; cannot apply dotfiles"
     return 1
   }
-  local -a apply=(dotfiles apply)
+  local -a apply=(bootstrap dotfiles apply)
   if [[ "${CHECK_ONLY}" == true ]]; then apply+=(--dry-run); else apply+=(--yes); fi
   # A non-zero exit here is informational, not fatal: `--dry-run` returns non-zero
   # when there are pending changes, and apply refuses to overwrite existing
@@ -246,7 +246,7 @@ self_apply() {
   # layers still update.
   if ! MISE_TRUSTED_CONFIG_PATHS="${DOTFILES_ROOT}/mise.toml${MISE_TRUSTED_CONFIG_PATHS:+:${MISE_TRUSTED_CONFIG_PATHS}}" \
     "${mise_cmd}" -C "${DOTFILES_ROOT}" "${apply[@]}"; then
-    warn "self: mise dotfiles reported pending changes or refused existing whole-file targets; inspect 'mise dotfiles status', preserve live-only content, and force only reviewed targets"
+    warn "self: mise bootstrap dotfiles reported pending changes or refused existing whole-file targets; inspect 'mise bootstrap dotfiles status', preserve live-only content, and force only reviewed targets"
     return 1
   fi
 }

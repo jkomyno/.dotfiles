@@ -79,18 +79,18 @@ assert_before() {
 check_standalone_self() {
   : >"${fixture_log}"
   run_update self
-  assert_before "mise:-C ${fixture_root}/repo dotfiles apply --yes" "agents:install"
+  assert_before "mise:-C ${fixture_root}/repo bootstrap dotfiles apply --yes" "agents:install"
 
   : >"${fixture_log}"
   run_update --check self
-  assert_before "mise:-C ${fixture_root}/repo dotfiles apply --dry-run" "agents:--check"
+  assert_before "mise:-C ${fixture_root}/repo bootstrap dotfiles apply --dry-run" "agents:--check"
 }
 
 check_all_order() {
   : >"${fixture_log}"
   run_update all
-  assert_before "versions:--write" "mise:-C ${fixture_root}/repo dotfiles apply --yes"
-  assert_before "mise:-C ${fixture_root}/repo dotfiles apply --yes" "agents:--update"
+  assert_before "versions:--write" "mise:-C ${fixture_root}/repo bootstrap dotfiles apply --yes"
+  assert_before "mise:-C ${fixture_root}/repo bootstrap dotfiles apply --yes" "agents:--update"
 }
 
 check_failure_status() {

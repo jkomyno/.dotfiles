@@ -9,7 +9,7 @@
   only up while something started it by hand, so `memory_save` silently fails once
   it stops.
 
-  Rendered by `mise dotfiles apply` (template mode) with the real $HOME baked in.
+  Rendered by `mise bootstrap dotfiles apply` (template mode) with the real $HOME baked in.
   agentmemory is a mise tool (npm:@agentmemory/agentmemory). It is launched via
   `mise exec` with an explicit backend rather than a shim, because a shim is not
   always generated (e.g. on activate-mode machines) whereas

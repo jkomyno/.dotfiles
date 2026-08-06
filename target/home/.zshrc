@@ -7,13 +7,16 @@ typeset -gU path fpath manpath
 # Environment & PATH (all static — no subprocess calls, costs ~0ms)
 # ----------------------------------------------------------------------------
 
-# nanobrew (drop-in Homebrew replacement; prefix is static on Apple Silicon).
-# `nb` and installed formulae live under /opt/nanobrew/prefix (added to PATH
-# below), so man/info lookup points at the nanobrew prefix.
-export MANPATH="/opt/nanobrew/prefix/share/man${MANPATH+:$MANPATH}:"
-export INFOPATH="/opt/nanobrew/prefix/share/info:${INFOPATH:-}"
-
-export PNPM_HOME="$HOME/Library/pnpm"
+if [[ "$OSTYPE" == darwin* ]]; then
+  # nanobrew is the macOS package prefix for tools that mise does not own.
+  export MANPATH="/opt/nanobrew/prefix/share/man${MANPATH+:$MANPATH}:"
+  export INFOPATH="/opt/nanobrew/prefix/share/info:${INFOPATH:-}"
+  export PNPM_HOME="$HOME/Library/pnpm"
+  _nanobrew_path=(/opt/nanobrew/prefix/bin(N-/))
+else
+  export PNPM_HOME="${XDG_DATA_HOME:-$HOME/.local/share}/pnpm"
+  _nanobrew_path=()
+fi
 export BUN_INSTALL="$HOME/.bun"
 export COMPOSIO_INSTALL_DIR="$HOME/.composio"
 
@@ -23,9 +26,10 @@ path=(
   $HOME/.local/bin
   $BUN_INSTALL/bin(N-/)
   $PNPM_HOME(N-/)
-  /opt/nanobrew/prefix/bin(N-/)
+  $_nanobrew_path
   $path
 )
+unset _nanobrew_path
 
 # uv
 if [ -r "$HOME/.local/bin/env" ]; then

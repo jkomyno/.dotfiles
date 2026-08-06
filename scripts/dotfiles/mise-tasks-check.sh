@@ -16,6 +16,8 @@ expected_tasks=(
   "install:common:ollama-models"
   "install:common:paseo"
   "install:common:ssh"
+  "install:linux:login-shell"
+  "install:linux:packages"
   "install:macos:command-line-tools"
   "install:macos:defaults"
   "install:macos:ghostty-terminfo"
@@ -38,6 +40,8 @@ task_install_targets=(
   "install/common/ollama-models.sh"
   "install/common/paseo.sh"
   "install/common/ssh.sh"
+  "install/linux/common/login-shell.sh"
+  "install/linux/common/packages.sh"
   "install/macos/common/command_line_tools.sh"
   "install/macos/common/defaults.sh"
   "install/macos/common/ghostty-terminfo.sh"
@@ -83,7 +87,7 @@ check_mise_tasks() {
     fi
   done
 
-  run_repo_mise tasks validate --local --errors-only
+  run_repo_mise tasks validate --errors-only
 }
 
 check_mise_installer_env() {

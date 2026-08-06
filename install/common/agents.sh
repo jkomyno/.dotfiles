@@ -213,9 +213,9 @@ codex_marketplace_entries() {
   jq -r '.codex.marketplaces[]? | [.name, .source] | @tsv' "${DATA_FILE}"
 }
 
-# `~/.codex/config.toml` is deployed by mise dotfiles in `mode = "copy"`, and
+# `~/.codex/config.toml` is deployed by mise bootstrap dotfiles in `mode = "copy"`, and
 # Codex appends its machine-local [marketplaces.*]/[plugins.*] state there at
-# runtime. A re-apply (e.g. a forced first-run `mise dotfiles apply`) re-copies
+# runtime. A re-apply (e.g. a forced first-run `mise bootstrap dotfiles apply`) re-copies
 # the curated seed and wipes that appended state, but leaves the marketplace
 # clone under ~/.codex/.tmp/marketplaces/<name> in place. In that desynced state
 # `codex plugin marketplace add` refuses with "already added from a different

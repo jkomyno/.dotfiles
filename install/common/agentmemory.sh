@@ -1,13 +1,11 @@
 #!/usr/bin/env bash
-# agentmemory.sh — load the agentmemory daemon LaunchAgent so shared memory is
-# always available.
+# agentmemory.sh — manage the agentmemory user service so shared memory is
+# always available through launchd or a systemd user service.
 #
 # agentmemory (https://github.com/rohitg00/agentmemory) is the cross-session memory
 # server for Claude Code, Codex, and pi. The CLI is a mise tool
-# (npm:@agentmemory/agentmemory); the always-on worker is a tracked LaunchAgent
-# deployed by `mise dotfiles apply` to ~/Library/LaunchAgents/com.agentmemory.daemon.plist.
-# This script bootstraps that agent into the login session so the worker starts now
-# and again on every login. It is idempotent and never needs sudo (user agent).
+# (npm:@agentmemory/agentmemory). macOS uses a tracked LaunchAgent and Linux uses
+# a tracked systemd user service. This script manages the native user service.
 #
 # It serves the memory REST API on http://localhost:3111 and a viewer on :3113,
 # localhost-only — nothing is exposed on the network.
@@ -16,13 +14,13 @@
 # than a shim, because a shim is not always generated (activate-mode machines),
 # whereas `mise exec` always resolves an installed mise tool.
 #
-# Guarded to a no-op off macOS and skippable via DOTFILES_SKIP_AGENTMEMORY=1. Wired
-# into staged setup as an optional step; manage it any time with `just agentmemory`.
+# Skippable via DOTFILES_SKIP_AGENTMEMORY=1 and wired into staged setup as an
+# optional step; manage it any time with `just agentmemory`.
 #
 # Modes:
-#   (default)  Load (and (re)start) the agentmemory daemon LaunchAgent.
+#   (default)  Load (and (re)start) the agentmemory daemon user service.
 #   --status   Report the agent state and server health. No changes.
-#   --remove   Unload the LaunchAgent.
+#   --remove   Disable the user service.
 
 set -Eeuo pipefail
 
@@ -32,7 +30,11 @@ fi
 
 readonly LABEL="com.agentmemory.daemon"
 readonly PLIST="${HOME}/Library/LaunchAgents/${LABEL}.plist"
+readonly SYSTEMD_UNIT_NAME="agentmemory.service"
+readonly SYSTEMD_UNIT="${HOME}/.config/systemd/user/${SYSTEMD_UNIT_NAME}"
 readonly PORT="3111"
+SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd -P)"
+readonly DOTFILES_ROOT="${DOTFILES:-$(cd -- "${SCRIPT_DIR}/../.." && pwd -P)}"
 
 log() { printf '==> %s\n' "$*" >&2; }
 warn() { printf 'warn: %s\n' "$*" >&2; }
@@ -97,16 +99,95 @@ server_healthy() {
   curl -sS -m 3 "http://localhost:${PORT}/agentmemory/health" >/dev/null 2>&1
 }
 
-# Deploy just the daemon plist. A bare `mise dotfiles apply` is all-or-nothing and
+# Deploy just the daemon plist. A bare `mise bootstrap dotfiles apply` is all-or-nothing and
 # aborts ("refusing to overwrite existing files") while $HOME still holds pre-mise
 # real files (mid-migration), so the brand-new plist never lands. Targeting the one
 # entry sidesteps those conflicts. No-op if mise or the [dotfiles] mapping is absent.
 ensure_plist() {
   [[ -f "${PLIST}" ]] && return 0
   [[ -x "${MISE_BIN}" ]] || return 1
-  log "Deploying the agentmemory LaunchAgent (targeted mise dotfiles apply)"
-  "${MISE_BIN}" dotfiles apply "${PLIST}" -y >/dev/null 2>&1 || true
+  log "Deploying the agentmemory LaunchAgent"
+  MISE_AUTO_ENV=true MISE_TRUSTED_CONFIG_PATHS="${DOTFILES_ROOT}" \
+    "${MISE_BIN}" -C "${DOTFILES_ROOT}" bootstrap dotfiles apply "${PLIST}" --yes >/dev/null 2>&1 || true
   [[ -f "${PLIST}" ]]
+}
+
+systemd_user_available() {
+  command -v systemctl >/dev/null 2>&1 && systemctl --user show-environment >/dev/null 2>&1
+}
+
+ensure_lingering() {
+  local user
+  user="$(id -un)"
+  if ! command -v loginctl >/dev/null 2>&1; then
+    warn "loginctl is unavailable; ${SYSTEMD_UNIT_NAME} may stop after logout"
+    return 0
+  fi
+  if [[ "$(loginctl show-user "${user}" -p Linger --value 2>/dev/null || true)" == "yes" ]]; then
+    return 0
+  fi
+  if loginctl enable-linger "${user}" >/dev/null 2>&1 ||
+    { command -v sudo >/dev/null 2>&1 && sudo -n loginctl enable-linger "${user}" >/dev/null 2>&1; }; then
+    log "Enabled systemd lingering for ${user}"
+    return 0
+  fi
+  warn "systemd lingering is disabled; run 'sudo loginctl enable-linger ${user}' so agentmemory survives logout"
+}
+
+ensure_systemd_unit() {
+  [[ -e "${SYSTEMD_UNIT}" || -L "${SYSTEMD_UNIT}" ]] && return 0
+  [[ -x "${MISE_BIN}" ]] || return 1
+  log "Deploying the agentmemory systemd user unit"
+  MISE_AUTO_ENV=true MISE_TRUSTED_CONFIG_PATHS="${DOTFILES_ROOT}" \
+    "${MISE_BIN}" -C "${DOTFILES_ROOT}" bootstrap dotfiles apply "${SYSTEMD_UNIT}" --yes >/dev/null 2>&1 || true
+  [[ -e "${SYSTEMD_UNIT}" || -L "${SYSTEMD_UNIT}" ]]
+}
+
+linux_main() {
+  if ! systemd_user_available; then
+    warn "systemd user manager is unavailable; dotfiles and tools remain installed, but agentmemory was not started"
+    warn "Use a systemd login session, then run 'just agentmemory' again"
+    return 0
+  fi
+
+  case "${MODE}" in
+    status)
+      if systemctl --user is-active --quiet "${SYSTEMD_UNIT_NAME}"; then
+        log "agentmemory systemd user service is active"
+      else
+        log "agentmemory systemd user service is NOT active (start it with: just agentmemory)"
+      fi
+      if server_healthy; then
+        log "Server healthy at http://localhost:${PORT} (viewer: http://localhost:3113)"
+      else
+        warn "Server not responding on :${PORT} yet (still starting?)"
+      fi
+      log "Logs: journalctl --user -u ${SYSTEMD_UNIT_NAME}"
+      return 0
+      ;;
+    remove)
+      log "Disabling the agentmemory systemd user service"
+      systemctl --user disable --now "${SYSTEMD_UNIT_NAME}" >/dev/null 2>&1 || true
+      return 0
+      ;;
+  esac
+
+  if [[ ! -e "${SYSTEMD_UNIT}" && ! -L "${SYSTEMD_UNIT}" ]] && ! ensure_systemd_unit; then
+    warn "systemd unit not found at ${SYSTEMD_UNIT} and could not be deployed"
+    return 0
+  fi
+  if ! agentmemory_available; then
+    warn "agentmemory CLI not resolvable via mise; run 'mise install' (needs npm:@agentmemory/agentmemory)"
+    [[ -n "${AM_DIAG}" ]] && warn "mise exec said: ${AM_DIAG}"
+    return 0
+  fi
+
+  mkdir -p "${HOME}/.agentmemory"
+  ensure_lingering
+  systemctl --user daemon-reload
+  systemctl --user enable --now "${SYSTEMD_UNIT_NAME}"
+  systemctl --user restart "${SYSTEMD_UNIT_NAME}"
+  log "agentmemory systemd user service is running (REST on http://localhost:${PORT}, viewer :3113)"
 }
 
 main() {
@@ -115,7 +196,10 @@ main() {
     return 0
   fi
 
-  # LaunchAgents are a macOS concept; no-op elsewhere for a future Linux profile.
+  if [[ "$(uname -s)" == "Linux" ]]; then
+    linux_main
+    return 0
+  fi
   [[ "$(uname -s)" == "Darwin" ]] || return 0
 
   case "${MODE}" in
@@ -144,7 +228,7 @@ main() {
   # load
   if [[ ! -f "${PLIST}" ]] && ! ensure_plist; then
     warn "LaunchAgent not found at ${PLIST} and could not be deployed."
-    warn "Deploy it with: mise dotfiles apply '~/Library/LaunchAgents/${LABEL}.plist'"
+    warn "Deploy it with: mise bootstrap dotfiles apply '~/Library/LaunchAgents/${LABEL}.plist'"
     return 0
   fi
 

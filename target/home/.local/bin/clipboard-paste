@@ -1,0 +1,27 @@
+#!/bin/sh
+
+set -eu
+
+if [ "$(uname -s)" = "Darwin" ] && command -v pbpaste >/dev/null 2>&1; then
+  exec pbpaste
+fi
+
+if [ -n "${WAYLAND_DISPLAY:-}" ] && command -v wl-paste >/dev/null 2>&1; then
+  exec wl-paste --no-newline
+fi
+
+if [ -n "${DISPLAY:-}" ]; then
+  if command -v xclip >/dev/null 2>&1; then
+    exec xclip -selection clipboard -out
+  fi
+  if command -v xsel >/dev/null 2>&1; then
+    exec xsel --clipboard --output
+  fi
+fi
+
+if [ -n "${TMUX:-}" ] && command -v tmux >/dev/null 2>&1; then
+  exec tmux save-buffer -
+fi
+
+printf 'clipboard-paste: no macOS, Wayland, X11, or tmux clipboard is available\n' >&2
+exit 1

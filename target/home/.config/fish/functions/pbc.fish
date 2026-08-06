@@ -1,4 +1,4 @@
-# pbc: clipboard copy shorthand
-function pbc --wraps pbcopy -d "alias for pbcopy"
-    pbcopy $argv
+# pbc: portable clipboard copy shorthand
+function pbc --wraps clipboard-copy -d "copy stdin to the clipboard"
+    clipboard-copy $argv
 end

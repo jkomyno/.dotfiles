@@ -1,0 +1,12 @@
+[dotfiles]
+"~/.handy/settings_store.json" = { source = "target/home/.handy/settings_store.json", mode = "copy" }
+"~/Library/Application Support/com.pais.handy/settings_store.json" = { source = "target/home/.handy/settings_store.json", mode = "copy" }
+"~/.local/bin/coffee" = { source = "target/home/.local/bin/coffee", mode = "symlink" }
+"~/.local/bin/keychain-run" = { source = "target/home/.local/bin/keychain-run", mode = "symlink" }
+"~/Library/LaunchAgents/com.agentmemory.daemon.plist" = { source = "target/home/Library/LaunchAgents/com.agentmemory.daemon.plist", mode = "template" }
+"~/Library/LaunchAgents/sh.paseo.daemon.plist" = { source = "target/home/Library/LaunchAgents/sh.paseo.daemon.plist", mode = "template" }
+"~/.config/fish/conf.d/nanobrew.fish" = { source = "target/home/.config/fish/conf.d/nanobrew.fish", mode = "symlink" }
+"~/.config/fish/conf.d/macos-apps.fish" = { source = "target/home/.config/fish/conf.d/macos-apps.fish", mode = "symlink" }
+"~/.config/fish/functions/ct.fish" = { source = "target/home/.config/fish/functions/ct.fish", mode = "symlink" }
+"~/.config/zsh/aliases.d/coffee.zsh" = { source = "target/home/.config/zsh/aliases.d/coffee.zsh", mode = "symlink" }
+"~/.config/zsh/aliases.d/gh-keychain.zsh" = { source = "target/home/.config/zsh/aliases.d/gh-keychain.zsh", mode = "symlink" }

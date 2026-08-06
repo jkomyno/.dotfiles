@@ -1,7 +1,7 @@
 # Fail loudly on a mise older than the pinned bootstrap version (see
 # install/common/mise.sh), which is the oldest release known to expose the
 # stable bootstrap and [dotfiles] features this repo relies on.
-min_version = "2026.7.15"
+min_version = "2026.8.2"
 
 [task_config]
 includes = ["tasks"]
@@ -20,28 +20,21 @@ includes = ["tasks"]
 "~/.codex/AGENTS.md" = { source = "target/home/.codex/AGENTS.md", mode = "symlink" }
 "~/.codex/config.toml" = { source = "target/home/.codex/config.toml", mode = "copy" }
 "~/.codex/hooks/glen-composio.sh" = { source = "target/home/.codex/hooks/glen-composio.sh", mode = "symlink" }
-"~/.handy/settings_store.json" = { source = "target/home/.handy/settings_store.json", mode = "copy" }
-"~/Library/Application Support/com.pais.handy/settings_store.json" = { source = "target/home/.handy/settings_store.json", mode = "copy" }
-"~/.local/bin/coffee" = { source = "target/home/.local/bin/coffee", mode = "symlink" }
-"~/.local/bin/keychain-run" = { source = "target/home/.local/bin/keychain-run", mode = "symlink" }
-"~/Library/LaunchAgents/com.agentmemory.daemon.plist" = { source = "target/home/Library/LaunchAgents/com.agentmemory.daemon.plist", mode = "template" }
-"~/Library/LaunchAgents/sh.paseo.daemon.plist" = { source = "target/home/Library/LaunchAgents/sh.paseo.daemon.plist", mode = "template" }
+"~/.local/bin/clipboard-copy" = { source = "target/home/.local/bin/clipboard-copy", mode = "symlink" }
+"~/.local/bin/clipboard-paste" = { source = "target/home/.local/bin/clipboard-paste", mode = "symlink" }
 "~/.pi/agent/settings.json" = { source = "target/home/.pi/agent/settings.json", mode = "copy" }
 "~/.pi/agent/claude-bridge.json" = { source = "target/home/.pi/agent/claude-bridge.json", mode = "symlink" }
 "~/.pi/agent/extensions/agentmemory" = { source = "target/home/.pi/agent/extensions/agentmemory", mode = "symlink" }
-"~/.ssh/config" = { source = "target/home/.ssh/config", mode = "copy" }
+"~/.ssh/config" = { source = "target/home/.ssh/config", mode = "template" }
 "~/.uv/uv.toml" = { source = "target/home/.uv/uv.toml", mode = "symlink" }
 "~/.config/ccstatusline/settings.json" = { source = "target/home/.config/ccstatusline/settings.json", mode = "copy" }
 "~/.config/fish/config.fish" = { source = "target/home/.config/fish/config.fish", mode = "symlink" }
 "~/.config/fish/conf.d/00-paths.fish" = { source = "target/home/.config/fish/conf.d/00-paths.fish", mode = "symlink" }
-"~/.config/fish/conf.d/nanobrew.fish" = { source = "target/home/.config/fish/conf.d/nanobrew.fish", mode = "symlink" }
-"~/.config/fish/conf.d/macos-apps.fish" = { source = "target/home/.config/fish/conf.d/macos-apps.fish", mode = "symlink" }
 "~/.config/fish/conf.d/mise.fish" = { source = "target/home/.config/fish/conf.d/mise.fish", mode = "symlink" }
 "~/.config/fish/conf.d/ripgrep.fish" = { source = "target/home/.config/fish/conf.d/ripgrep.fish", mode = "symlink" }
 "~/.config/fish/conf.d/starship.fish" = { source = "target/home/.config/fish/conf.d/starship.fish", mode = "symlink" }
 "~/.config/fish/conf.d/uv.env.fish" = { source = "target/home/.config/fish/conf.d/uv.env.fish", mode = "symlink" }
 "~/.config/fish/functions/_node_global_install_blocked.fish" = { source = "target/home/.config/fish/functions/_node_global_install_blocked.fish", mode = "symlink" }
-"~/.config/fish/functions/ct.fish" = { source = "target/home/.config/fish/functions/ct.fish", mode = "symlink" }
 "~/.config/fish/functions/cw.fish" = { source = "target/home/.config/fish/functions/cw.fish", mode = "symlink" }
 "~/.config/fish/functions/d.fish" = { source = "target/home/.config/fish/functions/d.fish", mode = "symlink" }
 "~/.config/fish/functions/dot.fish" = { source = "target/home/.config/fish/functions/dot.fish", mode = "symlink" }
@@ -66,6 +59,7 @@ includes = ["tasks"]
 "~/.config/ghui/config.json" = { source = "target/home/.config/ghui/config.json", mode = "copy" }
 "~/.config/hunk/config.toml" = { source = "target/home/.config/hunk/config.toml", mode = "symlink" }
 "~/.config/mise/config.toml" = { source = "target/home/.config/mise/config.toml", mode = "symlink" }
+"~/.config/mise/miserc.toml" = { source = ".miserc.toml", mode = "symlink" }
 "~/.config/mise/mise.lock" = { source = "target/home/.config/mise/mise.lock", mode = "symlink" }
 "~/.config/nvim/.gitignore" = { source = "target/home/.config/nvim/.gitignore", mode = "symlink" }
 "~/.config/nvim/.neoconf.json" = { source = "target/home/.config/nvim/.neoconf.json", mode = "symlink" }
@@ -85,9 +79,7 @@ includes = ["tasks"]
 "~/.config/tmux/tmux.conf" = { source = "target/home/.config/tmux/tmux.conf", mode = "symlink" }
 "~/.config/zsh/aliases.d/cat.zsh" = { source = "target/home/.config/zsh/aliases.d/cat.zsh", mode = "symlink" }
 "~/.config/zsh/aliases.d/clipboard.zsh" = { source = "target/home/.config/zsh/aliases.d/clipboard.zsh", mode = "symlink" }
-"~/.config/zsh/aliases.d/coffee.zsh" = { source = "target/home/.config/zsh/aliases.d/coffee.zsh", mode = "symlink" }
 "~/.config/zsh/aliases.d/dot.zsh" = { source = "target/home/.config/zsh/aliases.d/dot.zsh", mode = "symlink" }
-"~/.config/zsh/aliases.d/gh-keychain.zsh" = { source = "target/home/.config/zsh/aliases.d/gh-keychain.zsh", mode = "symlink" }
 "~/.config/zsh/aliases.d/git-shortcuts.zsh" = { source = "target/home/.config/zsh/aliases.d/git-shortcuts.zsh", mode = "symlink" }
 "~/.config/zsh/aliases.d/ls.zsh" = { source = "target/home/.config/zsh/aliases.d/ls.zsh", mode = "symlink" }
 "~/.config/zsh/aliases.d/nav.zsh" = { source = "target/home/.config/zsh/aliases.d/nav.zsh", mode = "symlink" }

@@ -14,7 +14,7 @@ usage() {
 Usage: scripts/dotfiles/mise-setup-staged-smoke.sh [options]
 
 Run the safe staged setup subset against a temporary HOME. This applies the
-mise dotfiles slice and runs the post-apply Git/Git-signing/GitHub steps without
+mise bootstrap dotfiles slice and runs the post-apply Git/Git-signing/GitHub steps without
 touching the real HOME.
 
 Options:
@@ -92,7 +92,7 @@ run_safe_staged_subset() {
     XDG_STATE_HOME="${smoke_home}/.local/state" \
     "${SCRIPT_DIR}/mise-setup-staged.sh" \
       --force-dotfiles \
-      --only mise:dotfiles:apply \
+      --only mise:bootstrap:dotfiles:apply \
       --only install:common:git \
       --only install:common:git-signing \
       --only install:common:gh \
@@ -109,7 +109,18 @@ verify_smoke_home() {
   assert_exists "${smoke_home}/.config/git/ignore"
   assert_empty_file "${smoke_home}/.config/git/config-composio-signing"
   assert_empty_file "${smoke_home}/.config/git/allowed_signers"
-  assert_exists "${smoke_home}/Library/Application Support/com.pais.handy/settings_store.json"
+  if is_linux; then
+    assert_exists "${smoke_home}/.config/mise/config.linux.toml"
+    assert_exists "${smoke_home}/.config/systemd/user/paseo.service"
+    assert_exists "${smoke_home}/.config/systemd/user/agentmemory.service"
+    assert_absent "${smoke_home}/Library"
+    assert_absent "${smoke_home}/.handy"
+    assert_absent "${smoke_home}/.local/bin/coffee"
+    assert_absent "${smoke_home}/.local/bin/keychain-run"
+    assert_absent "${smoke_home}/.config/fish/conf.d/nanobrew.fish"
+  else
+    assert_exists "${smoke_home}/Library/Application Support/com.pais.handy/settings_store.json"
+  fi
   assert_absent "${smoke_home}/.gitconfig"
 }
 

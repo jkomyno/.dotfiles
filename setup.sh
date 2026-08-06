@@ -367,8 +367,8 @@ ensure_mise() {
     die "mise install did not create ${MISE_INSTALL_PATH}"
   fi
 
-  "${mise_cmd}" dotfiles status --help >/dev/null 2>&1 ||
-    die "mise at ${mise_cmd} does not expose the dotfiles command"
+  "${mise_cmd}" bootstrap dotfiles status --help >/dev/null 2>&1 ||
+    die "mise at ${mise_cmd} does not expose bootstrap dotfiles"
 
   printf '%s\n' "${mise_cmd}"
 }
@@ -411,7 +411,7 @@ run_mise_setup() {
 
   # First-run provisioning owns the managed config files. Tools installed
   # earlier in the staged order (notably fish) auto-create default stubs such as
-  # ~/.config/fish/config.fish, and `mise dotfiles apply` refuses to overwrite
+  # ~/.config/fish/config.fish, and `mise bootstrap dotfiles apply` refuses to overwrite
   # existing whole-file targets without --force — which would strand a fresh
   # machine before any dotfile is deployed. Force by default so setup converges
   # in one pass; set DOTFILES_SETUP_FORCE_DOTFILES=0 to keep the refuse-on-
@@ -425,6 +425,13 @@ run_mise_setup() {
   # stock macOS /bin/bash 3.2, where a bare "${arr[@]}" on an empty array aborts
   # with "unbound variable". This is the shell a blank Mac runs setup.sh under.
   if [[ "${dotfiles_checkout_kind}" == "archive" ]]; then
+    if [[ "$(uname -s)" == "Linux" ]]; then
+      run_mise_staged_setup ${setup_args[@]+"${setup_args[@]}"} --until install:linux:packages
+      promote_archive_checkout_to_git
+      run_mise_staged_setup ${setup_args[@]+"${setup_args[@]}"} --from install:common:ssh
+      return
+    fi
+
     run_mise_staged_setup ${setup_args[@]+"${setup_args[@]}"} --until install:macos:command-line-tools
     promote_archive_checkout_to_git
     run_mise_staged_setup ${setup_args[@]+"${setup_args[@]}"} --from install:macos:nanobrew
@@ -437,7 +444,7 @@ run_mise_setup() {
 persist_repo_mise_trust() {
   # Setup runs mise with an ephemeral MISE_TRUSTED_CONFIG_PATHS, which does not
   # persist. Mark this repo's config trusted so post-setup maintenance commands
-  # (`just diff`, `mise dotfiles apply`, `mise dotfiles status`) work without a
+  # (`just diff`, `mise bootstrap dotfiles apply/status`) work without a
   # manual `mise trust`. Runs after the checkout is final (archive->git
   # promotion included).
   command -v mise >/dev/null 2>&1 || return 0

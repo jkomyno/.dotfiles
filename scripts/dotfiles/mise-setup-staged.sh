@@ -16,6 +16,7 @@ only_filters=()
 skip_filters=()
 
 setup_plan=(
+  "task|install:linux:packages|install/linux/common/packages.sh|install/linux/common/packages.sh"
   "task|install:common:ssh|install/common/ssh.sh|install/common/ssh.sh"
   "task|install:macos:sudoers-nopasswd|install/macos/common/sudoers-nopasswd.sh|install/macos/common/sudoers-nopasswd.sh"
   "task|install:macos:command-line-tools|install/macos/common/command_line_tools.sh|install/macos/common/command_line_tools.sh"
@@ -24,7 +25,8 @@ setup_plan=(
   "task|install:macos:ghostty-terminfo|install/macos/common/ghostty-terminfo.sh|install/macos/common/ghostty-terminfo.sh"
   "task|install:macos:nanobrew-formulae|install/macos/common/nanobrew-formulae.sh|install/macos/common/nanobrew-formulae.sh"
   "task|install:macos:tailscale|install/macos/common/tailscale.sh|install/macos/common/tailscale.sh"
-  "dotfiles|mise:dotfiles:apply|mise.toml|target/home"
+  "dotfiles|mise:bootstrap:dotfiles:apply|mise.toml|target/home"
+  "task|install:linux:login-shell|install/linux/common/login-shell.sh|install/linux/common/login-shell.sh"
   "task|install:common:mise|install/common/mise.sh|install/common/mise.sh"
   "task|install:common:paseo|install/common/paseo.sh|install/common/paseo.sh"
   "task|install:common:agentmemory|install/common/agentmemory.sh|install/common/agentmemory.sh"
@@ -43,7 +45,7 @@ setup_plan=(
 # Steps allowed to fail without aborting the staged run. These fetch things over
 # the network (the Claude Code installer, coding-agent plugins, local-LLM assets)
 # or depend on host state a fresh/headless run may lack (sudo for the tailscaled
-# daemon, a login GUI session for the paseo and agentmemory LaunchAgents), so a flaky download or
+# daemon, or a user service manager for paseo and agentmemory), so a flaky download or
 # a missing prerequisite must not block the remaining setup (notably macOS
 # defaults, which runs after them). They can also be skipped outright via their
 # own DOTFILES_SKIP_* env vars.
@@ -78,7 +80,7 @@ Run the staged mise setup sequence for this repository.
 Options:
   --plan              Print the planned task order without running it.
   --check             Validate the staged setup plan without running it.
-  --force-dotfiles    Pass --force to `mise dotfiles apply`.
+  --force-dotfiles    Pass --force to `mise bootstrap dotfiles apply`.
   --from STEP         Start at STEP, matched by step number or name.
   --until STEP        Stop after STEP, matched by step number or name.
   --only STEP         Run only STEP, matched by step number or name. Repeatable.
@@ -267,7 +269,7 @@ run_repo_mise_dotfiles() {
     args+=(--force)
   fi
 
-  run_repo_mise dotfiles "${args[@]}"
+  run_repo_mise bootstrap dotfiles "${args[@]}"
 }
 
 print_plan() {
@@ -344,11 +346,11 @@ check_plan() {
         ;;
       dotfiles)
         [[ -f "${DOTFILES_ROOT}/${hook}" ]] || {
-          error "missing mise dotfiles config: ${hook}"
+          error "missing mise bootstrap dotfiles config: ${hook}"
           return 1
         }
         [[ -d "${DOTFILES_ROOT}/${source}" ]] || {
-          error "missing mise dotfiles source tree: ${source}"
+          error "missing mise bootstrap dotfiles source tree: ${source}"
           return 1
         }
         info "dotfiles boundary exists: ${hook} -> ${source}"
@@ -361,7 +363,7 @@ check_plan() {
     index=$((index + 1))
   done
 
-  run_repo_mise tasks validate --local --errors-only
+  run_repo_mise tasks validate --errors-only
 }
 
 run_plan() {
@@ -385,7 +387,7 @@ run_plan() {
         fi
         ;;
       dotfiles)
-        log "Applying mise dotfiles"
+        log "Applying mise bootstrap dotfiles"
         run_repo_mise_dotfiles
         ;;
       *)

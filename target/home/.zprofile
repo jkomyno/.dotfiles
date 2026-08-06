@@ -1,4 +1,4 @@
-# Login-shell setup for the active macOS arm64 target.
+# Portable login-shell setup, with platform-specific additions rendered by mise.
 typeset -gU path
 
 # Raise the open-file soft limit, inherited by every child of this login shell.
@@ -23,12 +23,12 @@ if [ -r "${HOME}/.orbstack/shell/init.zsh" ]; then
   source "${HOME}/.orbstack/shell/init.zsh"
 fi
 {%- elif os() == "linux" %}
-# Linux support is intentionally unsplit for now.
-# Add Linux-specific login-shell setup here when this repo targets Linux.
+# User-installed binaries follow the XDG layout on Linux.
 {%- else %}
 # Unsupported platform for now.
 {%- endif %}
 
+{%- if os() == "macos" and arch() == "arm64" %}
 if [ -d /opt/nanobrew/prefix/bin ]; then
   path=(/opt/nanobrew/prefix/bin $path)
   # Nanobrew relocates Homebrew bottles from /opt/homebrew, but ncurses keeps
@@ -36,3 +36,4 @@ if [ -d /opt/nanobrew/prefix/bin ]; then
   # fallbacks while Ghostty's explicit TERMINFO entry retains precedence.
   export TERMINFO_DIRS="/opt/nanobrew/prefix/share/terminfo:/usr/share/terminfo"
 fi
+{%- endif %}

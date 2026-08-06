@@ -37,7 +37,10 @@ check_command() {
 
 check_required_files() {
   local files=(
+    ".miserc.toml"
     "mise.toml"
+    "mise.linux.toml"
+    "mise.macos.toml"
     "setup.sh"
     "README.md"
     "THIRD-PARTY-NOTICES.md"
@@ -54,6 +57,8 @@ check_required_files() {
     "target/home/.codex/config.toml"
     "target/home/.handy/settings_store.json"
     "target/home/.local/bin/coffee"
+    "target/home/.local/bin/clipboard-copy"
+    "target/home/.local/bin/clipboard-paste"
     "target/home/.pi/agent/settings.json"
     "target/home/.pi/agent/extensions/agentmemory/index.ts"
     "target/home/.pi/agent/extensions/agentmemory/security.ts"
@@ -91,7 +96,11 @@ check_required_files() {
     "target/home/.config/ghui/config.json"
     "target/home/.config/hunk/config.toml"
     "target/home/.config/mise/config.toml"
+    "target/home/.config/mise/config.linux.toml"
     "target/home/.config/mise/mise.lock"
+    "target/home/.config/mise/mise.linux.lock"
+    "target/home/.config/systemd/user/agentmemory.service"
+    "target/home/.config/systemd/user/paseo.service"
     "target/home/.config/nvim/.gitignore"
     "target/home/.config/nvim/.neoconf.json"
     "target/home/.config/nvim/init.lua"
@@ -125,9 +134,12 @@ check_required_files() {
     "scripts/dotfiles/mise-setup-staged.sh"
     "scripts/dotfiles/mise-setup-staged-smoke.sh"
     "scripts/dotfiles/mise-tasks-check.sh"
+    "scripts/dotfiles/services-check.sh"
     "scripts/dotfiles/git-signing-check.sh"
     "install/macos/common/nanobrew-casks.Brewfile"
     "install/macos/common/nanobrew-formulae.Brewfile"
+    "install/linux/common/packages.sh"
+    "install/linux/common/login-shell.sh"
   )
   local file
 
@@ -205,6 +217,43 @@ check_shell_syntax() {
     } | sort -u
   )
   pass "bash syntax checked for ${count} scripts"
+
+  if have zsh; then
+    local zsh_file
+    local zsh_ok=true
+    for zsh_file in \
+      "${DOTFILES_ROOT}/target/home/.zshenv" \
+      "${DOTFILES_ROOT}/target/home/.zshrc"; do
+      if ! zsh -n "${zsh_file}"; then
+        hard_fail "zsh syntax failed: ${zsh_file#"${DOTFILES_ROOT}/"}"
+        zsh_ok=false
+      fi
+    done
+    [[ "${zsh_ok}" == true ]] && pass "zsh syntax checked"
+  else
+    soft_fail "zsh syntax check skipped because zsh is missing"
+  fi
+
+  local fish_bin=""
+  if is_linux && mise_bin >/dev/null 2>&1; then
+    fish_bin="$(run_source_mise which fish 2>/dev/null || true)"
+  elif have fish && fish --version >/dev/null 2>&1; then
+    fish_bin="$(command -v fish)"
+  fi
+
+  if [[ -n "${fish_bin}" ]]; then
+    local fish_files=()
+    while IFS= read -r file; do
+      fish_files+=("${file}")
+    done < <(find "${DOTFILES_ROOT}/target/home/.config/fish" -type f -name '*.fish' | sort)
+    if "${fish_bin}" -n "${fish_files[@]}"; then
+      pass "fish syntax checked"
+    else
+      hard_fail "fish syntax failed"
+    fi
+  else
+    soft_fail "fish syntax check skipped because fish is missing"
+  fi
 }
 
 check_mise() {
@@ -220,10 +269,51 @@ check_mise() {
     hard_fail "source mise config is not loadable"
   fi
 
-  if run_source_mise lock --dry-run --platform "${DOTFILES_MISE_PLATFORMS}" --minimum-release-age "${DOTFILES_MISE_MINIMUM_RELEASE_AGE}" >/dev/null; then
+  if run_source_mise_base lock --global --dry-run --platform "${DOTFILES_MISE_PLATFORMS}" --minimum-release-age "${DOTFILES_MISE_MINIMUM_RELEASE_AGE}" >/dev/null; then
     pass "source mise lock can be refreshed for ${DOTFILES_MISE_PLATFORMS}"
   else
     soft_fail "mise lock dry-run reported issues; rerun scripts/dotfiles/versions.sh for details"
+  fi
+}
+
+check_platform_profile() {
+  local configs
+  configs="$(MISE_AUTO_ENV=true MISE_TRUSTED_CONFIG_PATHS="${DOTFILES_ROOT}" "$(mise_bin)" -C "${DOTFILES_ROOT}" config ls --no-header)"
+  if is_linux; then
+    grep -Eq '(^|/)mise\.linux\.toml[[:space:]]' <<<"${configs}" || hard_fail "Linux mise profile is not loaded"
+    if grep -Eq '(^|/)mise\.macos\.toml[[:space:]]' <<<"${configs}"; then
+      hard_fail "macOS mise profile loaded on Linux"
+    else
+      pass "only the Linux repository mise profile is active"
+    fi
+
+    if bash "${DOTFILES_ROOT}/install/linux/common/packages.sh" --dry-run >/dev/null; then
+      pass "Linux apt bootstrap dry-run passed"
+    else
+      hard_fail "Linux apt bootstrap dry-run failed"
+    fi
+    if [[ -x /usr/bin/zsh ]]; then
+      if bash "${DOTFILES_ROOT}/install/linux/common/login-shell.sh" --dry-run >/dev/null; then
+        pass "Linux login-shell dry-run passed"
+      else
+        hard_fail "Linux login-shell dry-run failed"
+      fi
+    else
+      soft_fail "Linux login-shell dry-run skipped until the package step installs zsh"
+    fi
+  elif is_macos; then
+    grep -Eq '(^|/)mise\.macos\.toml[[:space:]]' <<<"${configs}" || hard_fail "macOS mise profile is not loaded"
+    if grep -Eq '(^|/)mise\.linux\.toml[[:space:]]' <<<"${configs}"; then
+      hard_fail "Linux mise profile loaded on macOS"
+    else
+      pass "only the macOS repository mise profile is active"
+    fi
+  fi
+
+  if MISE_INSTALL_PATH="$(mise_bin)" bash "${DOTFILES_ROOT}/install/common/mise.sh" --dry-run >/dev/null; then
+    pass "mise tool installation dry-run passed"
+  else
+    hard_fail "mise tool installation dry-run failed"
   fi
 }
 
@@ -252,6 +342,14 @@ check_staged_setup_smoke() {
   else
     printf '%s\n' "${output}" >&2
     hard_fail "staged setup smoke test failed"
+  fi
+}
+
+check_services() {
+  if "${SCRIPT_DIR}/services-check.sh" >/dev/null; then
+    pass "portable user-service checks passed"
+  else
+    hard_fail "portable user-service checks failed"
   fi
 }
 
@@ -307,7 +405,7 @@ check_packages() {
     fi
     check_command nb warn
   elif is_linux; then
-    pass "Linux detected; macOS package/defaults hooks are skipped"
+    pass "supported Linux target detected"
   else
     soft_fail "unsupported OS for provisioning: $(os_name)"
   fi
@@ -323,8 +421,10 @@ main() {
   check_git
   check_shell_syntax
   check_mise
+  check_platform_profile
   check_mise_tasks
   check_staged_setup_smoke
+  check_services
   check_git_signing_generator
   check_packages
   check_auth

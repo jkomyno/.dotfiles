@@ -1,0 +1,2 @@
+# Load mise.{os}.toml and matching global config.{os}.toml profiles.
+auto_env = true
