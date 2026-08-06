@@ -1058,7 +1058,7 @@ version = "0.146.0"
 backend = "npm:@openai/codex"
 
 [[tools."npm:@tryglen/cli"]]
-version = "0.28.5"
+version = "0.30.3"
 backend = "npm:@tryglen/cli"
 
 [[tools."npm:agent-browser"]]
