@@ -55,6 +55,10 @@
     "grill-with-docs": {
       "repo": "https://github.com/mattpocock/skills.git",
       "path": "skills/engineering/grill-with-docs"
+    },
+    "using-exe-dev": {
+      "repo": "https://github.com/boldsoftware/exe.dev.git",
+      "path": "skill"
     }
   }
 }
