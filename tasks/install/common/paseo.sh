@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #MISE depends=["install:common:mise"]
-#MISE description="Load the paseo daemon LaunchAgent so the phone can reach local agents"
+#MISE description="Start or restart the paseo daemon user service"
 
 set -Eeuo pipefail
 

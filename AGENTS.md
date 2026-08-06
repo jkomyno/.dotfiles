@@ -4,7 +4,7 @@
 
 - This repository stores jkomyno's personal dotfiles and local agent assets.
 - Dotfiles are managed through mise `[dotfiles]`; edit files under `target/home` in this checkout rather than deployed files in `$HOME`.
-- The target environment is macOS on Apple Silicon.
+- Supported targets are Apple Silicon macOS, Debian 12, and Ubuntu 24.04. Linux supports x64 and arm64.
 
 ## Where to Look
 
@@ -16,7 +16,8 @@
 ## Tool Ownership
 
 - Put language runtimes and CLI developer tools in `target/home/.config/mise/config.toml`.
-- `mise.toml` exposes that file as `~/.config/mise/config.toml`.
+- `mise.toml` contains shared mappings. `mise.macos.toml` and `mise.linux.toml` contain platform-specific mappings.
+- Put Linux-only mise tools in `target/home/.config/mise/config.linux.toml`.
 - Put GUI apps and fonts in `install/macos/common/nanobrew-casks.Brewfile`.
 - Keep `install/macos/common/nanobrew-formulae.Brewfile` empty unless a required package has no practical mise backend.
 - Do not duplicate a CLI between mise and nanobrew.

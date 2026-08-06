@@ -307,13 +307,13 @@ main() {
   check_home="$(mktemp -d)"
   seed_local_claude_skill
 
-  log "Checking repository mise dotfiles status against temporary HOME"
+  log "Checking repository mise bootstrap dotfiles status against temporary HOME"
   run_mise_dotfiles "${mise_cmd}" status
 
-  log "Checking repository mise dotfiles dry-run against temporary HOME"
+  log "Checking repository mise bootstrap dotfiles dry-run against temporary HOME"
   run_mise_dotfiles "${mise_cmd}" apply --dry-run
 
-  log "Applying repository mise dotfiles into temporary HOME"
+  log "Applying repository mise bootstrap dotfiles into temporary HOME"
   run_mise_dotfiles "${mise_cmd}" apply --yes
   verify_check_mode
   run_claude_skill_links "${check_home}"

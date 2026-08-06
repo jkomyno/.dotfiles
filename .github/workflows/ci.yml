@@ -14,9 +14,17 @@ permissions:
 
 jobs:
   doctor:
-    name: just doctor
-    runs-on: macos-latest
-    timeout-minutes: 30
+    name: just doctor (${{ matrix.name }})
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: macOS
+            os: macos-latest
+          - name: Ubuntu 24.04
+            os: ubuntu-24.04
     steps:
       - uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd # v5
 
@@ -27,12 +35,18 @@ jobs:
           bash install/common/mise.sh --binary-only
           echo "$HOME/.local/bin" >> "$GITHUB_PATH"
 
-      # Install `just` through mise (its declared owner in config.toml) rather
-      # than Homebrew, matching the nanobrew-only, brew-free provisioning model.
+      # Install `just` through mise, matching its declared owner in config.toml.
       - name: Install just
         run: |
           mise use -g just@latest
           echo "$HOME/.local/share/mise/shims" >> "$GITHUB_PATH"
+
+      - name: Install Linux syntax-check tools
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y zsh
+          mise install aqua:fish-shell/fish-shell@4.8.1
 
       - name: Run doctor
         env:

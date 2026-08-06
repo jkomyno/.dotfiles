@@ -87,7 +87,7 @@ sync-skills-check:
 benchmark-shell shell="zsh" runs="10":
     @scripts/dotfiles/benchmark-shell.sh --shell "{{shell}}" --runs "{{runs}}"
 
-# Validate the repository mise dotfiles slice against a temporary HOME.
+# Validate the active mise dotfiles profile against a temporary HOME.
 dotfiles-check:
     @scripts/dotfiles/mise-dotfiles-check.sh
 
