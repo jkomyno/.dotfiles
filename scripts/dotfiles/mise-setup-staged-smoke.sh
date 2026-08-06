@@ -86,6 +86,10 @@ assert_absent() {
 
 run_safe_staged_subset() {
   HOME="${smoke_home}" \
+    XDG_CACHE_HOME="${smoke_home}/.cache" \
+    XDG_CONFIG_HOME="${smoke_home}/.config" \
+    XDG_DATA_HOME="${smoke_home}/.local/share" \
+    XDG_STATE_HOME="${smoke_home}/.local/state" \
     "${SCRIPT_DIR}/mise-setup-staged.sh" \
       --force-dotfiles \
       --only mise:dotfiles:apply \

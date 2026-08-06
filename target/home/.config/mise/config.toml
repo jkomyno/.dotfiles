@@ -1,16 +1,18 @@
 [tools]
 # Programming languages
-node = "24"
 # Track npm independently from the older version bundled with Node.
 "npm:npm" = "11"
+# https://github.com/pnpm/pnpm - fast, disk-efficient JavaScript package manager
+"npm:pnpm" = "11"
+# Keep the standalone npm and pnpm declarations before Node so their binaries
+# take precedence over the versions bundled with Node and Corepack.
+node = "24"
 python = "3.13"
 rust = { version = "1.96.0", targets = "wasm32-unknown-unknown" }
 erlang = "29.0.2"
 elixir = "1.20.2-otp-29"
 
 # JavaScript and TypeScript tooling
-# https://github.com/pnpm/pnpm - fast, disk-efficient JavaScript package manager
-"npm:pnpm" = "11"
 # https://github.com/oven-sh/bun - JavaScript runtime, package manager, and bundler
 bun = "latest"
 # https://github.com/denoland/deno - secure JavaScript and TypeScript runtime
@@ -137,14 +139,6 @@ typos = "latest"
 # version_prefix restricts "latest" to uniku-cli-v* release tags, since the repo also
 # tags unrelated library releases (e.g. bare "0.0.12", "@uniku/cli@0.0.12")
 "github:jkomyno/uniku" = { version = "latest", version_prefix = "uniku-cli-v" }
-
-[env]
-# Node also ships npm and Corepack shims, so prefer the independently managed
-# npm and pnpm binaries when their names overlap.
-_.path = { path = [
-  "{{ tools['npm:npm'].path }}/node_modules/.bin",
-  "{{ tools['npm:pnpm'].path }}/node_modules/.bin",
-], tools = true }
 
 [settings]
 # Direct age encryption remains experimental and requires this opt-in.
