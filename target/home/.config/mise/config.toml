@@ -168,3 +168,14 @@ uv_venv_auto = "source"
 # Setup and the "just works on a new machine" caveats: docs/encrypted-secrets.md
 [settings.age]
 ssh_identity_files = ["~/.ssh/id_ed25519"]
+
+# Fetch GitHub API requests through the gh CLI's stored auth instead of going
+# unauthenticated, which hits GitHub's ~60 req/hr rate limit fast (self-update
+# checks, github: backend tools, lock refreshes). gh's own token lives in the
+# macOS Keychain rather than ~/.config/gh/hosts.yml, so mise's built-in
+# github.gh_cli_tokens hosts.yml reader can't see it; shelling out to
+# `gh auth token` on demand is the fix. Scoped to mise only (not a blanket
+# GITHUB_TOKEN env var) so it can't leak into other tools that special-case
+# that variable.
+[settings.github]
+credential_command = "gh auth token"
