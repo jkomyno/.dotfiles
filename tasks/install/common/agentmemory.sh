@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #MISE depends=["install:common:mise"]
-#MISE description="Load the agentmemory daemon LaunchAgent so shared agent memory is always available"
+#MISE description="Start or restart the agentmemory daemon user service"
 
 set -Eeuo pipefail
 

@@ -1,5 +1,5 @@
 # Ghostty configuration managed by the dotfiles repo.
-# Managed by this dotfiles repository through mise dotfiles.
+# Managed by this dotfiles repository through mise bootstrap dotfiles.
 # Reference: https://ghostty.org/docs/config/reference
 
 theme = Catppuccin Macchiato

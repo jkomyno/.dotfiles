@@ -1,6 +1,5 @@
 #!/usr/bin/env bash
-#MISE depends=["install:common:mise"]
-#MISE description="Start or restart the paseo daemon user service"
+#MISE description="Install Debian/Ubuntu OS prerequisites through mise"
 
 set -Eeuo pipefail
 
@@ -9,4 +8,4 @@ if [[ -z "${MISE_PROJECT_ROOT:-}" ]]; then
   exit 1
 fi
 
-exec bash "${MISE_PROJECT_ROOT}/install/common/paseo.sh" "$@"
+exec bash "${MISE_PROJECT_ROOT}/install/linux/common/packages.sh" "$@"

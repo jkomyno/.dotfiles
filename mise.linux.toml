@@ -1,0 +1,34 @@
+[settings]
+system_packages.managers = ["apt"]
+
+[bootstrap.packages]
+"apt:ca-certificates" = "latest"
+"apt:curl" = "latest"
+"apt:git" = "latest"
+"apt:openssh-client" = "latest"
+"apt:zsh" = "latest"
+"apt:build-essential" = "latest"
+"apt:autoconf" = "latest"
+"apt:m4" = "latest"
+"apt:pkg-config" = "latest"
+"apt:libssl-dev" = "latest"
+"apt:libncurses-dev" = "latest"
+"apt:libreadline-dev" = "latest"
+"apt:zlib1g-dev" = "latest"
+"apt:libbz2-dev" = "latest"
+"apt:libsqlite3-dev" = "latest"
+"apt:libffi-dev" = "latest"
+"apt:liblzma-dev" = "latest"
+"apt:xz-utils" = "latest"
+"apt:bzip2" = "latest"
+"apt:unzip" = "latest"
+"apt:trash-cli" = "latest"
+
+[bootstrap.user]
+login_shell = "/usr/bin/zsh"
+
+[dotfiles]
+"~/.config/mise/config.linux.toml" = { source = "target/home/.config/mise/config.linux.toml", mode = "symlink" }
+"~/.config/mise/mise.linux.lock" = { source = "target/home/.config/mise/mise.linux.lock", mode = "symlink" }
+"~/.config/systemd/user/agentmemory.service" = { source = "target/home/.config/systemd/user/agentmemory.service", mode = "symlink" }
+"~/.config/systemd/user/paseo.service" = { source = "target/home/.config/systemd/user/paseo.service", mode = "symlink" }

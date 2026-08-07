@@ -1,0 +1,16 @@
+[Unit]
+Description=Paseo agent bridge
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+Type=simple
+Environment=HOME=%h
+Environment=PASEO_LISTEN=127.0.0.1:6767
+EnvironmentFile=-%h/.config/paseo/environment
+ExecStart=%h/.local/bin/mise exec npm:@getpaseo/cli -- paseo daemon start --foreground --listen ${PASEO_LISTEN} --hostnames true
+Restart=on-failure
+RestartSec=5s
+
+[Install]
+WantedBy=default.target

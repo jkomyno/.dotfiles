@@ -1,8 +1,12 @@
-# Move files to the macOS Trash instead of permanently deleting them.
+# Move files to the platform trash instead of permanently deleting them.
 # Autoloaded: this file is the function body.
 if (( $# < 1 )); then
   echo "Usage: trash <file>..." >&2
   return 1
+fi
+if [[ "$OSTYPE" == linux* ]]; then
+  command trash-put -- "$@"
+  return
 fi
 local file dest
 for file in "$@"; do

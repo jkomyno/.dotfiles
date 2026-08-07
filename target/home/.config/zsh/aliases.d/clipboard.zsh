@@ -1,3 +1,3 @@
-# Clipboard shorthands
-alias pbc="pbcopy"
-alias pbp="pbpaste"
+# Clipboard shorthands use the first available native or terminal transport.
+alias pbc="clipboard-copy"
+alias pbp="clipboard-paste"

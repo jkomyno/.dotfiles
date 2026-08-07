@@ -1,0 +1,45 @@
+#!/bin/sh
+
+set -eu
+
+if [ "$(uname -s)" = "Darwin" ] && command -v pbcopy >/dev/null 2>&1; then
+  exec pbcopy
+fi
+
+if [ -n "${WAYLAND_DISPLAY:-}" ] && command -v wl-copy >/dev/null 2>&1; then
+  exec wl-copy
+fi
+
+if [ -n "${DISPLAY:-}" ]; then
+  if command -v xclip >/dev/null 2>&1; then
+    exec xclip -selection clipboard -in
+  fi
+  if command -v xsel >/dev/null 2>&1; then
+    exec xsel --clipboard --input
+  fi
+fi
+
+copy_tmp="$(mktemp)"
+trap 'rm -f "${copy_tmp}"' EXIT HUP INT TERM
+cat >"${copy_tmp}"
+
+if [ -n "${TMUX:-}" ] && command -v tmux >/dev/null 2>&1; then
+  tmux load-buffer - <"${copy_tmp}"
+fi
+
+if [ -w /dev/tty ]; then
+  encoded="$(base64 <"${copy_tmp}" | tr -d '\r\n')"
+  if [ -n "${TMUX:-}" ]; then
+    printf '\033Ptmux;\033\033]52;c;%s\a\033\\' "${encoded}" >/dev/tty
+  else
+    printf '\033]52;c;%s\a' "${encoded}" >/dev/tty
+  fi
+  exit 0
+fi
+
+if [ -n "${TMUX:-}" ]; then
+  exit 0
+fi
+
+printf 'clipboard-copy: no macOS, Wayland, X11, tmux, or terminal clipboard is available\n' >&2
+exit 1

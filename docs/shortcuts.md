@@ -26,7 +26,7 @@ Config: [`target/home/.config/tmux/tmux.conf`](../target/home/.config/tmux/tmux.
 | `v` | Begin selection |
 | `V` | Select whole line |
 | `Ctrl+v` | Toggle rectangle (block) selection |
-| `y` | Yank selection to the macOS clipboard (`pbcopy`) |
+| `y` | Yank selection through the portable clipboard helper |
 | `q` | Cancel / exit copy mode |
 | mouse drag | Selecting with the mouse also copies to the clipboard on release |
 
@@ -121,9 +121,9 @@ These are functions/aliases, not keybindings — type the short form and press E
 | `p` | `pnpm` | zsh, fish |
 | `pt` | `pnpm test` | zsh, fish |
 | `pb` | `pnpm build` | zsh, fish |
-| `pbc` | `pbcopy` | zsh, fish |
-| `pbp` | `pbpaste` | zsh, fish |
-| `ct` | Keep the Mac awake while Ghostty is running (`coffee -d app Ghostty`) | zsh, fish |
+| `pbc` | Copy through macOS, Wayland, X11, tmux, or OSC52 | zsh, fish |
+| `pbp` | Paste through macOS, Wayland, X11, or tmux | zsh, fish |
+| `ct` | Keep the Mac awake while Ghostty is running (`coffee -d app Ghostty`) | zsh, fish (macOS only) |
 
 Two are guardrails rather than shortcuts to type on purpose: plain `npm`/`pnpm install -g ...` is blocked with a pointer to `mise use -g "npm:<package>"` instead (see [`npm-guard.zsh`](../target/home/.config/zsh/aliases.d/npm-guard.zsh)), and `git checkout <PR URL>` transparently becomes `gh pr checkout <PR URL>`.
 

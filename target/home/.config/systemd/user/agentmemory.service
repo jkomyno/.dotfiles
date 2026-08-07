@@ -1,0 +1,15 @@
+[Unit]
+Description=Agentmemory shared memory server
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+Type=simple
+Environment=HOME=%h
+WorkingDirectory=%h/.agentmemory
+ExecStart=%h/.local/bin/mise exec npm:@agentmemory/agentmemory -- agentmemory
+Restart=on-failure
+RestartSec=5s
+
+[Install]
+WantedBy=default.target

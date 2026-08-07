@@ -72,12 +72,21 @@ check_versions() {
     warn "mise outdated reported issues; this can happen before Node/npm-backed tools are installed"
   }
 
-  log "Checking lock refresh for ${DOTFILES_MISE_PLATFORMS}"
-  run_source_mise lock \
+  log "Checking shared lock refresh for ${DOTFILES_MISE_PLATFORMS}"
+  run_source_mise_base lock --global \
     --dry-run \
     --platform "${DOTFILES_MISE_PLATFORMS}" \
     --minimum-release-age "${MINIMUM_RELEASE_AGE}" \
     ${TOOL_ARGS[@]+"${TOOL_ARGS[@]}"}
+
+  if is_linux; then
+    log "Checking Linux lock refresh for ${DOTFILES_MISE_LINUX_PLATFORMS}"
+    run_source_mise lock --global \
+      --dry-run \
+      --platform "${DOTFILES_MISE_LINUX_PLATFORMS}" \
+      --minimum-release-age "${MINIMUM_RELEASE_AGE}" \
+      ${TOOL_ARGS[@]+"${TOOL_ARGS[@]}"}
+  fi
 }
 
 write_versions() {
@@ -89,11 +98,19 @@ write_versions() {
   log "Upgrading mise tools from source config"
   run_source_mise upgrade "${upgrade_args[@]}" ${TOOL_ARGS[@]+"${TOOL_ARGS[@]}"}
 
-  log "Refreshing source mise.lock for ${DOTFILES_MISE_PLATFORMS}"
-  run_source_mise lock \
+  log "Refreshing shared mise.lock for ${DOTFILES_MISE_PLATFORMS}"
+  run_source_mise_base lock --global \
     --platform "${DOTFILES_MISE_PLATFORMS}" \
     --minimum-release-age "${MINIMUM_RELEASE_AGE}" \
     ${TOOL_ARGS[@]+"${TOOL_ARGS[@]}"}
+
+  if is_linux; then
+    log "Refreshing Linux mise.linux.lock for ${DOTFILES_MISE_LINUX_PLATFORMS}"
+    run_source_mise lock --global \
+      --platform "${DOTFILES_MISE_LINUX_PLATFORMS}" \
+      --minimum-release-age "${MINIMUM_RELEASE_AGE}" \
+      ${TOOL_ARGS[@]+"${TOOL_ARGS[@]}"}
+  fi
 }
 
 main() {

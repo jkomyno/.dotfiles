@@ -11,9 +11,9 @@ doctor:
 status:
     @git status --short
 
-# Show a mise dotfiles dry-run against the current HOME.
+# Show a mise bootstrap dotfiles dry-run against the current HOME.
 diff:
-    @MISE_TRUSTED_CONFIG_PATHS="$PWD/mise.toml" mise -C "$PWD" dotfiles apply --dry-run
+    @MISE_TRUSTED_CONFIG_PATHS="$PWD" mise -C "$PWD" bootstrap dotfiles apply --dry-run
 
 # Validate and report macOS package bundle ownership.
 packages:
@@ -55,13 +55,17 @@ tailscale *args:
 screen-sharing *args:
     @bash install/macos/common/screen-sharing.sh {{args}}
 
-# Load the paseo daemon LaunchAgent so the phone can reach local agents. Pair: --pair. Status: --status. Undo: --remove.
+# Start or restart the paseo user service. Pair: --pair. Status: --status. Undo: --remove.
 paseo *args:
     @bash install/common/paseo.sh {{args}}
 
-# Load the agentmemory daemon LaunchAgent so shared agent memory is always available. Status: --status. Undo: --remove.
+# Start or restart the agentmemory user service. Status: --status. Undo: --remove.
 agentmemory *args:
     @bash install/common/agentmemory.sh {{args}}
+
+# Validate Linux user-service units and lifecycle handling without changing the real manager.
+services-check:
+    @scripts/dotfiles/services-check.sh
 
 # Authenticate gh, codex, and claude (interactive; skips anything already logged in).
 auth:
@@ -83,7 +87,7 @@ sync-skills-check:
 benchmark-shell shell="zsh" runs="10":
     @scripts/dotfiles/benchmark-shell.sh --shell "{{shell}}" --runs "{{runs}}"
 
-# Validate the repository mise dotfiles slice against a temporary HOME.
+# Validate the active mise dotfiles profile against a temporary HOME.
 dotfiles-check:
     @scripts/dotfiles/mise-dotfiles-check.sh
 

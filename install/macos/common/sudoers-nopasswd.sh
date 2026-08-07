@@ -33,6 +33,11 @@ die() {
   exit 1
 }
 
+if [[ "$(uname -s)" != "Darwin" ]]; then
+  log "Skipping passwordless sudo setup outside macOS"
+  exit 0
+fi
+
 MODE="install"
 while [[ $# -gt 0 ]]; do
   case "$1" in

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-#MISE description="Validate repository mise dotfiles against a temporary HOME"
+#MISE description="Validate the active mise bootstrap dotfiles profile against a temporary HOME"
 
 set -Eeuo pipefail
 

@@ -62,8 +62,8 @@ run_mise_dotfiles() {
 
   env \
     HOME="${check_home}" \
-    MISE_TRUSTED_CONFIG_PATHS="${DOTFILES_ROOT}/mise.toml${MISE_TRUSTED_CONFIG_PATHS:+:${MISE_TRUSTED_CONFIG_PATHS}}" \
-    "${mise_cmd}" -C "${DOTFILES_ROOT}" dotfiles "$@"
+    MISE_TRUSTED_CONFIG_PATHS="${DOTFILES_ROOT}${MISE_TRUSTED_CONFIG_PATHS:+:${MISE_TRUSTED_CONFIG_PATHS}}" \
+    "${mise_cmd}" -C "${DOTFILES_ROOT}" bootstrap dotfiles "$@"
 }
 
 verify_symlink() {
@@ -99,6 +99,15 @@ verify_file_exists() {
 
   if [[ ! -f "${check_home}/${target_rel}" ]]; then
     error "expected file was not created: ${target_rel}"
+    return 1
+  fi
+}
+
+verify_absent() {
+  local target_rel="$1"
+
+  if [[ -e "${check_home}/${target_rel}" || -L "${check_home}/${target_rel}" ]]; then
+    error "platform-excluded target was created: ${target_rel}"
     return 1
   fi
 }
@@ -242,23 +251,47 @@ verify_unrelated_directory_link_is_preserved() {
 verify_dotfiles() {
   verify_no_template_delimiters ".zprofile"
   verify_no_template_delimiters ".claude/settings.json"
-  verify_no_template_delimiters "Library/LaunchAgents/sh.paseo.daemon.plist"
+  verify_no_template_delimiters ".ssh/config"
   verify_json ".claude/settings.json"
   verify_file_matches_source ".pi/agent/settings.json" "target/home/.pi/agent/settings.json"
   verify_symlink ".pi/agent/extensions/agentmemory" "target/home/.pi/agent/extensions/agentmemory"
   verify_agent_skill_links
-  verify_file_matches_source "Library/Application Support/com.pais.handy/settings_store.json" "target/home/.handy/settings_store.json"
   verify_file_matches_source ".config/gh/config.yml" "target/home/.config/gh/config.yml"
-  verify_file_matches_source ".ssh/config" "target/home/.ssh/config"
   verify_file_matches_source ".config/ccstatusline/settings.json" "target/home/.config/ccstatusline/settings.json"
   verify_symlink ".config/ghostty/config" "target/home/.config/ghostty/config"
   verify_file_matches_source ".config/ghui/config.json" "target/home/.config/ghui/config.json"
   verify_symlink ".config/hunk/config.toml" "target/home/.config/hunk/config.toml"
   verify_symlink ".config/mise/config.toml" "target/home/.config/mise/config.toml"
+  verify_symlink ".config/mise/miserc.toml" ".miserc.toml"
   verify_symlink ".config/mise/mise.lock" "target/home/.config/mise/mise.lock"
   verify_symlink ".config/ripgrep/config" "target/home/.config/ripgrep/config"
   verify_symlink ".config/starship.toml" "target/home/.config/starship.toml"
   verify_symlink ".config/tmux/tmux.conf" "target/home/.config/tmux/tmux.conf"
+  verify_symlink ".local/bin/clipboard-copy" "target/home/.local/bin/clipboard-copy"
+  verify_symlink ".local/bin/clipboard-paste" "target/home/.local/bin/clipboard-paste"
+
+  if is_linux; then
+    verify_symlink ".config/mise/config.linux.toml" "target/home/.config/mise/config.linux.toml"
+    verify_symlink ".config/mise/mise.linux.lock" "target/home/.config/mise/mise.linux.lock"
+    verify_symlink ".config/systemd/user/paseo.service" "target/home/.config/systemd/user/paseo.service"
+    verify_symlink ".config/systemd/user/agentmemory.service" "target/home/.config/systemd/user/agentmemory.service"
+    verify_absent "Library"
+    verify_absent ".handy"
+    verify_absent ".local/bin/coffee"
+    verify_absent ".local/bin/keychain-run"
+    verify_absent ".config/fish/conf.d/nanobrew.fish"
+    verify_absent ".config/fish/conf.d/macos-apps.fish"
+    verify_absent ".config/fish/functions/ct.fish"
+    verify_absent ".config/zsh/aliases.d/coffee.zsh"
+    verify_absent ".config/zsh/aliases.d/gh-keychain.zsh"
+    if grep -Fq 'orbstack' "${check_home}/.ssh/config"; then
+      error "Linux SSH config contains the OrbStack include"
+      return 1
+    fi
+  else
+    verify_no_template_delimiters "Library/LaunchAgents/sh.paseo.daemon.plist"
+    verify_file_matches_source "Library/Application Support/com.pais.handy/settings_store.json" "target/home/.handy/settings_store.json"
+  fi
 }
 
 main() {
@@ -274,13 +307,13 @@ main() {
   check_home="$(mktemp -d)"
   seed_local_claude_skill
 
-  log "Checking repository mise dotfiles status against temporary HOME"
+  log "Checking repository mise bootstrap dotfiles status against temporary HOME"
   run_mise_dotfiles "${mise_cmd}" status
 
-  log "Checking repository mise dotfiles dry-run against temporary HOME"
+  log "Checking repository mise bootstrap dotfiles dry-run against temporary HOME"
   run_mise_dotfiles "${mise_cmd}" apply --dry-run
 
-  log "Applying repository mise dotfiles into temporary HOME"
+  log "Applying repository mise bootstrap dotfiles into temporary HOME"
   run_mise_dotfiles "${mise_cmd}" apply --yes
   verify_check_mode
   run_claude_skill_links "${check_home}"

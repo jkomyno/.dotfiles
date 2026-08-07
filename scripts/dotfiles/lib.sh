@@ -22,6 +22,7 @@ readonly DOTFILES_ROOT="${DOTFILES:-$(dotfiles_repo_root)}"
 readonly DOTFILES_MISE_DIR="${DOTFILES_ROOT}/target/home/.config/mise"
 readonly DOTFILES_MISE_CONFIG="${DOTFILES_MISE_DIR}/config.toml"
 readonly DOTFILES_MISE_PLATFORMS="${DOTFILES_MISE_PLATFORMS:-linux-x64,linux-arm64,macos-arm64,macos-x64}"
+readonly DOTFILES_MISE_LINUX_PLATFORMS="${DOTFILES_MISE_LINUX_PLATFORMS:-linux-x64,linux-arm64}"
 readonly DOTFILES_MISE_MINIMUM_RELEASE_AGE="${DOTFILES_MISE_MINIMUM_RELEASE_AGE:-0s}"
 
 log() {
@@ -73,9 +74,13 @@ run_source_mise() {
   env \
     MISE_DEFAULT_CONFIG_FILENAME="config.toml" \
     MISE_TRUSTED_CONFIG_PATHS="${DOTFILES_MISE_CONFIG}${MISE_TRUSTED_CONFIG_PATHS:+:${MISE_TRUSTED_CONFIG_PATHS}}" \
-    MISE_IGNORED_CONFIG_PATHS="${HOME}/.config/mise/config.toml:${DOTFILES_ROOT}/mise.toml${MISE_IGNORED_CONFIG_PATHS:+:${MISE_IGNORED_CONFIG_PATHS}}" \
+    MISE_IGNORED_CONFIG_PATHS="${HOME}/.config/mise/config.toml:${DOTFILES_ROOT}/mise.toml:${DOTFILES_ROOT}/mise.linux.toml:${DOTFILES_ROOT}/mise.macos.toml${MISE_IGNORED_CONFIG_PATHS:+:${MISE_IGNORED_CONFIG_PATHS}}" \
     NPM_CONFIG_UPDATE_NOTIFIER="false" \
     "${mise_cmd}" -C "${DOTFILES_MISE_DIR}" "$@"
+}
+
+run_source_mise_base() {
+  MISE_AUTO_ENV=false run_source_mise "$@"
 }
 
 require_file() {
