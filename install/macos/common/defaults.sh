@@ -10,7 +10,7 @@ RESET_DOCK="${DOTFILES_RESET_DOCK:-false}"
 APPLY_PRIVILEGED_DEFAULTS="${DOTFILES_APPLY_PRIVILEGED_MACOS_DEFAULTS:-false}"
 RESTART_AFFECTED_APPS="${DOTFILES_RESTART_AFTER_MACOS_DEFAULTS:-true}"
 
-readonly MACOS_NATURAL_SCROLLING="false"
+readonly MACOS_NATURAL_SCROLLING="true"
 readonly MACOS_AUTOMATIC_QUOTE_SUBSTITUTION="false"
 readonly MACOS_AUTOMATIC_DASH_SUBSTITUTION="false"
 readonly MACOS_FONT_SMOOTHING="2"
@@ -153,8 +153,11 @@ defaults_input_devices() {
   defaults -currentHost write NSGlobalDomain com.apple.mouse.tapBehavior -int 1
   defaults write com.apple.AppleMultitouchTrackpad Clicking -bool true
   defaults write com.apple.driver.AppleBluetoothMultitouch.trackpad Clicking -bool true
-  defaults write com.apple.AppleMultitouchTrackpad TrackpadThreeFingerDrag -bool true
-  defaults write com.apple.driver.AppleBluetoothMultitouch.trackpad TrackpadThreeFingerDrag -bool true
+
+  # Keep 3-finger swipes on Mission Control / App Exposé / Spaces-switching
+  # instead of window/text dragging; the two are mutually exclusive on 3 fingers.
+  defaults write com.apple.AppleMultitouchTrackpad TrackpadThreeFingerDrag -bool false
+  defaults write com.apple.driver.AppleBluetoothMultitouch.trackpad TrackpadThreeFingerDrag -bool false
 }
 
 defaults_application_shortcuts() {
