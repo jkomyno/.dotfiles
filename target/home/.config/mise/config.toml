@@ -27,6 +27,8 @@ ruff = "latest"
 ty = "latest"
 # https://nox.thea.codes - Python task automation driven by noxfile.py sessions
 "pipx:nox" = "latest"
+# https://github.com/huggingface/huggingface_hub - Hugging Face Hub CLI (`hf`); huggingface-cli is deprecated
+"pipx:huggingface_hub" = "latest"
 
 # Rust tooling
 # https://github.com/cargo-bins/cargo-binstall - installs Rust binaries from prebuilt releases
