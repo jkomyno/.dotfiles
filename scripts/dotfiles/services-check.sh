@@ -100,6 +100,14 @@ check_one_service() {
 }
 
 main() {
+  # paseo.sh and agentmemory.sh only drive systemctl on Linux (main() branches
+  # on `uname -s`; Darwin uses launchctl/a tracked LaunchAgent instead), so the
+  # systemd mocks below have nothing to assert against on macOS runners.
+  if [[ "$(uname -s)" != "Linux" ]]; then
+    info "skipping systemd user-service checks on $(uname -s); paseo.sh/agentmemory.sh use launchctl here"
+    return 0
+  fi
+
   trap cleanup EXIT
   check_home="$(mktemp -d)"
   mkdir -p "${check_home}/.config/systemd/user"
