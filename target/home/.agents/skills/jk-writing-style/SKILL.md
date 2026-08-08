@@ -88,7 +88,7 @@ Never use these phrases or close variants.
 - "delve", "dive into", or "wedge" as a prose flourish
 - "This approach offers several key benefits"
 - "In conclusion", "to summarize", or "in summary, we've seen that"
-- "Leverage" as a verb, "arguably", or "it could be said that"
+- "it could be said that"
 
 Remove unsupported puffery such as `production-ready`, `next-generation`, `cutting-edge`, `state-of-the-art`, `robust`, `seamless`, `scalable`, `modern`, `intuitive`, `elegant`, `effortless`, `lightweight`, `stylish`, `comprehensive`, `powerful`, `framework-agnostic`, `plug-and-play`, and `turn-key`.
 
