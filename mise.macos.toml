@@ -2,7 +2,10 @@
 "~/.handy/settings_store.json" = { source = "target/home/.handy/settings_store.json", mode = "copy" }
 "~/Library/Application Support/com.pais.handy/settings_store.json" = { source = "target/home/.handy/settings_store.json", mode = "copy" }
 "~/.local/bin/coffee" = { source = "target/home/.local/bin/coffee", mode = "symlink" }
+"~/.local/bin/dsp" = { source = "target/home/.local/bin/dsp", mode = "symlink" }
 "~/.local/bin/keychain-run" = { source = "target/home/.local/bin/keychain-run", mode = "symlink" }
+"~/.local/share/dsp/README.md" = { source = "target/home/.local/share/dsp/README.md", mode = "symlink" }
+"~/.local/share/dsp/monitor.py" = { source = "target/home/.local/share/dsp/monitor.py", mode = "symlink" }
 "~/Library/LaunchAgents/com.agentmemory.daemon.plist" = { source = "target/home/Library/LaunchAgents/com.agentmemory.daemon.plist", mode = "template" }
 "~/Library/LaunchAgents/sh.paseo.daemon.plist" = { source = "target/home/Library/LaunchAgents/sh.paseo.daemon.plist", mode = "template" }
 "~/.config/fish/conf.d/nanobrew.fish" = { source = "target/home/.config/fish/conf.d/nanobrew.fish", mode = "symlink" }

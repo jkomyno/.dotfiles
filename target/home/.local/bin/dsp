@@ -1,0 +1,20 @@
+#!/usr/bin/env bash
+# dsp — monitor Neural DSP Nano Cortex processed USB audio through EarPods.
+
+set -euo pipefail
+
+data_home="${XDG_DATA_HOME:-$HOME/.local/share}"
+script="${DSP_MONITOR_SCRIPT:-$data_home/dsp/monitor.py}"
+
+if ! command -v uv >/dev/null 2>&1; then
+	echo "dsp: uv is required" >&2
+	exit 1
+fi
+
+if [ ! -r "$script" ]; then
+	echo "dsp: monitor script not found: $script" >&2
+	echo "dsp: run: mise dotfiles apply '~/.local/share/dsp/monitor.py'" >&2
+	exit 1
+fi
+
+exec uv run --no-project --script "$script" "$@"
