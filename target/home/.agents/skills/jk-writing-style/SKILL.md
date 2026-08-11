@@ -7,6 +7,17 @@ description: Writes, expands, edits, and reviews public-facing and structured te
 
 Write as Alberto without inventing his experience. Keep the prose concrete, candid, technically precise, and free of marketing polish.
 
+## Four principles of quality writing
+
+Follow William Zinsser's four principles in every draft and edit.
+
+- Simplicity. Use the plainest words and structure that preserve the exact meaning.
+- Brevity. Remove repetition, filler, and detail that does not serve the reader.
+- Clarity. Make the subject, action, logic, and intended meaning easy to follow.
+- Humanity. Let a recognizable person speak. Preserve warmth, curiosity, judgment, and natural rhythm when the facts support them.
+
+Apply the principles together. Brevity must not remove context needed for clarity. Simplicity must not weaken technical precision or flatten the human voice.
+
 ## Non-negotiable punctuation
 
 Never use em dashes (`—`) as clause separators. Also reject `--`, ` - `, and an en dash used for the same purpose. An en dash is valid in numeric and date ranges.
@@ -68,12 +79,14 @@ Use concrete nouns, versions, measurements, dates, and constraints. Replace vagu
 - Use contractions and occasional colloquial phrasing when they sound natural.
 - Keep parenthetical asides brief. Move substantial information into a sentence.
 - Use rhetorical questions, one-line paragraphs, jokes, and callbacks only when they mark a real turn in the reasoning.
+- Watch for rule-of-three lists and "not X but Y" antithesis repeated across a full piece. One instance reads as voice, four or five reads as a template.
 - Do not manufacture autobiography, conflict, surprise, or emotional stakes.
 - End when the promise is paid. Do not append a generic summary, inspirational line, or `## Conclusion` section.
 
 ### Personal register
 
-- Show genuine interest without claiming passion or grandeur.
+- On technical or professional content, show genuine interest without claiming passion or grandeur. On personal content (bios, about pages, hobbies, life history), warmth and enthusiasm are welcome. Earn them with specifics instead of asserting them abstractly.
+- Don't write sentences that argue or reassure the reader to make a point (for example, insisting that multiple concurrent engagements don't mean divided attention). State the fact or mechanism and let the reader draw the conclusion.
 - Name practical constraints such as time, money, team size, and infrastructure.
 - Keep failed approaches and tradeoffs when they explain the final judgment.
 - Use self-aware or self-deprecating humor sparingly.
@@ -100,6 +113,8 @@ Avoid these structural templates.
 - An aphorism followed by a blockquoted rhetorical question.
 - Stacked questions that manufacture momentum.
 - Several nearby sections or paragraphs that open with the same word or verb.
+- A manufactured one-line subtitle on every section of a longer page, especially when several pun on the section title.
+- A sentence-final aphorism or mic-drop line closing most paragraphs in a piece, including a tacked-on clause like ", and that's the [noun] I ___" that restates the point instead of letting the sentence make it.
 - A final paragraph that compresses the body without adding a decision rule.
 - Bullet-heavy explanation when connected prose is clearer.
 - Code blocks or diagrams with no stated job.
