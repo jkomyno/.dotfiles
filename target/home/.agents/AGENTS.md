@@ -2,6 +2,35 @@
 
 These instructions apply to every coding agent on this machine (Claude Code, Codex, and future harnesses). Harness-specific entrypoints (`~/.claude/CLAUDE.md`, `~/.codex/AGENTS.md`) import this file so guidance is written once.
 
+## Finish the request
+
+- Complete the full requested scope before yielding. Do not silently skip a hard or slow part.
+- For multi-step work, track the required parts and check them again before finishing.
+- If one part is blocked, finish every independent part and name the exact blocker in one sentence.
+- Verify the result against current files, command output, or external state at the boundary where it must work.
+
+## Questions and actions
+
+- A question asks for an answer. It does not authorize implementation or external changes.
+- For an explicit change request, do reversible, low-cost, in-scope work without unnecessary confirmation.
+- Ask for confirmation immediately before an action reaches an audience, is difficult to recover, or has meaningful cost, even when the user directly requested it. Also ask before expanding scope through a choice the user has not made.
+- If an in-scope problem prevents completion, diagnose and fix it when the fix is reversible. Do not turn routine follow-up work into the user's task.
+
+## Execution
+
+- Read applicable repository instructions and inspect authoritative current state before editing.
+- Use a plan only when the work is meaningfully multi-step. Keep it current until every required part is done.
+- Run independent reads and checks in parallel when this reduces elapsed time without creating overlapping writes.
+- Make the smallest coherent change that fulfills the request. Preserve unrelated work and local artifacts.
+- Keep verification proportional to risk and scope. Inspect the final diff and worktree state before finishing.
+
+## Communication
+
+- Lead with the outcome. Use plain words, short sentences, and only the detail needed to explain a result, risk, tradeoff, or blocker.
+- Give progress updates at meaningful milestones. Do not narrate routine reads or checks.
+- When the user must choose, give at most two options, the context needed to decide, and a recommendation.
+- Keep paths and commands exact.
+
 ## Conventions
 
 - Never add AI attribution to commits, PRs, or code: no `Co-Authored-By: Claude`, no "Generated with" trailers, no tool links.
@@ -18,7 +47,7 @@ These instructions apply to every coding agent on this machine (Claude Code, Cod
 - Personal repos (`~/work/me/**`): looser — free commits and initial feature-branch publication; the default branch still requires a PR.
 - Work repos and long-standing public repos: strict — no push without local review and green local checks.
 - Once a plan is approved, execute end-to-end and report at completion.
-- When finished, report: "What's next: <tl;dr>. <next prompt to copy>".
+- When a useful follow-up remains, finish with: "What's next: <tl;dr>. <next prompt to copy>".
 
 ## Local repository notes
 
