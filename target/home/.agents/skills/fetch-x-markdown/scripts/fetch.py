@@ -4,12 +4,16 @@
 from __future__ import annotations
 
 import argparse
+from contextlib import contextmanager
+from http.client import HTTPException
 import json
 import re
-import socket
+import signal
 import sys
+from collections.abc import Iterator
+from types import FrameType
 from typing import NoReturn
-from urllib.error import HTTPError, URLError
+from urllib.error import HTTPError
 from urllib.parse import urlsplit
 from urllib.request import Request, urlopen
 
@@ -18,6 +22,7 @@ TIMEOUT_SECONDS = 30
 MAX_RESPONSE_BYTES = 4 * 1024 * 1024
 MAX_ERROR_BYTES = 32 * 1024
 ALLOWED_HOSTS = frozenset(("x.com", "www.x.com", "twitter.com", "www.twitter.com"))
+AUTHORITY_RE = re.compile(r"^https://([^/?#]+)", re.IGNORECASE)
 HANDLE_RE = re.compile(r"^[A-Za-z0-9_]{1,15}$")
 ID_RE = re.compile(r"^[0-9]+$")
 
@@ -36,9 +41,12 @@ def validate_x_url(value: str) -> str:
     except ValueError as error:
         raise FetchError("provide a valid X or Twitter URL") from error
 
+    authority = AUTHORITY_RE.match(value)
     if (
         parsed.scheme != "https"
         or parsed.hostname not in ALLOWED_HOSTS
+        or authority is None
+        or authority.group(1).lower() not in ALLOWED_HOSTS
         or parsed.username is not None
         or parsed.password is not None
         or port is not None
@@ -55,6 +63,33 @@ def validate_x_url(value: str) -> str:
         raise FetchError("provide a public X or Twitter status or article URL")
 
     return value
+
+
+def raise_timeout(_signum: int, _frame: FrameType | None) -> NoReturn:
+    raise TimeoutError("overall request deadline exceeded")
+
+
+@contextmanager
+def overall_timeout(seconds: float) -> Iterator[None]:
+    if not hasattr(signal, "setitimer"):
+        yield
+        return
+
+    try:
+        previous_handler = signal.signal(signal.SIGALRM, raise_timeout)
+    except ValueError:
+        # signal handlers are unavailable outside the main interpreter thread.
+        yield
+        return
+
+    previous_timer = signal.setitimer(signal.ITIMER_REAL, seconds)
+    try:
+        yield
+    finally:
+        signal.setitimer(signal.ITIMER_REAL, 0)
+        signal.signal(signal.SIGALRM, previous_handler)
+        if previous_timer[0] > 0:
+            signal.setitimer(signal.ITIMER_REAL, *previous_timer)
 
 
 def parse_markdown(payload_bytes: bytes) -> str:
@@ -80,7 +115,9 @@ def format_http_error(error: HTTPError) -> str:
                 detail = f": {code}: {message}"
             elif isinstance(message, str):
                 detail = f": {message}"
-    except (OSError, UnicodeDecodeError, json.JSONDecodeError):
+    except TimeoutError:
+        raise
+    except (HTTPException, OSError, UnicodeDecodeError, json.JSONDecodeError):
         pass
     return f"X-to-Markdown request failed with HTTP {error.code}{detail}"
 
@@ -98,11 +135,17 @@ def fetch_markdown(url: str) -> str:
     )
 
     try:
-        with urlopen(request, timeout=TIMEOUT_SECONDS) as response:
-            payload_bytes = response.read(MAX_RESPONSE_BYTES + 1)
-    except HTTPError as error:
-        raise FetchError(format_http_error(error)) from error
-    except (URLError, TimeoutError, socket.timeout) as error:
+        with overall_timeout(TIMEOUT_SECONDS):
+            try:
+                response = urlopen(request, timeout=TIMEOUT_SECONDS)
+            except HTTPError as error:
+                with error:
+                    message = format_http_error(error)
+                raise FetchError(message) from error
+
+            with response:
+                payload_bytes = response.read(MAX_RESPONSE_BYTES + 1)
+    except (HTTPException, OSError) as error:
         reason = getattr(error, "reason", error)
         raise FetchError(f"X-to-Markdown request failed: {reason}") from error
 
