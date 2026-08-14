@@ -43,7 +43,8 @@ These instructions apply to every coding agent on this machine (Claude Code, Cod
 - A reviewed feature branch may be pushed once to establish its remote ref. Open its PR immediately, then keep every subsequent push on that linked PR branch.
 - Push only after the feature is implemented, reviewed locally, and cleaned up.
 - Fast tests and lint run locally; e2e runs on CI.
-- When the task explicitly says commit or push, do the requested step without re-asking once its gates pass. Otherwise don't.
+- When the task explicitly says commit, commit without re-asking once its gates pass. Otherwise don't commit.
+- A push always requires immediate confirmation under Questions and actions, even when it was requested earlier.
 - Personal repos (`~/work/me/**`): looser — free commits and initial feature-branch publication; the default branch still requires a PR.
 - Work repos and long-standing public repos: strict — no push without local review and green local checks.
 - Once a plan is approved, execute end-to-end and report at completion.
