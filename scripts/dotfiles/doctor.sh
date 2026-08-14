@@ -161,16 +161,20 @@ check_removed_home_tree_absent() {
 }
 
 check_agent_skill_files() {
-  local source_dir
+  local source_entry
   local skill
-  while IFS= read -r source_dir; do
-    skill="${source_dir##*/}"
-    if [[ -f "${source_dir}/SKILL.md" ]]; then
+  while IFS= read -r source_entry; do
+    skill="${source_entry##*/}"
+    if [[ -L "${source_entry}" ]]; then
+      hard_fail "target/home/.agents/skills/${skill} must be a real directory, not a symlink"
+    elif [[ ! -d "${source_entry}" ]]; then
+      hard_fail "target/home/.agents/skills/${skill} is not a directory"
+    elif [[ -f "${source_entry}/SKILL.md" ]]; then
       pass "target/home/.agents/skills/${skill}/SKILL.md exists"
     else
       hard_fail "target/home/.agents/skills/${skill}/SKILL.md is missing"
     fi
-  done < <(find "${DOTFILES_ROOT}/target/home/.agents/skills" -maxdepth 1 -mindepth 1 -type d | sort)
+  done < <(find "${DOTFILES_ROOT}/target/home/.agents/skills" -maxdepth 1 -mindepth 1 -print | sort)
 }
 
 check_git() {

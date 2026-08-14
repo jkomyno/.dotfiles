@@ -8,6 +8,18 @@ These instructions apply to every coding agent on this machine (Claude Code, Cod
 - Write commit messages in Conventional Commits style (`feat:`, `fix:`, `chore:`, ...), imperative mood, small and scoped.
 - Prefer `rg` for searching over `grep -r` and `find`.
 
+## Git & PR policy
+
+- Never push directly to a repository's default or protected branch; deliver changes through a PR.
+- A reviewed feature branch may be pushed once to establish its remote ref. Open its PR immediately, then keep every subsequent push on that linked PR branch.
+- Push only after the feature is implemented, reviewed locally, and cleaned up.
+- Fast tests and lint run locally; e2e runs on CI.
+- When the task explicitly says commit or push, do the requested step without re-asking once its gates pass. Otherwise don't.
+- Personal repos (`~/work/me/**`): looser — free commits and initial feature-branch publication; the default branch still requires a PR.
+- Work repos and long-standing public repos: strict — no push without local review and green local checks.
+- Once a plan is approved, execute end-to-end and report at completion.
+- When finished, report: "What's next: <tl;dr>. <next prompt to copy>".
+
 ## Local repository notes
 
 - If `AGENTS.local.md` exists at a repository's root, read it before starting work. It holds machine-local, untracked guidance: pointers to reference corpora under `~/.jk/ideas/<name>/`, environment quirks, and other context that must stay out of git history.

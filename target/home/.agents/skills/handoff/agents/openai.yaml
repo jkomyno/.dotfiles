@@ -1,0 +1,4 @@
+interface:
+  display_name: "Session Handoff"
+  short_description: "Write a self-contained next-session prompt"
+  default_prompt: "Use $handoff to summarize the current state and write the next-session prompt."

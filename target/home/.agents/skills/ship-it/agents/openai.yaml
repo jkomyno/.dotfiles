@@ -1,0 +1,4 @@
+interface:
+  display_name: "Ship It"
+  short_description: "Drive release-ready work through its final gates"
+  default_prompt: "Use $ship-it to audit what remains and drive this repository to shipped."
