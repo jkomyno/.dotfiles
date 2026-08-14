@@ -1,0 +1,4 @@
+interface:
+  display_name: "PR Janitor"
+  short_description: "Keep a pull request green and review-ready"
+  default_prompt: "Use $pr-janitor to resolve this PR’s failures and review comments safely."
