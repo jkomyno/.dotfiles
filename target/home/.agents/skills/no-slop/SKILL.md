@@ -28,7 +28,7 @@ Treat slop as work that claims more than it proves. Remove it without flattening
 
 ## TypeScript
 
-Read [TypeScript](references/typescript.md) before writing or reviewing TypeScript or JavaScript. Apply repository rules first. Use the reference as a strict default, not permission for an unrelated rewrite.
+Read [TypeScript](references/typescript.md) before writing or reviewing TypeScript or JavaScript. When the task evaluates, configures, or fixes no-slop Oxlint rules, also read [Oxlint policy](references/oxlint.md). Apply repository rules first. Use these references as strict defaults, not permission for an unrelated rewrite.
 
 ## Technical prose
 

@@ -16,7 +16,7 @@ Avoid these patterns:
 - Widening a known value to `unknown`, `object`, or a broad dictionary, then asserting it back.
 - Aliases that only hide `unknown`, `any`, `{}`, or `object`.
 - Generic parameters that add no caller-controlled variation.
-- Names such as `UserShape` that describe structure instead of a domain role.
+- Structural names such as `UserShape` when a domain role names the concept better. Keep `shape` when geometry, tensors, or another domain uses it precisely.
 
 Preserve registry keys while checking every value:
 
@@ -35,7 +35,7 @@ Use `Record<string, Value>` only for a genuinely open key space. For fixed keys,
 
 - Accept `unknown` only where untrusted input enters, such as JSON, environment data, storage, or third-party responses.
 - Parse with the repository's existing schema or decoder. Do not add a validation dependency for style alone.
-- Return a named domain type from the parser. Do not pass or return raw `unknown` through business logic.
+- Return a named domain type before data enters business logic. A generic transport or JSON decoder may return `unknown` when it cannot own the domain schema. Parse that result immediately.
 - Keep `cause: unknown` when preserving an external error cause.
 - Prefer an explicit JSON value type when the contract is JSON, not arbitrary data.
 - Keep `typeof`, `in`, and property checks inside a parser or type guard. Do not scatter them through domain code.
@@ -44,14 +44,14 @@ Use `Record<string, Value>` only for a genuinely open key space. For fixed keys,
 
 Replace an assertion with inference, parsing, a type guard, or exhaustive control flow when possible.
 
-When an assertion is unavoidable, place a specific `SAFETY:` comment immediately before it. Name the checked invariant and the operation that established it.
+When an assertion relies on a runtime invariant the compiler cannot see, place a specific `SAFETY:` comment immediately before it. Name the invariant and the operation that established it.
 
 ```ts
 // SAFETY: parseUserId validated the canonical UUID form before branding it.
 return value as UserId;
 ```
 
-A comment does not make an unchecked assertion safe. Add or keep runtime validation when the value crosses a trust boundary.
+A comment does not make an unchecked assertion safe. Add or keep runtime validation when the value crosses a trust boundary. Do not add ritual comments for locally obvious compiler limitations. Prefer a named helper when the same assertion repeats.
 
 ## Keep behavior direct
 
@@ -66,7 +66,7 @@ A comment does not make an unchecked assertion safe. Add or keep runtime validat
 
 - Test changed behavior, bug regressions, and previously untested public contracts.
 - Exercise parsing where untrusted data enters and assert the domain result or error.
-- Pass dependencies through real parameters or interfaces. Prefer faithful test implementations over module mocks.
+- Pass dependencies through real parameters or interfaces. Prefer faithful test implementations. Use a module mock only when the dependency cannot be replaced without an unrelated production redesign, and keep the mock local to the test.
 - Do not test private call order, copied implementation logic, or impossible states.
 - Keep the narrowest test that proves the contract.
 
@@ -85,6 +85,6 @@ rg -n --glob '*.ts' --glob '*.tsx' \
   'as unknown as|Record<string, unknown>|:\s*(unknown|object)\b|Reflect\.(get|apply)|\b(vi|jest)\.(mock|doMock|unstable_mockModule)\b|\btypeof\b|[A-Za-z0-9_]Shape\b'
 ```
 
-Do not auto-fix the matches. A boundary parser, an open dictionary, or a local test convention may be valid.
+Do not auto-fix the matches. A boundary parser, an open dictionary, or a local test convention may be valid. Treat the scan as discovery, not enforcement.
 
 Run the repository's narrow typecheck, lint command, and relevant tests after editing. Inspect the final diff for widened types, new assertions, hidden branches, and unrelated churn.
