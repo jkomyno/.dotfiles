@@ -11,7 +11,7 @@ Treat slop as work that claims more than it proves. Remove it without flattening
 
 - Preserve evidence. Keep known values, keys, invariants, and source facts visible.
 - State the exact thing. Prefer domain names and direct claims over generic containers or abstract labels.
-- Contain uncertainty. Parse external input once, close to the input boundary.
+- Contain uncertainty. Parse and normalize external input once per ownership boundary. Resolve process configuration at the composition root.
 - Prefer direct mechanics. Make data flow, control flow, and ownership easy to follow.
 - Make every layer earn its place. An abstraction, guard, test, comment, or sentence must add information or enforce a contract.
 - Keep deliberate voice. Remove formulas and filler, then check that the result still sounds authored.

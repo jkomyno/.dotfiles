@@ -31,8 +31,14 @@ type CommandName = keyof typeof handlers;
 
 Use `Record<string, Value>` only for a genuinely open key space. For fixed keys, infer the object or name the key union.
 
-## Parse boundaries once
+## Normalize boundaries once
 
+- At the composition root, read environment variables, config files, and CLI arguments. Resolve precedence and defaults there.
+- Validate and canonicalize that input into one readonly runtime config. Pass each component only the typed values it owns.
+- Do not read `process.env` or repeat defaults and fallback logic downstream.
+- If configuration reloads at runtime, let one provider own rereads and emit validated snapshots. Consumers still receive normalized config.
+- Normalize requests, messages, and job payloads once at each ingress boundary. These values do not exist at process startup.
+- Normalize only representations the contract considers equivalent. Preserve distinctions between missing, empty, `false`, `0`, omitted, and `undefined` when behavior differs.
 - Accept `unknown` only where untrusted input enters, such as JSON, environment data, storage, or third-party responses.
 - Parse with the repository's existing schema or decoder. Do not add a validation dependency for style alone.
 - Return a named domain type before data enters business logic. A generic transport or JSON decoder may return `unknown` when it cannot own the domain schema. Parse that result immediately.
@@ -82,7 +88,7 @@ Use a text scan to find candidates, then inspect every match in context:
 
 ```bash
 rg -n --glob '*.ts' --glob '*.tsx' \
-  'as unknown as|Record<string, unknown>|:\s*(unknown|object)\b|Reflect\.(get|apply)|\b(vi|jest)\.(mock|doMock|unstable_mockModule)\b|\btypeof\b|[A-Za-z0-9_]Shape\b'
+  'as unknown as|Record<string, unknown>|:\s*(unknown|object)\b|Reflect\.(get|apply)|\b(vi|jest)\.(mock|doMock|unstable_mockModule)\b|\btypeof\b|[A-Za-z0-9_]Shape\b|process\.env\b'
 ```
 
 Do not auto-fix the matches. A boundary parser, an open dictionary, or a local test convention may be valid. Treat the scan as discovery, not enforcement.
