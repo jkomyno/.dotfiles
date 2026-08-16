@@ -63,6 +63,9 @@ Frontmatter values that should be preserved without turning into one-line text p
 ### 4. Add a new skill
 
 1. Add an entry to `manifest.json` with `repo` and `path` (the directory containing `SKILL.md`).
+   Use `path: "."` when `SKILL.md` is at the repository root. Add an optional
+   `include` array to vendor only runtime-relevant files and directories from a
+   repository root; omitted entries keep the existing copy-all behavior.
 2. Run `apply-upstream.sh <name> <upstream_skill_dir>` to vendor it under `target/home/.agents/skills/<name>/`.
 3. No manual Claude-specific symlink is needed: `bash "$DOTFILES/scripts/dotfiles/claude-skill-links.sh"` adds the managed skill link while preserving plugin and local-only entries in Claude's host-owned skills directory.
 

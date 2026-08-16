@@ -9,6 +9,7 @@
 set -euo pipefail
 
 [[ $# -ge 2 ]] || { echo "Usage: apply-upstream.sh <skill_name> <upstream_skill_dir> [--skills-dir <dir>]" >&2; exit 2; }
+command -v jq >/dev/null || { echo "ERROR: jq is required" >&2; exit 1; }
 
 NAME="$1"
 UPSTREAM_DIR="$2"
@@ -17,6 +18,7 @@ shift 2
 SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 SKILL_ROOT="$(dirname "$SCRIPT_DIR")"
 SKILLS_DIR="$(dirname "$SKILL_ROOT")"
+MANIFEST="$SKILL_ROOT/manifest.json"
 PATCHES_DIR="$SKILL_ROOT/patches"
 OVERRIDES_SCRIPT="$SCRIPT_DIR/apply-frontmatter-overrides.py"
 
@@ -27,6 +29,24 @@ fi
 
 [[ -d "$UPSTREAM_DIR" ]] || { echo "ERROR: upstream dir not found: $UPSTREAM_DIR" >&2; exit 1; }
 
+INCLUDE_PATHS=()
+if [[ -f "$MANIFEST" ]]; then
+  while IFS= read -r include_path; do
+    [[ -n "$include_path" ]] && INCLUDE_PATHS+=("$include_path")
+  done < <(jq -r --arg name "$NAME" '.skills[$name].include[]?' "$MANIFEST")
+fi
+
+for include_path in "${INCLUDE_PATHS[@]}"; do
+  case "/$include_path/" in
+    *"/../"*) echo "ERROR: unsafe include path for $NAME: $include_path" >&2; exit 1 ;;
+  esac
+  [[ "$include_path" != /* ]] || { echo "ERROR: unsafe include path for $NAME: $include_path" >&2; exit 1; }
+  [[ -e "$UPSTREAM_DIR/$include_path" ]] || {
+    echo "ERROR: included upstream path not found for $NAME: $include_path" >&2
+    exit 1
+  }
+done
+
 OUR_DIR="$SKILLS_DIR/$NAME"
 if [[ ! -d "$OUR_DIR" ]]; then
   echo "STATUS: installing new skill into $OUR_DIR"
@@ -34,7 +54,15 @@ fi
 
 rm -rf "$OUR_DIR"
 mkdir -p "$OUR_DIR"
-cp -R "$UPSTREAM_DIR/." "$OUR_DIR/"
+if [[ ${#INCLUDE_PATHS[@]} -gt 0 ]]; then
+  for include_path in "${INCLUDE_PATHS[@]}"; do
+    mkdir -p "$(dirname "$OUR_DIR/$include_path")"
+    cp -R "$UPSTREAM_DIR/$include_path" "$OUR_DIR/$include_path"
+  done
+else
+  cp -R "$UPSTREAM_DIR/." "$OUR_DIR/"
+  rm -rf "$OUR_DIR/.git"
+fi
 echo "STATUS: copied upstream into $OUR_DIR"
 
 shopt -s nullglob

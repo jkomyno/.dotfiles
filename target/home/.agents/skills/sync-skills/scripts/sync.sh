@@ -71,6 +71,24 @@ our_skill_dir() {
   fi
 }
 
+upstream_files() {
+  local root=$1
+  local include_json=$2
+  local include_path
+
+  if [[ "$(jq 'length' <<<"$include_json")" -gt 0 ]]; then
+    while IFS= read -r include_path; do
+      if [[ -d "$root/$include_path" ]]; then
+        command find "$root/$include_path" -type f ! -path '*/.git/*'
+      elif [[ -f "$root/$include_path" ]]; then
+        printf '%s\n' "$root/$include_path"
+      fi
+    done < <(jq -r '.[]' <<<"$include_json")
+  else
+    command find "$root" -type f ! -path '*/.git/*'
+  fi | sort -u
+}
+
 # --- Clone each unique upstream once ---
 echo "STATUS: cloning upstreams"
 mkdir -p "$WORK_DIR/repos"
@@ -87,7 +105,7 @@ echo "STATUS: clones complete"
 # --- Section 1: Upstream changes to vendored skills ---
 echo ""
 echo "=== UPSTREAM_CHANGES ==="
-while IFS=$'\t' read -r name repo path; do
+while IFS=$'\t' read -r name repo path include_json; do
   slug=$(repo_slug "$repo")
   upstream_path="$WORK_DIR/repos/$slug/$path"
   our_path=$(our_skill_dir "$name")
@@ -96,6 +114,14 @@ while IFS=$'\t' read -r name repo path; do
     echo "MISSING_UPSTREAM: $name | $repo | $path"
     continue
   fi
+  missing_include=0
+  while IFS= read -r include_path; do
+    if [[ ! -e "$upstream_path/$include_path" ]]; then
+      echo "MISSING_UPSTREAM: $name | $repo | $path/$include_path"
+      missing_include=1
+    fi
+  done < <(jq -r '.[]' <<<"$include_json")
+  [[ "$missing_include" -eq 0 ]] || continue
   if [[ -z "$our_path" ]]; then
     echo "MISSING_LOCAL: $name (in manifest, not vendored)"
     continue
@@ -133,7 +159,7 @@ while IFS=$'\t' read -r name repo path; do
       fi
     fi
     rm -f "$expected_tmp"
-  done < <(command find "$upstream_path" -type f | sort)
+  done < <(upstream_files "$upstream_path" "$include_json")
 
   while IFS= read -r our_file; do
     rel_path="${our_file#"$our_path"/}"
@@ -146,17 +172,22 @@ while IFS=$'\t' read -r name repo path; do
       echo "  - $f"
     done
   fi
-done < <(jq -r '.skills | to_entries[] | [.key, .value.repo, .value.path] | @tsv' "$MANIFEST")
+done < <(jq -r '.skills | to_entries[] | [.key, .value.repo, .value.path, ((.value.include // []) | tojson)] | @tsv' "$MANIFEST")
 
 # --- Section 2: Other skills in repos we already track ---
 echo ""
 echo "=== NEW_SKILLS ==="
 while IFS= read -r repo; do
   slug=$(repo_slug "$repo")
+  repo_root="$WORK_DIR/repos/$slug"
   while IFS= read -r skill_md; do
     skill_dir=$(dirname "$skill_md")
     skill_name=$(basename "$skill_dir")
-    rel_dir="${skill_dir#"$WORK_DIR/repos/$slug/"}"
+    if [[ "$skill_dir" == "$repo_root" ]]; then
+      rel_dir="."
+    else
+      rel_dir="${skill_dir#"$repo_root/"}"
+    fi
     # Skip if any manifest entry for this repo already points at this path.
     tracked=$(jq -r --arg repo "$repo" --arg path "$rel_dir" \
       '.skills | to_entries[] | select(.value.repo == $repo and .value.path == $path) | .key' "$MANIFEST")
