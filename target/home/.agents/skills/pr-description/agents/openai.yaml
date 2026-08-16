@@ -1,0 +1,4 @@
+interface:
+  display_name: "PR Description"
+  short_description: "Write precise, evidence-backed PR descriptions"
+  default_prompt: "Use $pr-description to draft a concise PR body for this non-Composio repository from the actual diff and completed checks."
