@@ -11,22 +11,22 @@
 -  version: 2.0.0
 +description: Prove substantial work complete with file-backed gates and runnable checks. Use when the user invokes unlazy, requests a Depth Tree or completion ledger, or demands exhaustive completion.
  ---
- 
+
  # Unlazy
- 
+
 -You are running under anti-laziness discipline. The failure this skill exists to kill is output that is technically responsive but quietly incomplete: the done report at 80 percent, the silently narrowed scope, the confident wrong number in a final summary, the long run that drifts into recap mode instead of working.
 +Use durable evidence when ordinary planning and verification are not enough. The
 +distinctive mechanism is a gate ledger; rely on the host's existing rules for
 +scope, safety, planning, testing, and communication.
- 
+
 -v1 of this skill fought these with instructions. A controlled six-run test showed the limit of that: instructions raise effort, but the failures that survive are exactly the ones prose cannot catch, wrong numbers in self-reports and stalls that feel like completion. So v2 moves enforcement out of your goodwill and into files and checks. You do not promise you are done. You prove it against a ledger.
 +## Start with gates
- 
+
 -## Rule zero: gates before work
 +Before implementation, create `GATES.md` from
 +[`templates/gates-leaf.md`](templates/gates-leaf.md). Read
 +[`references/gates.md`](references/gates.md) before writing the first ledger.
- 
+
 -Before starting real work, write the acceptance gates to a file. Not in your head, not in prose, in a file: `GATES.md` in the working directory, using the format in [templates/gates-leaf.md](templates/gates-leaf.md). One checkbox per outcome the task requires, and wherever an outcome can be checked by a command, give it a `CHECK:` line and an `EXPECT:` line so the check is runnable rather than a matter of opinion.
 +- State observable outcomes, not activities.
 +- Give each automatable gate a `CHECK`, decisive `EXPECT`, and `EVIDENCE`.
@@ -34,24 +34,24 @@
 +  file and line.
 +- Preserve an impossible gate with `ABANDON: <id> <reason>` and report it; never
 +  silently narrow scope.
- 
+
 -Why a file: your intentions do not survive a long context, files do. A checklist you wrote at minute 2 is still exactly as sharp at minute 90, when the pull toward wrapping up is strongest.
 +Run checks and update the ledger with:
- 
+
 -Done means every box is checked with evidence recorded. Run the bundled checker to execute the checks and record evidence for you:
 -
 -```
 +```bash
  node <this-skill-dir>/scripts/gate-check.mjs GATES.md
  ```
- 
+
 -Manual gates (no CHECK possible) are checked by hand, but only with the `EVIDENCE:` line replaced by actual proof: a measurement, a quote of output, a file path with the relevant line. An evidence line still reading `pending` is an unmet gate, whatever the checkbox says.
 +Use `--status` for a read-only ledger check. Keep gate files uncommitted unless
 +the repository treats execution ledgers as project artifacts.
- 
+
 -If a gate becomes genuinely impossible, do not quietly drop it. Add a line `ABANDON: <gate id> <reason>` to the gates file and say so in your report. A clean, visible handover beats silent degradation, and the enforcement tooling treats an ABANDON line as an honest exit, not a failure.
 +## Choose the smallest mode
- 
+
 -## Pick a mode
 +- **Solo, by default:** one `GATES.md`, one coherent task, no orchestration.
 +- **Depth Tree:** only for an explicit `tree N` request or work too large for one
@@ -62,22 +62,22 @@
 +  [`references/orchestration.md`](references/orchestration.md), assign disjoint
 +  ownership, add branch integration gates, and have the parent rerun leaf
 +  checks. Respect the host's concurrency and delegation rules.
- 
+
 -**Solo** (default). The task fits one focused stretch: roughly under half an hour of real work, tree depth 3 or less. One `GATES.md`, work until it is fully checked, report with the ledger pasted.
 +For long runs, consult
 +[`references/token-economy.md`](references/token-economy.md) and keep leaf briefs
 +to their contract plus ledger.
- 
+
 -**Orchestrated**. The task is a build: tree depth 4 or more, or clearly beyond one sitting. Decompose per [references/method.md](references/method.md), write `PLAN.md` plus one gates file per leaf under `gates/`, and run each leaf as a fresh subagent with a narrow brief. Read [references/orchestration.md](references/orchestration.md) before fanning out; the verification hierarchy there (leaf checks itself, parent re-runs the checks) is the entire point of the mode.
 +## Finish against evidence
- 
+
 -The reason orchestrated mode exists: the stall-at-80-percent failure is an end-of-long-context disease. A fresh context per leaf means every leaf starts with full attention. That is the honest version of "every leaf gets the full budget", because the scarce resource was never time, it was attention.
 +1. Run the ledger checks and resolve every unmet gate.
 +2. Adversarially inspect at least one passed gate and correct weak evidence.
 +3. Remeasure every number used in the final report.
 +4. Report the met-gate count and every abandoned gate. Do not claim full
 +   completion when anything remains unmet.
- 
+
 -## The Depth Tree, v2
 -
 -Created by Leonxlnx. In v2 the tree is a decomposition tool, not an effort multiplier; measured runs showed models treat the old arithmetic as a dial anyway. What depth buys you is structure:
