@@ -1,0 +1,11 @@
+--- upstream/unlazy/references/token-economy.md
++++ ours/unlazy/references/token-economy.md
+@@ -41,7 +41,7 @@
+   mechanical leaves, strong model for design, integration and every
+   verification pass.
+ - **Do not orchestrate small tasks.** Under roughly half an hour of work,
+-  each subagent's context re-establishment outweighs the attention gain.
++  each delegated agent's context re-establishment outweighs the attention gain.
+   Solo mode with a gates file gives you most of the discipline at a fraction
+   of the cost.
+ - **Depth is not a spend dial.** Measured: within one context, deeper trees
