@@ -59,6 +59,17 @@
     "using-exe-dev": {
       "repo": "https://github.com/boldsoftware/exe.dev.git",
       "path": "skill"
+    },
+    "unlazy": {
+      "repo": "https://github.com/Leonxlnx/unlazy.git",
+      "path": ".",
+      "include": [
+        "LICENSE",
+        "SKILL.md",
+        "references",
+        "scripts",
+        "templates"
+      ]
     }
   }
 }

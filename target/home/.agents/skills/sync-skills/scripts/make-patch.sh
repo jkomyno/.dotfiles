@@ -30,5 +30,11 @@ if diff -u --label "upstream/$NAME/$REL_PATH" --label "ours/$NAME/$REL_PATH" \
   rm -f "$PATCH_FILE"
   echo "STATUS: no difference, no patch written"
 else
+  # Unified diffs mark blank context lines with one space. GNU and BSD patch
+  # accept those lines without the marker, which keeps git whitespace checks
+  # useful for vendored patch files.
+  NORMALIZED_PATCH="${PATCH_FILE}.normalized"
+  sed 's/^ $//' "$PATCH_FILE" > "$NORMALIZED_PATCH"
+  mv "$NORMALIZED_PATCH" "$PATCH_FILE"
   echo "WROTE: $PATCH_FILE"
 fi
