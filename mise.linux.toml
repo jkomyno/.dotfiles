@@ -28,6 +28,8 @@ system_packages.managers = ["apt"]
 login_shell = "/usr/bin/zsh"
 
 [dotfiles]
+"~/.local/share/qBittorrent/nova3/engines/one337x.py" = { source = "target/home/Library/Application Support/qBittorrent/nova3/engines/one337x.py", mode = "symlink" }
+"~/.local/share/qBittorrent/nova3/engines/thepiratebay.py" = { source = "target/home/Library/Application Support/qBittorrent/nova3/engines/thepiratebay.py", mode = "symlink" }
 "~/.config/mise/config.linux.toml" = { source = "target/home/.config/mise/config.linux.toml", mode = "symlink" }
 "~/.config/mise/mise.linux.lock" = { source = "target/home/.config/mise/mise.linux.lock", mode = "symlink" }
 "~/.config/systemd/user/agentmemory.service" = { source = "target/home/.config/systemd/user/agentmemory.service", mode = "symlink" }
