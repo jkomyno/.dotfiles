@@ -59,6 +59,11 @@ bundle_file() {
   printf '%s/%s\n' "$(script_dir)" "${NANOBREW_CASKS_BUNDLE_NAME}"
 }
 
+bundle_cask_names() {
+  # Extract cask names from a Brewfile-style bundle, preserving order.
+  sed -nE 's/^[[:space:]]*cask[[:space:]]+"([^"]+)".*/\1/p' "$1"
+}
+
 install_nanobrew_casks() {
   local nb_cmd
   local bundle
@@ -68,7 +73,33 @@ install_nanobrew_casks() {
   [[ -r "${bundle}" ]] || die "nanobrew cask bundle not found: ${bundle}"
 
   log "Installing nanobrew cask bundle"
-  "${nb_cmd}" bundle install "${bundle}"
+  if "${nb_cmd}" bundle install "${bundle}"; then
+    return 0
+  fi
+
+  # A single failing cask aborts the whole bundle, which blocks every later
+  # staged-setup step. Retry casks individually so one bad entry only affects
+  # itself. Font casks are tolerated with a warning: nanobrew currently cannot
+  # install variable-font releases whose filenames contain axis tags (for
+  # example JetBrainsMono[wght].ttf) because it rejects '[' as a glob character
+  # (error.UnsafePath); apps keep failing hard.
+  log "Bundle install failed; retrying casks individually"
+  local cask
+  local -a failures=()
+  while IFS= read -r cask; do
+    [[ -n "${cask}" ]] || continue
+    if ! "${nb_cmd}" install --cask "${cask}"; then
+      if [[ "${cask}" == font-* ]]; then
+        log "Skipping ${cask}: nanobrew could not install this font"
+      else
+        failures+=("${cask}")
+      fi
+    fi
+  done < <(bundle_cask_names "${bundle}")
+
+  if ((${#failures[@]} > 0)); then
+    die "failed to install casks: ${failures[*]}"
+  fi
 }
 
 main() {
