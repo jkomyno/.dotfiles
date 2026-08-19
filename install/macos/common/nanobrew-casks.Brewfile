@@ -18,6 +18,7 @@ cask "notunes"
 cask "orbstack"
 cask "qbittorrent"
 cask "rectangle"
+cask "slack"
 cask "telegram-desktop"
 cask "vlc"
 
