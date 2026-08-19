@@ -199,12 +199,17 @@ defaults_file_associations() {
 
   # VS Code declares support for Markdown's UTI; assigning every role makes it
   # the default app for opening both .md and .markdown documents.
-  "${duti_bin}" -s "${vscode_bundle_id}" net.daringfireball.markdown all
+  "${duti_bin}" -s "${vscode_bundle_id}" net.daringfireball.markdown all ||
+    log "Skipping Markdown association: duti could not set VS Code as the handler"
 
   # Keep this list extension-specific so setup changes only the explicitly
   # requested developer formats, not every type inheriting a broad source UTI.
   for extension in "${extensions[@]}"; do
-    "${duti_bin}" -s "${vscode_bundle_id}" ".${extension}" all
+    # Extensions no installed app declares resolve to a dynamic UTI (dyn.*),
+    # which LaunchServices refuses to assign (duti error -50). Warn and keep
+    # going so one unregistered type cannot abort the remaining defaults.
+    "${duti_bin}" -s "${vscode_bundle_id}" ".${extension}" all ||
+      log "Skipping .${extension} association: no declared UTI (launch VS Code once and re-run)"
   done
 }
 
