@@ -1095,7 +1095,7 @@ backend = "npm:@agentmemory/agentmemory"
 trust_policy_excludes = '["@agentmemory/agentmemory@0.9.28", "protobufjs@6.11.6"]'
 
 [[tools."npm:@earendil-works/pi-coding-agent"]]
-version = "0.84.1"
+version = "0.84.2"
 backend = "npm:@earendil-works/pi-coding-agent"
 
 [[tools."npm:@getpaseo/cli"]]
