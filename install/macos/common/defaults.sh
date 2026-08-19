@@ -197,6 +197,17 @@ defaults_file_associations() {
 
   [[ -x "${duti_bin}" ]] || die "duti is not installed; run install:macos:nanobrew-formulae first"
 
+  # File-type handlers are resolved through LaunchServices, which registers
+  # apps lazily (first launch or /Applications scan). On a fresh machine the
+  # cask-installed VS Code is on disk but unregistered, so extensions resolve
+  # to dynamic UTIs (dyn.*) and duti fails with error -50. Force registration
+  # first so the assignments below are reliable without launching the app.
+  local vscode_app="/Applications/Visual Studio Code.app"
+  local lsregister_bin="/System/Library/Frameworks/CoreServices.framework/Frameworks/LaunchServices.framework/Support/lsregister"
+  if [[ -d "${vscode_app}" && -x "${lsregister_bin}" ]]; then
+    "${lsregister_bin}" -f "${vscode_app}" >/dev/null 2>&1 ||
+      log "Could not register VS Code with LaunchServices; associations may be skipped"
+  fi
   # VS Code declares support for Markdown's UTI; assigning every role makes it
   # the default app for opening both .md and .markdown documents.
   "${duti_bin}" -s "${vscode_bundle_id}" net.daringfireball.markdown all ||
@@ -205,11 +216,12 @@ defaults_file_associations() {
   # Keep this list extension-specific so setup changes only the explicitly
   # requested developer formats, not every type inheriting a broad source UTI.
   for extension in "${extensions[@]}"; do
-    # Extensions no installed app declares resolve to a dynamic UTI (dyn.*),
-    # which LaunchServices refuses to assign (duti error -50). Warn and keep
-    # going so one unregistered type cannot abort the remaining defaults.
+    # Extensions no installed app declares still resolve to a dynamic UTI
+    # (dyn.*), which LaunchServices refuses to assign (duti error -50). Warn
+    # and keep going so one unregistered type cannot abort the remaining
+    # defaults sections.
     "${duti_bin}" -s "${vscode_bundle_id}" ".${extension}" all ||
-      log "Skipping .${extension} association: no declared UTI (launch VS Code once and re-run)"
+      log "Skipping .${extension} association: LaunchServices has no declared type for it yet"
   done
 }
 
