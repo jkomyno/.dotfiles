@@ -44,6 +44,38 @@ checksum = "sha256:a1b5b7c06994992755d4cd0b9cf10c2f4a6e7b4a82d2810edee5985a59f67
 url = "https://github.com/ast-grep/ast-grep/releases/download/0.45.0/app-x86_64-pc-windows-msvc.zip"
 url_api = "https://api.github.com/repos/ast-grep/ast-grep/releases/assets/487376855"
 
+[[tools.aws-cli]]
+version = "2.36.29"
+backend = "aqua:aws/aws-cli"
+
+[tools.aws-cli."platforms.linux-arm64"]
+url = "https://awscli.amazonaws.com/awscli-exe-linux-aarch64-2.36.29.zip"
+
+[tools.aws-cli."platforms.linux-arm64-musl"]
+url = "https://awscli.amazonaws.com/awscli-exe-linux-aarch64-2.36.29.zip"
+
+[tools.aws-cli."platforms.linux-x64"]
+url = "https://awscli.amazonaws.com/awscli-exe-linux-x86_64-2.36.29.zip"
+
+[tools.aws-cli."platforms.linux-x64-baseline"]
+url = "https://awscli.amazonaws.com/awscli-exe-linux-x86_64-2.36.29.zip"
+
+[tools.aws-cli."platforms.linux-x64-musl"]
+url = "https://awscli.amazonaws.com/awscli-exe-linux-x86_64-2.36.29.zip"
+
+[tools.aws-cli."platforms.linux-x64-musl-baseline"]
+url = "https://awscli.amazonaws.com/awscli-exe-linux-x86_64-2.36.29.zip"
+
+[tools.aws-cli."platforms.macos-arm64"]
+checksum = "blake3:18dfdf64e4b13d3f3f7b8e0039a6ca0753020149319f74e7455e0e038cf9a5de"
+url = "https://awscli.amazonaws.com/AWSCLIV2-2.36.29.pkg"
+
+[tools.aws-cli."platforms.macos-x64"]
+url = "https://awscli.amazonaws.com/AWSCLIV2-2.36.29.pkg"
+
+[tools.aws-cli."platforms.macos-x64-baseline"]
+url = "https://awscli.amazonaws.com/AWSCLIV2-2.36.29.pkg"
+
 [[tools.bat]]
 version = "0.26.1"
 backend = "aqua:sharkdp/bat"

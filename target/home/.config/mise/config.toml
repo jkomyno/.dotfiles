@@ -43,6 +43,8 @@ cargo-binstall = "latest"
 # Git and GitHub tooling
 # https://github.com/cli/cli - GitHub's official command-line tool
 gh = "latest"
+# https://github.com/aws/aws-cli - AWS command-line interface
+aws-cli = "latest"
 # https://github.com/kitlangton/ghui - GitHub pull request TUI
 "npm:@kitlangton/ghui" = "latest"
 # https://github.com/dandavison/delta - syntax-highlighting, side-by-side Git diff pager
