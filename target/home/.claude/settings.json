@@ -3,6 +3,7 @@
     "commit": "",
     "pr": ""
   },
+  "outputStyle": "Concise",
   "permissions": {
     "allow": [
       "Read(**)",
