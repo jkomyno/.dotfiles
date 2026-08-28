@@ -43,6 +43,8 @@ cargo-binstall = "latest"
 # Git and GitHub tooling
 # https://github.com/cli/cli - GitHub's official command-line tool
 gh = "latest"
+# https://github.com/slackapi/slack-cli - create, develop, and deploy Slack apps
+"aqua:slackapi/slack-cli" = "latest"
 # https://github.com/aws/aws-cli - AWS command-line interface
 aws-cli = "latest"
 # https://github.com/kitlangton/ghui - GitHub pull request TUI
