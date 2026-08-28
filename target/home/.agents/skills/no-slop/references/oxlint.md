@@ -1,53 +1,68 @@
 # Oxlint policy
 
-The `anti-slop/*` identifiers below are custom JavaScript plugin rules. They are not part of Oxlint core. The current rules inspect syntax rather than TypeScript types, so they do not replace typecheck or boundary tests. Treat them as policy candidates and keep this local policy independent from upstream defaults.
+Install the bundled source instead of configuring rule names without implementations. The `anti-slop/*` rules are vendored from [`dmmulroy/anti-slop` at `6d53855`](https://github.com/dmmulroy/anti-slop/tree/6d538555cb151d4121ed51a27db81890eacf8ae9), with its MIT license. The `no-slop/*` rules are maintained locally. Both plugins inspect syntax rather than TypeScript types, so they supplement typecheck and boundary tests.
 
-Do not use warning severity. A rule either has enough signal to block a change or remains a review heuristic.
+Do not use warning severity. Enable a rule as an error where its contract applies, or leave it disabled and report it as a review heuristic.
 
-## Default errors
+## Install
 
-Enable these rules when the repository has the plugin. Their violations discard type evidence with few legitimate exceptions.
+1. Read repository instructions, inspect `git status`, identify the package manager, and locate `oxlint.config.*`, `.oxlintrc*`, or Vite+ configuration.
+2. Run `node <skill-directory>/scripts/install.mjs` from the target repository. This copies the plugins to `tools/oxlint/anti-slop/` and `tools/oxlint/no-slop/`. Pass a different tooling root as the first argument when required. The script refuses to overwrite existing copies; use `--force` only after reviewing and preserving local changes.
+3. Query current `oxlint` and `@oxlint/plugins` versions from npm and install matching versions as development dependencies with the repository's package manager.
+4. Ignore the copied plugin source and local agent directories in lint and formatting. Preserve existing ignores.
+5. Register both generic plugins:
 
-| Rule | Required response |
+   ```ts
+   jsPlugins: [
+     { name: "anti-slop", specifier: "./tools/oxlint/anti-slop/index.ts" },
+     { name: "no-slop", specifier: "./tools/oxlint/no-slop/index.ts" },
+   ]
+   ```
+
+6. Enable the generic rules below as errors. Use file overrides only for a justified directory-level contract.
+7. Run the repository's lint command, typecheck, and affected tests. For Vite+, run the full `vp check` after merging lint and format ignores. Fix findings only when the user requested migration or cleanup.
+8. Report copied paths, dependency versions, configuration changes, checks, and remaining findings.
+
+## Complete upstream rules
+
+Enable every generic upstream rule:
+
+```json
+{
+  "anti-slop/no-chained-type-assertions": "error",
+  "anti-slop/no-conditional-empty-object-spread": "error",
+  "anti-slop/no-known-value-widening": "error",
+  "anti-slop/no-module-mocking": "error",
+  "anti-slop/no-object-parameters": "error",
+  "anti-slop/no-reflect-apply": "error",
+  "anti-slop/no-reflect-get": "error",
+  "anti-slop/no-runtime-typeof": "error",
+  "anti-slop/no-shape-in-symbol-names": "error",
+  "anti-slop/no-unknown-parameters": "error",
+  "anti-slop/no-unknown-returns": "error",
+  "anti-slop/no-unknown-type-aliases": "error",
+  "anti-slop/no-unsafe-dictionary-type": "error",
+  "anti-slop/no-widen-then-assert": "error",
+  "anti-slop/require-safety-comment-for-type-assertion": "error"
+}
+```
+
+If the repository directly depends on Effect, or the user requests Effect policy, also register `./tools/oxlint/anti-slop/effect/index.ts` as `anti-slop-effect` and enable `anti-slop-effect/no-service-constructor-imports` as an error. Do not infer this from a transitive lockfile entry.
+
+## Local rules
+
+Enable these as errors with the generic plugin:
+
+| Rule | Contract |
 | --- | --- |
-| `anti-slop/no-chained-type-assertions` | Replace assertion chains with inference, parsing, or one justified assertion. |
-| `anti-slop/no-known-value-widening` | Preserve inferred keys and values with inference, `satisfies`, or a named owner contract. |
-| `anti-slop/no-object-parameters` | Accept a useful domain type or a caller-controlled generic. |
-| `anti-slop/no-unknown-type-aliases` | Keep `unknown` visible at the boundary instead of hiding it behind an alias. |
-| `anti-slop/no-widen-then-assert` | Preserve the original precise type or parse once before domain use. |
+| `no-slop/no-broad-return-types` | Explicit function returns must provide more evidence than `any`, `object`, or `{}`. |
+| `no-slop/no-broad-type-aliases` | An alias must not merely rename `any`, `object`, or `{}`. Upstream covers aliases to `unknown`. |
 
-## Scoped errors
+Enable `no-slop/no-ambient-env-access` for source directories whose environment configuration is already resolved at the composition root. Exclude the small set of files that owns environment reads. Do not enable it globally and then suppress arbitrary consumers.
 
-Enable these as errors only after the repository satisfies the stated condition. Use file overrides when the exception belongs to a clear directory.
+## Migration constraints
 
-| Rule | Enable when |
-| --- | --- |
-| `anti-slop/no-conditional-empty-object-spread` | The project treats omitted properties as a contract and prefers explicit object construction. |
-| `anti-slop/no-module-mocking` | Dependencies already enter through parameters, interfaces, or replaceable services. Do not force a production redesign during a test cleanup. |
-| `anti-slop/no-reflect-apply` | Application code has no intentional metaprogramming or compatibility adapter that requires reflective calls. |
-| `anti-slop/no-reflect-get` | Dynamic property access is isolated behind typed registries or parsed boundary objects. |
-| `anti-slop/no-unknown-returns` | Raw transport decoders and generic JSON utilities are excluded or already return a concrete JSON type. |
-| `anti-slop/no-unsafe-dictionary-type` | Open metadata and JSON contracts use a concrete value type or are parsed before domain use. |
-| `anti-slop/require-safety-comment-for-type-assertion` | Existing assertions have been reviewed and the team will reject comments that do not name a checked invariant. |
-
-## Review only
-
-Do not enable these globally. Their syntax also represents valid TypeScript or precise domain language.
-
-| Rule | Review decision |
-| --- | --- |
-| `anti-slop/no-runtime-typeof` | Keep runtime checks inside parsers, assertion functions, and type guards. TypeScript uses these checks for sound narrowing. |
-| `anti-slop/no-shape-in-symbol-names` | Prefer a domain role, but keep `shape` when it is the exact domain term. |
-| `anti-slop/no-unknown-parameters` | Permit `unknown` at genuine trust boundaries. Require parsing before business logic. |
-
-## Adopt the policy
-
-1. Inspect the repository's existing Oxlint config, boundary modules, test architecture, and intentional metaprogramming.
-2. Confirm that the custom plugin implementation exists. If it is absent, ask before vendoring code or changing dependencies. Do not add rule names that Oxlint cannot load.
-3. Pin vendored plugin source to a reviewed commit and retain its license. Keep `oxlint` and `@oxlint/plugins` compatible with that source.
-4. Enable the default rules as errors.
-5. Enable scoped rules only where their preconditions hold.
-6. Run lint, typecheck, and the tests affected by each migration. Fix the ownership or parsing problem instead of laundering the type.
-7. Keep any disable directive narrow and explain the valid exception.
-
-This policy was compared with [`dmmulroy/anti-slop` at `446268e`](https://github.com/dmmulroy/anti-slop/tree/446268e5d15baa968eaec669ff65358d36ae6259). Reassess new upstream rules before adopting them.
+- Keep upstream source unchanged so a later refresh has a readable diff. Keep local rules in `no-slop`.
+- Do not suppress rules, weaken severity, add unsafe assertions, or rewrite valid dynamic behavior merely to make lint pass.
+- Preserve valid `unknown` at trust boundaries, `typeof` inside parsers and type guards, exact domain uses of `shape`, and intentional metaprogramming through explicit file overrides when an upstream rule would reject them.
+- Keep disable directives narrow and state the valid exception.

@@ -1,6 +1,6 @@
 ---
 name: no-slop
-description: Remove low-evidence code and formulaic technical prose while preserving intent. Use for no-slop or anti-slop requests, writing that sounds AI-generated, and TypeScript work involving broad types, unsafe assertions, vague names, hidden control flow, weak tests, or narrating comments.
+description: Remove low-evidence code and formulaic technical prose while preserving intent, and install the bundled anti-slop Oxlint rules. Use for no-slop or anti-slop requests, configuring opinionated TypeScript lint policy, writing that sounds AI-generated, and TypeScript work involving broad types, unsafe assertions, vague names, hidden control flow, weak tests, or narrating comments.
 ---
 
 # No slop
@@ -28,7 +28,7 @@ Treat slop as work that claims more than it proves. Remove it without flattening
 
 ## TypeScript
 
-Read [TypeScript](references/typescript.md) before writing or reviewing TypeScript or JavaScript. When the task evaluates, configures, or fixes no-slop Oxlint rules, also read [Oxlint policy](references/oxlint.md). Apply repository rules first. Use these references as strict defaults, not permission for an unrelated rewrite.
+Read [TypeScript](references/typescript.md) before writing or reviewing TypeScript or JavaScript. When the task evaluates, configures, fixes, or installs no-slop Oxlint rules, also read [Oxlint policy](references/oxlint.md). Apply repository rules first. Use these references as strict defaults, not permission for an unrelated rewrite.
 
 ## Technical prose
 

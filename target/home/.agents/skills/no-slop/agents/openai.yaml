@@ -1,4 +1,4 @@
 interface:
   display_name: "No Slop"
-  short_description: "Remove low-evidence code and prose"
-  default_prompt: "Use $no-slop to review this TypeScript change for low-evidence patterns."
+  short_description: "Remove low-evidence code and install lint rules"
+  default_prompt: "Use $no-slop to review this TypeScript change or install its anti-slop Oxlint policy."
