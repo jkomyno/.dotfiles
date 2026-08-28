@@ -116,6 +116,9 @@ ast-grep = "latest"
 "npm:@getpaseo/cli" = "latest"
 # https://tryglen.com - shared team memory and transcript handoff CLI for coding agents
 "npm:@tryglen/cli" = "latest"
+# https://github.com/monid-ai/cli - unified catalog and runner for third-party data APIs;
+# shared agent instructions are tracked in target/home/.agents/skills/monid
+"npm:@monid-ai/cli" = "latest"
 # Amp (https://ampcode.com) is NOT a mise tool: every @sourcegraph/amp npm release
 # carries a -g<hash> suffix mise reads as a prerelease, so `mise ls-remote` returns
 # nothing and "latest" never resolves (an exact pin installs but never auto-updates).

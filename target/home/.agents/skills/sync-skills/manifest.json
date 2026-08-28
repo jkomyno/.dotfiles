@@ -60,6 +60,13 @@
       "repo": "https://github.com/boldsoftware/exe.dev.git",
       "path": "skill"
     },
+    "monid": {
+      "repo": "https://github.com/monid-ai/cli.git",
+      "path": "skills/monid",
+      "include": [
+        "SKILL.md"
+      ]
+    },
     "unlazy": {
       "repo": "https://github.com/Leonxlnx/unlazy.git",
       "path": ".",

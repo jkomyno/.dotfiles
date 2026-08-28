@@ -1187,6 +1187,10 @@ backend = "npm:@getpaseo/cli"
 version = "0.9.0"
 backend = "npm:@kitlangton/ghui"
 
+[[tools."npm:@monid-ai/cli"]]
+version = "0.1.6"
+backend = "npm:@monid-ai/cli"
+
 [[tools."npm:@openai/codex"]]
 version = "0.147.0"
 backend = "npm:@openai/codex"
