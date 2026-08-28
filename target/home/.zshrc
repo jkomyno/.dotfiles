@@ -128,6 +128,18 @@ zstyle ':completion:*' menu no
 # Remove "/" from WORDCHARS so slash acts as a word break
 WORDCHARS=${WORDCHARS//\/}
 
+# Recover when a TUI exits without restoring terminal input modes. Focus
+# reporting otherwise leaks ESC [ I/O on app focus changes, while enhanced
+# keyboard reporting makes ordinary shell input arrive as CSI u sequences.
+_restore_terminal_input_modes() {
+  [[ -t 1 ]] || return 0
+  builtin printf '\e[?1004l\e[<u\e[=0u'
+}
+typeset -ga precmd_functions
+if (( ${precmd_functions[(I)_restore_terminal_input_modes]} == 0 )); then
+  precmd_functions+=(_restore_terminal_input_modes)
+fi
+
 # Key bindings.
 # Note: you can determine the escape sequence by applying the key binding
 # while `cat -v` is running.
