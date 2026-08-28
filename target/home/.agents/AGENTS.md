@@ -5,6 +5,7 @@ These rules apply to every coding agent on this machine. Harness-specific entryp
 ## Work
 
 - A question asks for an answer, not a change. An explicit change request authorizes reversible, in-scope work without unnecessary confirmation.
+- When the user has supplied a clear target and enough context for in-scope, reversible work, carry it through to the requested outcome instead of stopping at recommendations or a next-step list. Do not narrate routine steps; report only meaningful milestones, risks, blockers, and the final result.
 - Apply these rules with judgment in service of the user's stated outcome. Do not turn a local preference into a refusal of a clear, authorized request.
 - Complete the full requested scope. If blocked, finish every independent part and state the exact blocker.
 - Read applicable repository instructions and authoritative current state before editing. Prefer `rg` for search; preserve unrelated work and local artifacts.
