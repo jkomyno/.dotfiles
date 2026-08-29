@@ -814,6 +814,39 @@ checksum = "sha256:c66e33300f6d32df9c5857c0e1a6daa78248c57c5ad85abef235e945d2d36
 url = "https://github.com/agentstation/vhs/releases/download/v0.11.1/vhs_0.11.1_windows_x86_64.zip"
 url_api = "https://api.github.com/repos/agentstation/vhs/releases/assets/323982841"
 
+[[tools."github:docker/sbx-releases"]]
+version = "0.39.0"
+backend = "github:docker/sbx-releases"
+
+[tools."github:docker/sbx-releases"."platforms.linux-arm64"]
+checksum = "sha256:39c470a5f5e0991b1c2358952e2ab32a7b0309bfa57ac62b6bbc64b466d02c17"
+url = "https://github.com/docker/sbx-releases/releases/download/v0.39.0/DockerSandboxes-linux-arm64.tar.gz"
+url_api = "https://api.github.com/repos/docker/sbx-releases/releases/assets/520715959"
+
+[tools."github:docker/sbx-releases"."platforms.linux-arm64".provenance.slsa]
+url = "https://github.com/docker/sbx-releases/releases/download/v0.39.0/DockerSandboxes-linux-arm64.provenance.json"
+
+[tools."github:docker/sbx-releases"."platforms.linux-x64"]
+checksum = "sha256:2ec45bc7938c20c2f406fe8cc72294ad5a954bdc047601484b89bf1a108311d4"
+url = "https://github.com/docker/sbx-releases/releases/download/v0.39.0/DockerSandboxes-linux-amd64.tar.gz"
+url_api = "https://api.github.com/repos/docker/sbx-releases/releases/assets/520715927"
+
+[tools."github:docker/sbx-releases"."platforms.linux-x64".provenance.slsa]
+url = "https://github.com/docker/sbx-releases/releases/download/v0.39.0/DockerSandboxes-linux-amd64.provenance.json"
+
+[tools."github:docker/sbx-releases"."platforms.macos-arm64"]
+checksum = "sha256:d12fa06aeece298d96dae058101f256537770a00ef46e6584762e0f27b06a5a3"
+url = "https://github.com/docker/sbx-releases/releases/download/v0.39.0/DockerSandboxes-darwin.tar.gz"
+url_api = "https://api.github.com/repos/docker/sbx-releases/releases/assets/520715858"
+
+[tools."github:docker/sbx-releases"."platforms.macos-x64"]
+checksum = "sha256:d12fa06aeece298d96dae058101f256537770a00ef46e6584762e0f27b06a5a3"
+url = "https://github.com/docker/sbx-releases/releases/download/v0.39.0/DockerSandboxes-darwin.tar.gz"
+url_api = "https://api.github.com/repos/docker/sbx-releases/releases/assets/520715858"
+
+[tools."github:docker/sbx-releases"."platforms.macos-x64".provenance.slsa]
+url = "https://github.com/docker/sbx-releases/releases/download/v0.39.0/DockerSandboxes-darwin-arm64.provenance.json"
+
 [[tools."github:jkomyno/uniku"]]
 version = "0.7.0"
 backend = "github:jkomyno/uniku"

@@ -101,6 +101,8 @@ ast-grep = "latest"
 "npm:@agentmemory/agentmemory" = { version = "latest", trust_policy_excludes = ["@agentmemory/agentmemory@0.9.29", "protobufjs@6.11.6"] }
 # https://github.com/vercel-labs/agent-browser - browser automation CLI for AI agents
 "npm:agent-browser" = "latest"
+# https://github.com/docker/sbx-releases - Docker Sandboxes CLI for isolated AI agent microVMs
+"github:docker/sbx-releases" = "latest"
 # https://github.com/rtk-ai/rtk - rewrites agent shell commands into token-efficient equivalents;
 # required by the Claude Code PreToolUse hook in target/home/.claude/hooks/rtk-rewrite.sh
 "github:rtk-ai/rtk" = "latest"
