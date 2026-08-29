@@ -1,6 +1,6 @@
 ---
 name: jk-writing-style
-description: Writes, expands, edits, and reviews public-facing and structured technical prose in Alberto Schiabel's (@jkomyno) voice. Use when turning rough notes into a publishable technical article, or when writing and polishing plans, technical documentation, blog posts, conference talk abstracts, case studies, project descriptions, bookmark notes, site copy, or newsletters that should sound like Alberto.
+description: Write, edit, or evaluate technical prose in Alberto Schiabel's voice without inventing experience. Use for articles, plans, docs, talks, case studies, portfolio copy, or newsletters.
 ---
 
 # jk-writing-style
@@ -33,6 +33,7 @@ Keep explanatory colons rare. Use a colon when a complete clause introduces a ve
 - For a focused edit, site description, talk abstract, bookmark note, or other short form, use this file only.
 - For a plan, procedure, implementation handoff, or technical document, read [Clear Technical English and Cognitive Accessibility](references/clear-technical-english.md).
 - For a technical article, read the clear-English reference and [From Seed to Publishable Article](references/article-workflow.md).
+- For visitor-facing portfolio content, read [Portfolio Content Evaluation](references/portfolio-content-evaluation.md) and run its diagnose-rewrite loop before delivery.
 - Read [Calibration Examples](references/calibration.md) only when voice matching is uncertain or a corpus-wide audit needs examples.
 
 Do not apply this skill to commit messages, pull request descriptions, code identifiers, or third-party quotations.

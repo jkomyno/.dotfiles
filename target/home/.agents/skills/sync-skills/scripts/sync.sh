@@ -20,6 +20,7 @@ SKILL_ROOT="$(dirname "$SCRIPT_DIR")"
 SKILLS_DIR="$(dirname "$SKILL_ROOT")"
 MANIFEST="$SKILL_ROOT/manifest.json"
 PATCHES_DIR="$SKILL_ROOT/patches"
+OVERRIDES_SCRIPT="$SCRIPT_DIR/apply-frontmatter-overrides.py"
 EXCLUDED_FILE="$PATCHES_DIR/excluded.txt"
 KEEP_UPSTREAM=0
 
@@ -149,6 +150,10 @@ while IFS=$'\t' read -r name repo path include_json; do
         rm -f "$expected_tmp"
         continue
       fi
+    fi
+
+    if [[ "$rel_path" == "SKILL.md" && -f "$OVERRIDES_SCRIPT" ]]; then
+      python3 "$OVERRIDES_SCRIPT" "$name" "$expected_tmp" "$PATCHES_DIR" --quiet
     fi
 
     if ! diff -q "$expected_tmp" "$our_file" >/dev/null 2>&1; then

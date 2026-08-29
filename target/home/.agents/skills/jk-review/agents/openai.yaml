@@ -1,0 +1,6 @@
+interface:
+  display_name: "JK Review"
+  short_description: "Run Alberto's focused read-only review"
+  default_prompt: "Use $jk-review to review this diff, PR, plan, or spec."
+policy:
+  allow_implicit_invocation: false

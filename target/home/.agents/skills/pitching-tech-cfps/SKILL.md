@@ -1,6 +1,6 @@
 ---
 name: pitching-tech-cfps
-description: Generates compelling tech conference CFP (Call for Papers) proposals that get accepted. Crafts talk titles, abstracts, outlines, speaker bios, and notes to organizers tailored to specific conferences. Use when the user wants to submit a talk proposal, write a CFP, prepare a conference submission, or pitch a tech talk idea.
+description: "Draft a technology conference CFP package: title, abstract, outline, speaker bio, and organizer notes. Use for talk proposals and conference submissions."
 ---
 
 # Pitching Tech Conference CFPs

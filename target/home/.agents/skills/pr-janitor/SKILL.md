@@ -1,6 +1,6 @@
 ---
 name: pr-janitor
-description: Keep a pull request green and mergeable without repeated user supervision. Use when the user says "fix CI", "address the review comments", "fix coderabbit", "keep this PR green", or "babysit this PR", or provides a failing-checks link. Watches checks, reproduces failures, addresses review comments with scoped commits, and stops when the PR is mergeable or a human decision is required.
+description: Keep a pull request green and mergeable. Use for "fix CI", review feedback, CodeRabbit, failing-check links, or "babysit this PR"; stop at merge-ready or a human decision.
 ---
 
 # PR Janitor

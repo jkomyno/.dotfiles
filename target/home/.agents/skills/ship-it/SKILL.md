@@ -1,6 +1,6 @@
 ---
 name: ship-it
-description: Audit a repository's last mile and drive it to shipped. Use when the user says "ship it", "what's left to release", "finish the release", or "promote the rc", or asks why something is not published, tagged, or merged. Finds unmerged PRs, unpublished changesets, missing tags, unpromoted dist-tags, and release-ready repositories, then executes authorized safe steps and identifies the remaining human gates.
+description: Audit and complete a repository's release path. Use for "ship it", unfinished releases, RC promotion, or missing merges, tags, changesets, artifacts, and registry publication.
 ---
 
 # Ship It

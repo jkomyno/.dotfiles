@@ -1,6 +1,6 @@
 ---
 name: no-slop
-description: Remove low-evidence code and formulaic technical prose while preserving intent, and install the bundled anti-slop Oxlint rules. Use for no-slop or anti-slop requests, configuring opinionated TypeScript lint policy, writing that sounds AI-generated, and TypeScript work involving broad types, unsafe assertions, vague names, hidden control flow, weak tests, or narrating comments.
+description: Remove low-evidence code and formulaic prose while preserving intent, or install the anti-slop Oxlint policy. Use for no-slop requests and weak TypeScript contracts.
 ---
 
 # No slop

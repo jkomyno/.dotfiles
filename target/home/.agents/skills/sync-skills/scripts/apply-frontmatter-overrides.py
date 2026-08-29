@@ -80,6 +80,14 @@ def find_key_indices(lines: list[str], end: int, key: str) -> list[int]:
     return [idx for idx in range(1, end) if frontmatter_key(lines[idx]) == key]
 
 
+def field_end(lines: list[str], frontmatter_end: int, start: int) -> int:
+    """Return the first line after a scalar, including block-scalar content."""
+    index = start + 1
+    while index < frontmatter_end and frontmatter_key(lines[index]) is None:
+        index += 1
+    return index
+
+
 def apply_overrides(skill_name: str, skill_md: Path, patches_dir: Path) -> bool:
     overrides = load_overrides(skill_name, patches_dir)
     if not overrides:
@@ -90,10 +98,14 @@ def apply_overrides(skill_name: str, skill_md: Path, patches_dir: Path) -> bool:
         desired = f"{key}: {yaml_scalar(value)}"
         existing_indices = find_key_indices(lines, end, key)
         if existing_indices:
-            lines[existing_indices[0]] = desired
             for idx in reversed(existing_indices[1:]):
-                del lines[idx]
-                end -= 1
+                block_end = field_end(lines, end, idx)
+                del lines[idx:block_end]
+                end -= block_end - idx
+            first = existing_indices[0]
+            block_end = field_end(lines, end, first)
+            lines[first:block_end] = [desired]
+            end += 1 - (block_end - first)
             continue
 
         insert_at = end
@@ -112,9 +124,12 @@ def strip_overrides(skill_name: str, skill_md: Path, patches_dir: Path) -> bool:
         return False
 
     original, trailing_newline, lines, end = read_frontmatter(skill_md)
-    keys = set(overrides)
-    stripped = [line for idx, line in enumerate(lines) if not (1 <= idx < end and frontmatter_key(line) in keys)]
-    return write_if_changed(skill_md, original, trailing_newline, stripped)
+    for key in overrides:
+        for idx in reversed(find_key_indices(lines, end, key)):
+            block_end = field_end(lines, end, idx)
+            del lines[idx:block_end]
+            end -= block_end - idx
+    return write_if_changed(skill_md, original, trailing_newline, lines)
 
 
 def main(argv: list[str]) -> int:

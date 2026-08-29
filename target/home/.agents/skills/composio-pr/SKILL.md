@@ -1,6 +1,6 @@
 ---
 name: composio-pr
-description: This skill should be used when creating a GitHub pull request for the Composio SDK repository. It generates conventional commit-style PR titles and structured descriptions with Linear issue links, concise bullet points, and optional mermaid diagrams. Triggers on "create PR", "open PR", "make a pull request", or when the user is ready to submit changes for review.
+description: Create a GitHub pull request for a Composio SDK repository with a Conventional Commit title, Linear link, evidence-backed body, and optional diagram.
 ---
 
 # Composio PR

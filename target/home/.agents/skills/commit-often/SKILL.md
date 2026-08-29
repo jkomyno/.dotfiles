@@ -1,12 +1,6 @@
 ---
 name: commit-often
-description: >-
-  Commit completed units of work as you go instead of batching everything
-  into one commit at the end. Use during any coding session that will
-  produce more than one logical change: after each green test run, when a
-  logical unit is complete, or before starting a risky refactor. Also
-  applies when the user says "commit often", "checkpoint", or "commit as
-  you go".
+description: Commit each completed, green logical unit during multi-part coding work. Use when the user says "commit often", "checkpoint", or "commit as you go".
 ---
 
 # Commit Often

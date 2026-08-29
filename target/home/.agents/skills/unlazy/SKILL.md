@@ -1,6 +1,6 @@
 ---
 name: unlazy
-description: Prove substantial work complete with file-backed gates and runnable checks. Use when the user invokes unlazy, requests a Depth Tree or completion ledger, or demands exhaustive completion.
+description: "Prove substantial work complete with file-backed gates and runnable checks. Use for exhaustive completion, a Depth Tree, or a completion ledger."
 ---
 
 # Unlazy

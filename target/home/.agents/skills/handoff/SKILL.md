@@ -1,10 +1,6 @@
 ---
 name: handoff
-description: >-
-  Produce a session handoff the user can paste into the next session. Use when
-  the user says "handoff", "what's next", "give me the next prompt", or "write
-  the prompt to continue", or when unfinished work needs a clean session
-  boundary. Standardizes the user's next-prompt pattern.
+description: Write a self-contained continuation prompt for the next session. Use for "handoff", "what's next", "give me the next prompt", or unfinished work crossing a session boundary.
 ---
 
 # Handoff

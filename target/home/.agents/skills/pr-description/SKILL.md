@@ -1,6 +1,6 @@
 ---
 name: pr-description
-description: Draft and maintain evidence-backed pull request descriptions for non-Composio repositories. Use when the user asks to write, fill, revise, or review a PR body or pull request template outside Composio. Never invoke for a Composio-owned project or a fork or checkout of one; use its repository-specific guidance instead.
+description: Draft or revise an evidence-backed pull request body for a non-Composio repository. Use for PR descriptions or templates; defer Composio projects to their repository guidance.
 ---
 
 # PR description

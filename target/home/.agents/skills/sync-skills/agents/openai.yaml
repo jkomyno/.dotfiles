@@ -1,0 +1,6 @@
+interface:
+  display_name: "Sync Skills"
+  short_description: "Sync vendored skills with upstream"
+  default_prompt: "Use $sync-skills to audit and update vendored skills from upstream."
+policy:
+  allow_implicit_invocation: false

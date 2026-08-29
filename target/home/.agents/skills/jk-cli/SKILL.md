@@ -1,15 +1,6 @@
 ---
 name: jk-cli
-description: >-
-  Invoke jk, @jkomyno's deterministic personal CLI, for mechanical
-  agent-friendly tasks: read the authenticated GitHub user (whoami), send
-  Telegram notifications or wrap a long command and notify on its exit status
-  (notify), pin and check GitHub Actions refs (actions bump/check), and
-  acquire / index / search per-idea reference corpora under ~/.jk/ideas (idea).
-  Use this skill when running any `jk ...` command, deciding which jk command
-  fits a task, or parsing jk output in a script or hook. It documents the
-  output contract (piped stdout is JSON, a TTY is text, --json forces either)
-  and the exit codes (0 ok, 1 findings, 2 usage, 3 operational).
+description: Operate jk, @jkomyno's deterministic CLI, for identity, notifications, GitHub Actions pinning, and idea corpora. Use for any `jk` command or output contract.
 ---
 
 # jk-cli

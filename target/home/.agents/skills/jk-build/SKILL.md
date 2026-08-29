@@ -1,12 +1,6 @@
 ---
 name: jk-build
-description: >-
-  Phase-driven workflow for building a feature end to end. Four phases run
-  in order: spec gathers intent and constraints, plan turns the spec into
-  commit-sized units, work executes the plan one commit at a time, and
-  safe-change handles scoped edits where a full spec/plan cycle is overkill.
-  Use when starting new work, when an existing plan needs to be executed,
-  or when making a single change that still needs verification.
+description: Build a feature through spec, plan, work, or safe-change phases. Use for new features, executing an approved plan, or a scoped verified edit.
 argument-hint: "[spec|plan|work|safe-change]"
 ---
 

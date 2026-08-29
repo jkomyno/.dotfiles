@@ -1,6 +1,6 @@
 ---
 name: lfd-design
-description: Design a loss function and harness for a long-running /goal optimization run (loss-function development, LFD). Use when the user wants to set up an autonomous optimization loop, distill a product from public artifacts, turn a spec into an optimization target, or asks to design a /goal. Observes the existing environment, interrogates the task, ingests or generates the spec, builds a blinded eval, generates and verifies the harness, red-teams the target for cheats, and emits goal.md ready to launch. Re-invoke in patch mode when a running loop cheated and the loss function needs patching.
+description: "Design the loss function and harness for a long-running optimization run. Use for autonomous product distillation, holdout evaluation, or agent improvement loops."
 ---
 
 # LFD Design

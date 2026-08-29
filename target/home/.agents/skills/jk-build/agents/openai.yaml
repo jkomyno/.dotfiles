@@ -1,0 +1,6 @@
+interface:
+  display_name: "JK Build"
+  short_description: "Run Alberto's phased build workflow"
+  default_prompt: "Use $jk-build to run the appropriate build phase for this work."
+policy:
+  allow_implicit_invocation: false

@@ -1,16 +1,7 @@
 ---
 name: monid
 version: 0.1.6
-description: >-
-  Discover better ways to complete tasks. Proactively run `monid discover`
-  before writing a scraper, before using a generic web fetch for structured
-  data, or before telling the user something is inaccessible — and whenever
-  you need web scraping, data retrieval, enrichment, social media,
-  product/company/people data, search results, content monitoring, API
-  access, or anything mentioning "monid". Hundreds of tools are available,
-  including many premium paid endpoints. Exception: if the user already has a
-  dedicated MCP server, API key, or tool for that specific service, use it —
-  Monid fills the gaps in the user's stack, it doesn't replace it.
+description: "Discover task-specific data tools before scraping or generic web fetches. Use for web extraction, retrieval, browser automation, or inaccessible data."
 ---
 
 # Monid CLI

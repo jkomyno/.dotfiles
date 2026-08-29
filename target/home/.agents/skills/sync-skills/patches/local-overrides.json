@@ -1,5 +1,36 @@
 {
   "frontmatter": {
-    "preserve": {}
+    "preserve": {
+      "create-cli": {
+        "description": "Design or refactor a command-line interface: commands, flags, help, output, errors, config precedence, prompts, and safe defaults."
+      },
+      "find-skills": {
+        "description": "Discover installable agent skills. Use when the user asks how to add a capability, find a skill, or extend an agent."
+      },
+      "impeccable": {
+        "description": "Design, critique, or improve frontend interfaces. Use for UI/UX, visual hierarchy, accessibility, responsive behavior, design systems, motion, copy, or browser-led polish; not backend-only work."
+      },
+      "improve": {
+        "description": "Audit a codebase read-only and produce prioritized implementation plans for another agent. Use for architecture, correctness, maintainability, performance, or test surveys."
+      },
+      "lfd-design": {
+        "description": "Design the loss function and harness for a long-running optimization run. Use for autonomous product distillation, holdout evaluation, or agent improvement loops."
+      },
+      "monid": {
+        "description": "Discover task-specific data tools before scraping or generic web fetches. Use for web extraction, retrieval, browser automation, or inaccessible data."
+      },
+      "postgres-drizzle": {
+        "description": "Apply PostgreSQL and Drizzle ORM patterns to schemas, queries, relations, migrations, transactions, pooling, indexing, JSONB, and RLS."
+      },
+      "research": {
+        "description": "Research a question from high-trust primary sources and save the findings as Markdown in the repository. Use for documentation or API fact-finding."
+      },
+      "unlazy": {
+        "description": "Prove substantial work complete with file-backed gates and runnable checks. Use for exhaustive completion, a Depth Tree, or a completion ledger."
+      },
+      "using-exe-dev": {
+        "description": "Operate exe.dev virtual machines. Use when the task mentions exe.dev, exe VMs, *.exe.xyz hosts, or exe.dev infrastructure."
+      }
+    }
   }
 }

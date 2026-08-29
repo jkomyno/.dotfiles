@@ -1,2 +1,4 @@
 # One skill name per line. Skills listed here are never suggested by the
 # NEW_SKILLS section of sync.sh, even when their upstream repo ships them.
+prototype
+writing-great-skills
