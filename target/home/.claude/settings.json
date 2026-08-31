@@ -3,6 +3,9 @@
     "commit": "",
     "pr": ""
   },
+  "env": {
+    "CLAUDE_CODE_REPL": "true"
+  },
   "outputStyle": "Concise",
   "permissions": {
     "allow": [
