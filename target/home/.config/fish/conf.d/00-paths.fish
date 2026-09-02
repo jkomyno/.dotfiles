@@ -4,6 +4,7 @@
 # universal variables, so this file stays the single source of truth.
 if test (uname -s) = Darwin
     set --global --export PNPM_HOME "$HOME/Library/pnpm"
+    set --global --export BUN_CHROME_PATH "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
 else
     set -q XDG_DATA_HOME; or set --global --export XDG_DATA_HOME "$HOME/.local/share"
     set --global --export PNPM_HOME "$XDG_DATA_HOME/pnpm"
