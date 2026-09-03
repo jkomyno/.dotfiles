@@ -36,13 +36,13 @@ die() {
   exit 1
 }
 
-mode="load"
+MODE="load"
 while [[ $# -gt 0 ]]; do
   case "$1" in
-    --status | --check) mode="status" ;;
-    --dry-run) mode="preview" ;;
-    --run) mode="run" ;;
-    --remove | --unload) mode="remove" ;;
+    --status | --check) MODE="status" ;;
+    --dry-run) MODE="preview" ;;
+    --run) MODE="run" ;;
+    --remove | --unload) MODE="remove" ;;
     -h | --help)
       grep -E '^# ' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//'
       exit 0
@@ -64,8 +64,12 @@ deploy_dotfile() {
   [[ -e "${destination}" || -L "${destination}" ]]
 }
 
+ensure_cleaner() {
+  [[ -x "${CLEANER}" ]] || deploy_dotfile "${CLEANER}"
+}
+
 cleaner_available() {
-  [[ -x "${CLEANER}" ]] || deploy_dotfile "${CLEANER}" || return 1
+  ensure_cleaner || return 1
   "${CLEANER}" --check
 }
 
@@ -98,7 +102,7 @@ linux_main() {
     return 0
   fi
 
-  case "${mode}" in
+  case "${MODE}" in
     status)
       if systemctl --user is-active --quiet "${SYSTEMD_TIMER_NAME}"; then
         log "Rust cache maintenance timer is active"
@@ -135,7 +139,7 @@ linux_main() {
 }
 
 macos_main() {
-  case "${mode}" in
+  case "${MODE}" in
     status)
       if launchctl print "${DOMAIN}/${LABEL}" >/dev/null 2>&1; then
         log "Rust cache maintenance LaunchAgent is loaded"
@@ -172,15 +176,15 @@ macos_main() {
 }
 
 main() {
-  case "${mode}" in
-    preview)
-      [[ -x "${CLEANER}" ]] || deploy_dotfile "${CLEANER}" || die "maintenance command is unavailable"
-      exec "${CLEANER}" --dry-run
+  case "${MODE}" in
+    preview | run)
+      ensure_cleaner || die "maintenance command is unavailable"
       ;;
-    run)
-      [[ -x "${CLEANER}" ]] || deploy_dotfile "${CLEANER}" || die "maintenance command is unavailable"
-      exec "${CLEANER}" --apply
-      ;;
+  esac
+
+  case "${MODE}" in
+    preview) exec "${CLEANER}" --dry-run ;;
+    run) exec "${CLEANER}" --apply ;;
   esac
 
   case "$(uname -s)" in
