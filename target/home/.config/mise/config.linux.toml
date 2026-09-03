@@ -2,5 +2,3 @@
 # Linux release archives are available through Aqua for fish and ttyd.
 "aqua:fish-shell/fish-shell" = "latest"
 "aqua:tsl0922/ttyd" = "latest"
-# Conda provides maintained ffmpeg builds for Linux x64 and arm64.
-"conda:ffmpeg" = "latest"

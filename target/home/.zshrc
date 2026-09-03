@@ -12,6 +12,7 @@ if [[ "$OSTYPE" == darwin* ]]; then
   export MANPATH="/opt/nanobrew/prefix/share/man${MANPATH+:$MANPATH}:"
   export INFOPATH="/opt/nanobrew/prefix/share/info:${INFOPATH:-}"
   export PNPM_HOME="$HOME/Library/pnpm"
+  export BUN_CHROME_PATH="/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
   _nanobrew_path=(/opt/nanobrew/prefix/bin(N-/))
 else
   export PNPM_HOME="${XDG_DATA_HOME:-$HOME/.local/share}/pnpm"

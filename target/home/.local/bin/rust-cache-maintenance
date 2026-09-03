@@ -1,0 +1,125 @@
+#!/usr/bin/env bash
+# Keep Rust build storage bounded without changing workspace-local target paths.
+# Scheduled runs happen at most once every 14 days and remove complete Cargo
+# target directories whose contents have not changed for 30 days.
+
+set -Eeuo pipefail
+
+WORK_ROOT="${RUST_TARGET_CLEAN_ROOT:-${HOME}/work}"
+readonly KEEP_DAYS="${RUST_TARGET_KEEP_DAYS:-30}"
+readonly INTERVAL_DAYS="${RUST_TARGET_CLEAN_INTERVAL_DAYS:-14}"
+readonly STATE_ROOT="${XDG_STATE_HOME:-${HOME}/.local/state}/rust-cache-maintenance"
+readonly LAST_RUN="${STATE_ROOT}/last-run"
+readonly LOCK_DIR="${STATE_ROOT}/lock"
+readonly MISE_BIN="${MISE_INSTALL_PATH:-${HOME}/.local/bin/mise}"
+
+log() { printf '==> %s\n' "$*" >&2; }
+die() {
+  printf 'error: %s\n' "$*" >&2
+  exit 1
+}
+
+positive_integer() {
+  case "$1" in
+    '' | *[!0-9]* | 0) return 1 ;;
+    *) return 0 ;;
+  esac
+}
+
+run_cleaner() {
+  if [[ -x "${MISE_BIN}" ]]; then
+    "${MISE_BIN}" exec cargo:cargo-clean-all -- cargo-clean-all "$@"
+  elif command -v cargo-clean-all >/dev/null 2>&1; then
+    cargo-clean-all "$@"
+  else
+    die "cargo-clean-all is unavailable; install the managed mise tool"
+  fi
+}
+
+clean_targets() {
+  run_cleaner --yes --keep-days "${KEEP_DAYS}" "${WORK_ROOT}"
+  touch "${LAST_RUN}"
+}
+
+acquire_lock() {
+  mkdir -p "${STATE_ROOT}"
+  if mkdir "${LOCK_DIR}" 2>/dev/null; then
+    trap 'rmdir "${LOCK_DIR}" 2>/dev/null || true' EXIT
+    return 0
+  fi
+
+  if [[ -n "$(find "${LOCK_DIR}" -type d -mtime +0 -print -quit 2>/dev/null)" ]] &&
+    rmdir "${LOCK_DIR}" 2>/dev/null && mkdir "${LOCK_DIR}" 2>/dev/null; then
+    log "Recovered a stale Rust cache maintenance lock"
+    trap 'rmdir "${LOCK_DIR}" 2>/dev/null || true' EXIT
+    return 0
+  fi
+
+  log "Another Rust cache maintenance run is active; skipping"
+  exit 0
+}
+
+recently_completed() {
+  [[ -f "${LAST_RUN}" ]] &&
+    [[ -n "$(find "${LAST_RUN}" -mtime "-${INTERVAL_DAYS}" -print -quit 2>/dev/null)" ]]
+}
+
+mode="preview"
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --check) mode="check" ;;
+    --dry-run) mode="preview" ;;
+    --apply) mode="apply" ;;
+    --scheduled) mode="scheduled" ;;
+    -h | --help)
+      sed -n '2,4p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//'
+      printf '\nUsage: rust-cache-maintenance [--check|--dry-run|--apply|--scheduled]\n'
+      exit 0
+      ;;
+    *) die "unknown argument: $1" ;;
+  esac
+  shift
+done
+
+if [[ "${mode}" == "check" ]]; then
+  run_cleaner --version >/dev/null
+  exit 0
+fi
+
+positive_integer "${KEEP_DAYS}" || die "RUST_TARGET_KEEP_DAYS must be a positive integer"
+positive_integer "${INTERVAL_DAYS}" || die "RUST_TARGET_CLEAN_INTERVAL_DAYS must be a positive integer"
+[[ -d "${WORK_ROOT}" ]] || {
+  log "Rust workspace root does not exist: ${WORK_ROOT}; skipping"
+  exit 0
+}
+WORK_ROOT_PHYSICAL="$(cd -P -- "${WORK_ROOT}" && pwd -P)"
+readonly WORK_ROOT_PHYSICAL
+HOME_PHYSICAL="$(cd -P -- "${HOME}" && pwd -P)"
+readonly HOME_PHYSICAL
+[[ "${WORK_ROOT_PHYSICAL}" != "/" && "${WORK_ROOT_PHYSICAL}" != "${HOME_PHYSICAL}" ]] ||
+  die "refusing broad Rust workspace root: ${WORK_ROOT}"
+
+case "${mode}" in
+  preview)
+    log "Previewing Cargo targets unused for ${KEEP_DAYS} days under ${WORK_ROOT}"
+    run_cleaner --dry-run --keep-days "${KEEP_DAYS}" "${WORK_ROOT}"
+    ;;
+  apply)
+    acquire_lock
+    log "Cleaning Cargo targets unused for ${KEEP_DAYS} days under ${WORK_ROOT}"
+    clean_targets
+    ;;
+  scheduled)
+    if recently_completed; then
+      log "Rust cache maintenance completed within ${INTERVAL_DAYS} days; skipping"
+      exit 0
+    fi
+    acquire_lock
+    if recently_completed; then
+      log "Rust cache maintenance completed within ${INTERVAL_DAYS} days; skipping"
+      exit 0
+    fi
+    log "Scheduled cleanup of Cargo targets unused for ${KEEP_DAYS} days under ${WORK_ROOT}"
+    clean_targets
+    ;;
+esac

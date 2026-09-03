@@ -31,6 +31,8 @@ ty = "latest"
 "pipx:huggingface_hub" = "latest"
 
 # Rust tooling
+# https://github.com/mozilla/sccache - bounded compiler cache shared across Rust workspaces
+sccache = "latest"
 # https://github.com/cargo-bins/cargo-binstall - installs Rust binaries from prebuilt releases
 cargo-binstall = "latest"
 # https://github.com/wasm-bindgen/wasm-bindgen - Rust and JavaScript WebAssembly bindings
@@ -39,6 +41,8 @@ cargo-binstall = "latest"
 "cargo:cargo-deny" = "latest"
 # https://github.com/rustsec/rustsec - audits Cargo.lock against the RustSec advisory database
 "cargo:cargo-audit" = "latest"
+# https://github.com/dnlmlr/cargo-clean-all - prunes inactive workspace target directories
+"cargo:cargo-clean-all" = "0.6.5"
 
 # Git and GitHub tooling
 # https://github.com/cli/cli - GitHub's official command-line tool
@@ -139,6 +143,9 @@ ollama = "latest"
 # demo recordings for READMEs. The registry short name `vhs` resolves to the upstream
 # charmbracelet build, so the fork is pinned through the github backend explicitly.
 "github:agentstation/vhs" = "latest"
+# https://github.com/FFmpeg/FFmpeg - audio and video processing toolkit.
+# Conda provides prebuilt ffmpeg packages for supported macOS and Linux targets.
+"conda:ffmpeg" = "latest"
 # ttyd (vhs's recording driver) lives in nanobrew on macOS and in the managed
 # config.linux.toml platform profile on Linux.
 

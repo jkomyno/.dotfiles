@@ -72,9 +72,10 @@ run_source_mise() {
   mise_cmd="$(mise_bin)" || return 127
 
   env \
+    MISE_GLOBAL_CONFIG_FILE="${DOTFILES_MISE_CONFIG}" \
     MISE_DEFAULT_CONFIG_FILENAME="config.toml" \
     MISE_TRUSTED_CONFIG_PATHS="${DOTFILES_MISE_CONFIG}${MISE_TRUSTED_CONFIG_PATHS:+:${MISE_TRUSTED_CONFIG_PATHS}}" \
-    MISE_IGNORED_CONFIG_PATHS="${HOME}/.config/mise/config.toml:${DOTFILES_ROOT}/mise.toml:${DOTFILES_ROOT}/mise.linux.toml:${DOTFILES_ROOT}/mise.macos.toml${MISE_IGNORED_CONFIG_PATHS:+:${MISE_IGNORED_CONFIG_PATHS}}" \
+    MISE_IGNORED_CONFIG_PATHS="${DOTFILES_ROOT}/mise.toml:${DOTFILES_ROOT}/mise.linux.toml:${DOTFILES_ROOT}/mise.macos.toml${MISE_IGNORED_CONFIG_PATHS:+:${MISE_IGNORED_CONFIG_PATHS}}" \
     NPM_CONFIG_UPDATE_NOTIFIER="false" \
     "${mise_cmd}" -C "${DOTFILES_MISE_DIR}" "$@"
 }

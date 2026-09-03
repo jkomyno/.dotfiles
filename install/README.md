@@ -18,18 +18,19 @@ The canonical staged setup order is:
 10. `mise bootstrap dotfiles apply`
 11. `install:linux:login-shell`
 12. `install:common:mise`
-13. `install:common:paseo`
-14. `install:common:agentmemory`
-15. `install:common:git`
-16. `install:common:git-signing`
-17. `install:common:gh`
-18. `install:common:claude`
-19. `install:common:agents`
-20. `install:common:amp`
-21. `install:common:vscode-extensions`
-22. `install:common:ollama-models`
-23. `install:common:mlx`
-24. `install:macos:defaults`
+13. `install:common:rust-cache`
+14. `install:common:paseo`
+15. `install:common:agentmemory`
+16. `install:common:git`
+17. `install:common:git-signing`
+18. `install:common:gh`
+19. `install:common:claude`
+20. `install:common:agents`
+21. `install:common:amp`
+22. `install:common:vscode-extensions`
+23. `install:common:ollama-models`
+24. `install:common:mlx`
+25. `install:macos:defaults`
 
 The staged setup runner invokes wrapper tasks with `mise run --skip-deps` in this explicit order, so the dependency graph stays useful for ad hoc task runs without making the full setup path repeat prerequisites. Inspect the plan without running installers via `just setup-plan` (or `mise run setup:staged -- --plan`).
 

@@ -3,8 +3,8 @@
 #
 # The tailscale CLI/daemon comes from the Homebrew `tailscale` formula (declared
 # in install/macos/common/nanobrew-formulae.Brewfile) because it ships a root
-# LaunchDaemon (`tailscaled`), not just a versioned CLI — the same reason fish and
-# ffmpeg live there rather than in mise. This script wires that daemon up so a Mac
+# LaunchDaemon (`tailscaled`), not just a versioned CLI — the same reason fish
+# lives there rather than in mise. This script wires that daemon up so a Mac
 # driven purely over SSH can reach its tailnet without ever opening the GUI app:
 #
 #   1. `tailscaled install-system-daemon` registers /Library/LaunchDaemons and

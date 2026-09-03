@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+  Managed by dotfiles: target/home/Library/LaunchAgents/com.jkomyno.rust-cache-maintenance.plist
+
+  A daily trigger makes missed runs recover after sleep. The script's persistent
+  timestamp admits cleanup only once every 14 days. It removes workspace-local
+  Cargo targets unused for 30 days; sccache keeps recompilation inexpensive.
+-->
+<plist version="1.0">
+<dict>
+  <key>Label</key>
+  <string>com.jkomyno.rust-cache-maintenance</string>
+
+  <key>ProgramArguments</key>
+  <array>
+    <string>{{ env.HOME }}/.local/bin/rust-cache-maintenance</string>
+    <string>--scheduled</string>
+  </array>
+
+  <key>EnvironmentVariables</key>
+  <dict>
+    <key>HOME</key>
+    <string>{{ env.HOME }}</string>
+    <key>PATH</key>
+    <string>{{ env.HOME }}/.local/share/mise/shims:{{ env.HOME }}/.local/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin</string>
+  </dict>
+
+  <key>RunAtLoad</key>
+  <true/>
+
+  <key>StartInterval</key>
+  <integer>86400</integer>
+
+  <key>ProcessType</key>
+  <string>Background</string>
+
+  <key>LowPriorityIO</key>
+  <true/>
+
+  <key>StandardOutPath</key>
+  <string>{{ env.HOME }}/Library/Logs/rust-cache-maintenance.log</string>
+
+  <key>StandardErrorPath</key>
+  <string>{{ env.HOME }}/Library/Logs/rust-cache-maintenance.err.log</string>
+</dict>
+</plist>

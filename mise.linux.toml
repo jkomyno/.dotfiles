@@ -32,5 +32,8 @@ login_shell = "/usr/bin/zsh"
 "~/.local/share/qBittorrent/nova3/engines/thepiratebay.py" = { source = "target/home/Library/Application Support/qBittorrent/nova3/engines/thepiratebay.py", mode = "symlink" }
 "~/.config/mise/config.linux.toml" = { source = "target/home/.config/mise/config.linux.toml", mode = "symlink" }
 "~/.config/mise/mise.linux.lock" = { source = "target/home/.config/mise/mise.linux.lock", mode = "symlink" }
+"~/.config/sccache/config" = { source = "target/home/.config/sccache/config", mode = "symlink" }
 "~/.config/systemd/user/agentmemory.service" = { source = "target/home/.config/systemd/user/agentmemory.service", mode = "symlink" }
 "~/.config/systemd/user/paseo.service" = { source = "target/home/.config/systemd/user/paseo.service", mode = "symlink" }
+"~/.config/systemd/user/rust-cache-maintenance.service" = { source = "target/home/.config/systemd/user/rust-cache-maintenance.service", mode = "symlink" }
+"~/.config/systemd/user/rust-cache-maintenance.timer" = { source = "target/home/.config/systemd/user/rust-cache-maintenance.timer", mode = "symlink" }

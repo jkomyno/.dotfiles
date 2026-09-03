@@ -1,0 +1,4 @@
+[build]
+# Keep final artifacts in each workspace while reusing compiler outputs across
+# workspaces through the managed platform sccache configuration.
+rustc-wrapper = "{{ env.HOME }}/.local/bin/rustc-cache-wrapper"

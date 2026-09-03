@@ -1,0 +1,4 @@
+[cache.disk]
+# Bound the shared compiler cache. Workspace-local Cargo targets are pruned by
+# rust-cache-maintenance when they have been unused for 30 days.
+size = 21474836480
