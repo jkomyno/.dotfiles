@@ -63,6 +63,10 @@ paseo *args:
 agentmemory *args:
     @bash install/common/agentmemory.sh {{args}}
 
+# Manage periodic Rust target cleanup. Preview: just rust-cache --dry-run. Run now: --run.
+rust-cache *args:
+    @bash install/common/rust-cache.sh {{args}}
+
 # Validate Linux user-service units and lifecycle handling without changing the real manager.
 services-check:
     @scripts/dotfiles/services-check.sh

@@ -1,7 +1,7 @@
 # Fail loudly on a mise older than the pinned bootstrap version (see
 # install/common/mise.sh), which is the oldest release known to expose the
 # stable bootstrap and [dotfiles] features this repo relies on.
-min_version = "2026.8.2"
+min_version = "2026.8.15"
 
 [task_config]
 includes = ["tasks"]
@@ -20,8 +20,11 @@ includes = ["tasks"]
 "~/.codex/AGENTS.md" = { source = "target/home/.codex/AGENTS.md", mode = "symlink" }
 "~/.codex/config.toml" = { source = "target/home/.codex/config.toml", mode = "copy" }
 "~/.codex/hooks/glen-composio.sh" = { source = "target/home/.codex/hooks/glen-composio.sh", mode = "symlink" }
+"~/.cargo/config.toml" = { source = "target/home/.cargo/config.toml", mode = "template" }
 "~/.local/bin/clipboard-copy" = { source = "target/home/.local/bin/clipboard-copy", mode = "symlink" }
 "~/.local/bin/clipboard-paste" = { source = "target/home/.local/bin/clipboard-paste", mode = "symlink" }
+"~/.local/bin/rust-cache-maintenance" = { source = "target/home/.local/bin/rust-cache-maintenance", mode = "symlink" }
+"~/.local/bin/rustc-cache-wrapper" = { source = "target/home/.local/bin/rustc-cache-wrapper", mode = "symlink" }
 "~/.pi/agent/settings.json" = { source = "target/home/.pi/agent/settings.json", mode = "copy" }
 "~/.pi/agent/claude-bridge.json" = { source = "target/home/.pi/agent/claude-bridge.json", mode = "symlink" }
 "~/.pi/agent/extensions/agentmemory" = { source = "target/home/.pi/agent/extensions/agentmemory", mode = "symlink" }

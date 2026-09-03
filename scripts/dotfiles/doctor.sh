@@ -261,13 +261,15 @@ check_shell_syntax() {
 }
 
 check_mise() {
+  local source_configs
+
   if ! mise_bin >/dev/null 2>&1; then
     soft_fail "mise is missing; setup.sh installs it before running staged setup"
     return
   fi
 
   pass "mise is available"
-  if run_source_mise config ls --no-header >/dev/null; then
+  if source_configs="$(run_source_mise config ls --no-header)" && [[ -n "${source_configs}" ]]; then
     pass "source mise config is loadable"
   else
     hard_fail "source mise config is not loadable"

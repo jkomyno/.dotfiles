@@ -154,10 +154,12 @@ A few tools need a long-lived process that survives logout and reboot. On macOS,
 | **tailscaled** | system LaunchDaemon (root) | `install:macos:tailscale` | `just tailscale` | tailnet |
 | **paseo** | user LaunchAgent / systemd user unit | `install:common:paseo` | `just paseo` | `127.0.0.1:6767` |
 | **agentmemory** | user LaunchAgent / systemd user unit | `install:common:agentmemory` | `just agentmemory` | `localhost:3111` / `:3113` |
+| **Rust cache maintenance** | scheduled user job | `install:common:rust-cache` | `just rust-cache` | `~/work` |
 
 - **tailscaled** is a root system daemon installed by Homebrew (`tailscaled install-system-daemon`); it needs sudo once and is not a mise tool. See [Remote Access](#remote-access-tailscale-screen-sharing-and-paseo).
 - **paseo** uses [`sh.paseo.daemon.plist`](./target/home/Library/LaunchAgents/sh.paseo.daemon.plist) on macOS and [`paseo.service`](./target/home/.config/systemd/user/paseo.service) on Linux. See [Remote Access](#remote-access-tailscale-screen-sharing-and-paseo).
 - **agentmemory** uses [`com.agentmemory.daemon.plist`](./target/home/Library/LaunchAgents/com.agentmemory.daemon.plist) on macOS and [`agentmemory.service`](./target/home/.config/systemd/user/agentmemory.service) on Linux. Both keep the shared memory server on localhost and use `~/.agentmemory` as the working directory so persistent engine state stays at `~/.agentmemory/data`.
+- **Rust cache maintenance** keeps Cargo's final artifacts in each workspace, shares compiler outputs through a 20 GiB `sccache`, and removes complete target directories unused for 30 days. A daily native trigger recovers missed runs after sleep or downtime; a persistent timestamp admits cleanup only once every 14 days. macOS uses [`com.jkomyno.rust-cache-maintenance.plist`](./target/home/Library/LaunchAgents/com.jkomyno.rust-cache-maintenance.plist); Linux uses [`rust-cache-maintenance.timer`](./target/home/.config/systemd/user/rust-cache-maintenance.timer).
 
   ```sh
   just agentmemory            # start / restart the daemon user service
@@ -165,13 +167,21 @@ A few tools need a long-lived process that survives logout and reboot. On macOS,
   just agentmemory --remove   # disable the user service
   ```
 
-On macOS, the template-mode plists use `RunAtLoad` and `KeepAlive` and require an active desktop login before they can be bootstrapped from SSH. On Linux, the units use `Restart=on-failure` and enable systemd lingering so they survive logout. If lingering can't be enabled automatically, setup prints the exact `sudo loginctl enable-linger <name>` command. Containers and minimal hosts without a user systemd manager still receive packages, tools, and dotfiles, but service setup warns and skips.
+  ```sh
+  just rust-cache --dry-run   # preview eligible Cargo targets
+  just rust-cache --run       # clean eligible targets now
+  just rust-cache --status    # report scheduler state
+  just rust-cache --remove    # disable scheduled cleanup
+  ```
+
+On macOS, the template-mode plists use `RunAtLoad`; daemon jobs also use `KeepAlive`. They require an active desktop login before they can be bootstrapped from SSH. On Linux, daemon units use `Restart=on-failure`, while scheduled work uses a persistent user timer. Setup enables systemd lingering so both survive logout. If lingering can't be enabled automatically, setup prints the exact `sudo loginctl enable-linger <name>` command. Containers and minimal hosts without a user systemd manager still receive packages, tools, and dotfiles, but service setup warns and skips.
 
 Inspect Linux logs with:
 
 ```sh
 journalctl --user -u paseo.service
 journalctl --user -u agentmemory.service
+journalctl --user -u rust-cache-maintenance.service
 ```
 
 On macOS, logs remain under `~/Library/Logs/`.
@@ -190,7 +200,7 @@ So the same file can be reached three ways: `bash install/common/git.sh` directl
 
 ## Tool Ownership
 
-[`target/home/.config/mise/config.toml`](./target/home/.config/mise/config.toml) is the shared source of truth for language runtimes and command-line development tools. [`config.linux.toml`](./target/home/.config/mise/config.linux.toml) adds Linux-only fish, ffmpeg, and ttyd tools. The staged setup uses `mise bootstrap dotfiles apply` to expose the active profile under `~/.config/mise/`.
+[`target/home/.config/mise/config.toml`](./target/home/.config/mise/config.toml) is the shared source of truth for language runtimes and command-line development tools, including the prebuilt Conda ffmpeg package. [`config.linux.toml`](./target/home/.config/mise/config.linux.toml) adds Linux-only fish and ttyd tools. The staged setup uses `mise bootstrap dotfiles apply` to expose the active profile under `~/.config/mise/`.
 
 Git and GitHub configuration lives under [`target/home/.config/git`](./target/home/.config/git) and [`target/home/.config/gh/config.yml`](./target/home/.config/gh/config.yml). GitHub CLI authentication state is intentionally not tracked; `gh` stores tokens in the system credential store and `~/.config/gh/hosts.yml`. Bootstrap generates an Ed25519 SSH key when no keypair exists, and the GitHub setup script uploads the public key as a signing key once `gh` is authenticated.
 
