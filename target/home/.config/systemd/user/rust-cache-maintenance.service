@@ -4,6 +4,6 @@ Description=Prune inactive Rust workspace build targets
 [Service]
 Type=oneshot
 Environment=HOME=%h
-ExecStart=%h/.local/bin/rust-cache-maintenance --scheduled
+ExecStart=/bin/bash %h/.local/bin/rust-cache-maintenance --scheduled
 Nice=10
 IOSchedulingClass=idle
