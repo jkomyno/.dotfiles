@@ -16,31 +16,31 @@ only_filters=()
 skip_filters=()
 
 setup_plan=(
-  "task|install:linux:packages|install/linux/common/packages.sh|install/linux/common/packages.sh"
-  "task|install:common:ssh|install/common/ssh.sh|install/common/ssh.sh"
-  "task|install:macos:sudoers-nopasswd|install/macos/common/sudoers-nopasswd.sh|install/macos/common/sudoers-nopasswd.sh"
-  "task|install:macos:command-line-tools|install/macos/common/command_line_tools.sh|install/macos/common/command_line_tools.sh"
-  "task|install:macos:nanobrew|install/macos/common/nanobrew.sh|install/macos/common/nanobrew.sh"
-  "task|install:macos:nanobrew-casks|install/macos/common/nanobrew-casks.sh|install/macos/common/nanobrew-casks.sh"
-  "task|install:macos:ghostty-terminfo|install/macos/common/ghostty-terminfo.sh|install/macos/common/ghostty-terminfo.sh"
-  "task|install:macos:nanobrew-formulae|install/macos/common/nanobrew-formulae.sh|install/macos/common/nanobrew-formulae.sh"
-  "task|install:macos:tailscale|install/macos/common/tailscale.sh|install/macos/common/tailscale.sh"
+  "task|install:linux:packages|install/linux/common/packages.sh"
+  "task|install:common:ssh|install/common/ssh.sh"
+  "task|install:macos:sudoers-nopasswd|install/macos/common/sudoers-nopasswd.sh"
+  "task|install:macos:command-line-tools|install/macos/common/command_line_tools.sh"
+  "task|install:macos:nanobrew|install/macos/common/nanobrew.sh"
+  "task|install:macos:nanobrew-casks|install/macos/common/nanobrew-casks.sh"
+  "task|install:macos:ghostty-terminfo|install/macos/common/ghostty-terminfo.sh"
+  "task|install:macos:nanobrew-formulae|install/macos/common/nanobrew-formulae.sh"
+  "task|install:macos:tailscale|install/macos/common/tailscale.sh"
   "dotfiles|mise:bootstrap:dotfiles:apply|mise.toml|target/home"
-  "task|install:linux:login-shell|install/linux/common/login-shell.sh|install/linux/common/login-shell.sh"
-  "task|install:common:mise|install/common/mise.sh|install/common/mise.sh"
-  "task|install:common:rust-cache|install/common/rust-cache.sh|install/common/rust-cache.sh"
-  "task|install:common:paseo|install/common/paseo.sh|install/common/paseo.sh"
-  "task|install:common:agentmemory|install/common/agentmemory.sh|install/common/agentmemory.sh"
-  "task|install:common:git|install/common/git.sh|install/common/git.sh"
-  "task|install:common:git-signing|install/common/git-signing.sh|install/common/git-signing.sh"
-  "task|install:common:gh|install/common/gh.sh|install/common/gh.sh"
-  "task|install:common:claude|install/common/claude.sh|install/common/claude.sh"
-  "task|install:common:agents|install/common/agents.sh|install/common/agents.sh"
-  "task|install:common:amp|install/common/amp.sh|install/common/amp.sh"
-  "task|install:common:vscode-extensions|install/common/vscode-extensions.sh|install/common/vscode-extensions.sh"
-  "task|install:common:ollama-models|install/common/ollama-models.sh|install/common/ollama-models.sh"
-  "task|install:common:mlx|install/common/mlx.sh|install/common/mlx.sh"
-  "task|install:macos:defaults|install/macos/common/defaults.sh|install/macos/common/defaults.sh"
+  "task|install:linux:login-shell|install/linux/common/login-shell.sh"
+  "task|install:common:mise|install/common/mise.sh"
+  "task|install:common:rust-cache|install/common/rust-cache.sh"
+  "task|install:common:paseo|install/common/paseo.sh"
+  "task|install:common:agentmemory|install/common/agentmemory.sh"
+  "task|install:common:git|install/common/git.sh"
+  "task|install:common:git-signing|install/common/git-signing.sh"
+  "task|install:common:gh|install/common/gh.sh"
+  "task|install:common:claude|install/common/claude.sh"
+  "task|install:common:agents|install/common/agents.sh"
+  "task|install:common:amp|install/common/amp.sh"
+  "task|install:common:vscode-extensions|install/common/vscode-extensions.sh"
+  "task|install:common:ollama-models|install/common/ollama-models.sh"
+  "task|install:common:mlx|install/common/mlx.sh"
+  "task|install:macos:defaults|install/macos/common/defaults.sh"
 )
 
 # Steps allowed to fail without aborting the staged run. These fetch things over
@@ -285,7 +285,7 @@ print_plan() {
       index=$((index + 1))
       continue
     fi
-    printf '%-4s %-9s %-36s %s -> %s\n' "${index}" "${kind}" "${name}" "${hook}" "${source}"
+    printf '%-4s %-9s %-36s %s -> %s\n' "${index}" "${kind}" "${name}" "${hook}" "${source:-${hook}}"
     index=$((index + 1))
   done
 }
@@ -306,25 +306,15 @@ check_task_registered() {
   fi
 }
 
-check_hook_mapping() {
-  local hook="$1"
-  local source="$2"
-  local hook_path="${DOTFILES_ROOT}/${hook}"
-  local include_path="../${source}"
+check_setup_script() {
+  local script="$1"
 
-  [[ -f "${hook_path}" ]] || {
-    error "missing setup script: ${hook}"
+  [[ -f "${DOTFILES_ROOT}/${script}" ]] || {
+    error "missing setup script: ${script}"
     return 1
   }
 
-  if grep -Fq "${include_path}" "${hook_path}"; then
-    info "hook maps ${hook} to ${source}"
-  elif [[ "${hook}" == "${source}" && -f "${hook_path}" ]]; then
-    info "script maps ${hook}"
-  else
-    error "hook ${hook} does not include ${include_path}"
-    return 1
-  fi
+  info "script maps ${script}"
 }
 
 check_plan() {
@@ -344,7 +334,7 @@ check_plan() {
     case "${kind}" in
       task)
         check_task_registered "${name}" "${actual_tasks}"
-        check_hook_mapping "${hook}" "${source}"
+        check_setup_script "${hook}"
         ;;
       dotfiles)
         [[ -f "${DOTFILES_ROOT}/${hook}" ]] || {
