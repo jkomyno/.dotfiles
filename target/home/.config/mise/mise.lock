@@ -7339,7 +7339,7 @@ version = "0.1.6"
 backend = "npm:@monid-ai/cli"
 
 [[tools."npm:@openai/codex"]]
-version = "0.150.1"
+version = "0.153.3"
 backend = "npm:@openai/codex"
 
 [[tools."npm:@tryglen/cli"]]
