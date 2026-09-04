@@ -9,8 +9,6 @@ fi
 readonly NANOBREW_BIN_DIR="${NANOBREW_BIN_DIR:-/opt/nanobrew/prefix/bin}"
 readonly NANOBREW_FORMULAE_BUNDLE_NAME="nanobrew-formulae.Brewfile"
 
-cleanup_files=()
-
 log() {
   printf '==> %s\n' "$*" >&2
 }
@@ -18,12 +16,6 @@ log() {
 die() {
   printf 'error: %s\n' "$*" >&2
   exit 1
-}
-
-cleanup() {
-  if [[ ${#cleanup_files[@]} -gt 0 ]]; then
-    rm -f "${cleanup_files[@]}"
-  fi
 }
 
 script_dir() {
@@ -42,15 +34,6 @@ nanobrew_command() {
 }
 
 bundle_file() {
-  if [[ -n "${DOTFILES_NANOBREW_FORMULAE_BUNDLE_CONTENT:-}" ]]; then
-    local tmp_bundle
-    tmp_bundle="$(mktemp)"
-    cleanup_files+=("${tmp_bundle}")
-    printf '%s\n' "${DOTFILES_NANOBREW_FORMULAE_BUNDLE_CONTENT}" >"${tmp_bundle}"
-    printf '%s\n' "${tmp_bundle}"
-    return
-  fi
-
   if [[ -n "${NANOBREW_FORMULAE_BUNDLE:-}" ]]; then
     printf '%s\n' "${NANOBREW_FORMULAE_BUNDLE}"
     return
@@ -75,7 +58,6 @@ main() {
   [[ "$(uname -s)" == "Darwin" ]] || return 0
   [[ "$(uname -m)" == "arm64" ]] || die "only macOS arm64 is supported today"
 
-  trap cleanup EXIT
   install_nanobrew_formulae
 }
 
