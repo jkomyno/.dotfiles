@@ -1,0 +1,4 @@
+interface:
+  display_name: "Fetch X Markdown"
+  short_description: "Fetch X posts and articles as Markdown"
+  default_prompt: "Use $fetch-x-markdown to retrieve Markdown from this X URL."
