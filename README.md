@@ -2,15 +2,9 @@
 
 [![CI](https://github.com/jkomyno/.dotfiles/actions/workflows/ci.yml/badge.svg)](https://github.com/jkomyno/.dotfiles/actions/workflows/ci.yml)
 
-My ([jkomyno](https://x.com/jkomyno)) personal development environment for Apple Silicon Macs, Debian 12, and Ubuntu 24.04. One command provisions a fresh machine end to end, `just doctor` verifies the result, and `just update` keeps every layer current after that. Linux supports x64 and arm64.
+My ([jkomyno](https://x.com/jkomyno)) personal development environment for Apple Silicon Macs, Debian 12, and Ubuntu 24.04. Linux supports x64 and arm64. `setup.sh` provisions a machine, `just doctor` runs diagnostics, and `just update` updates managed tools and configuration.
 
-Three decisions shape the whole repository:
-
-- **mise manages the dotfiles themselves, not just the toolchain.** Most dotfiles managers make you encode metadata in filenames (chezmoi's `dot_zshrc` and `exact_` prefixes) or maintain a symlink farm by hand. This repo uses mise's [`[dotfiles]`](https://mise.jdx.dev/dotfiles.html) feature instead: the source tree under [`target/home`](./target/home) reads exactly like `$HOME`, and a table in [`mise.toml`](./mise.toml) declares how each entry deploys (symlink, copy, or template). The tool that pins my language runtimes and CLIs also places my config files, so one manager does the work of two.
-- **One skills layer feeds three coding agents.** Claude Code, Codex, and pi all read the same `~/.agents/skills` directory. Third-party skills are vendored as real files and kept current from upstream by the `sync-skills` skill, with local modifications preserved as patches; shared instructions and persistent agent memory follow the same pattern. Details in [Agent Configuration](#agent-configuration).
-- **The repo tests itself.** `just doctor` syntax-checks every shell script, validates the mise task graph, runs the staged setup against a throwaway `$HOME`, and dry-runs the lockfile refresh for four platforms. CI runs it on macOS and Ubuntu for every push; the badge above is the result.
-
-Beyond that, mise owns language runtimes and CLI tools. On macOS, [nanobrew](https://github.com/justrach/nanobrew) owns GUI apps and fonts. The tracked configuration covers zsh, fish, Git, GitHub CLI, Ghostty, tmux, Neovim/LazyVim, starship, hunk, ghui, uv, macOS defaults, and the coding-agent stack. [Paseo](https://paseo.sh) works on both platforms. [Tailscale](https://tailscale.com) and Screen Sharing provide the optional macOS remote-access layer.
+Mise manages both the toolchain and dotfiles. Edit files under [`target/home`](./target/home), which mirrors `$HOME`. The [`mise.toml`](./mise.toml) mappings deploy them as symlinks, copies, or templates. Nanobrew manages macOS GUI apps and fonts. Claude Code, Codex, and pi share the instructions and skills under [`target/home/.agents`](./target/home/.agents).
 
 ## Start Here
 
@@ -192,11 +186,9 @@ Not every server here is always-on. **Ollama** is deliberately on-demand: [`inst
 
 Shell scripts live in three trees, and each tree has one job:
 
-- [`install/`](./install) holds the implementation of first-run provisioning: standalone, idempotent scripts (SSH keygen, nanobrew, Git/GitHub setup, macOS defaults) plus the package bundles. Every script runs on its own, without mise.
+- [`install/`](./install) holds first-run provisioning scripts and package bundles. Scripts can be invoked directly, though some require tools installed by earlier setup steps.
 - [`tasks/`](./tasks) holds thin [mise task](https://mise.jdx.dev/tasks/) wrappers, a few lines each, that `exec` into `install/` or `scripts/dotfiles/`. They exist only to give scripts stable task names (`install:common:git`, `setup:staged`), declared dependencies, and a place in the staged setup order. No logic lives here.
 - [`scripts/dotfiles/`](./scripts/dotfiles) holds repeatable maintenance and diagnostics (`doctor.sh`, `update.sh`, `versions.sh`), each exposed as a `Justfile` recipe. These run for the life of the machine, not just at first setup.
-
-So the same file can be reached three ways: `bash install/common/git.sh` directly, `mise run install:common:git` through its task wrapper, or as one step of `setup.sh`'s staged order. Pick the layer that matches how much orchestration you want.
 
 ## Tool Ownership
 
@@ -240,7 +232,7 @@ Most changes touch three things: the tracked source, the ownership manifest, and
 the check that proves the manifest still works. Keep those in the same change.
 
 - **Managed dotfiles:** edit files under [`target/home`](./target/home), then add or update the matching `[dotfiles]` entry in [`mise.toml`](./mise.toml), [`mise.macos.toml`](./mise.macos.toml), or [`mise.linux.toml`](./mise.linux.toml). For copy or template targets, update [`scripts/dotfiles/mise-dotfiles-check.sh`](./scripts/dotfiles/mise-dotfiles-check.sh) when the rendered content matters. Verify with `just dotfiles-check`; use `mise bootstrap dotfiles apply --dry-run` to preview the current `$HOME`.
-- **Setup steps:** put first-run machine logic in [`install/`](./install), add a thin wrapper under [`tasks/`](./tasks), wire the explicit setup order in [`scripts/dotfiles/mise-setup-staged.sh`](./scripts/dotfiles/mise-setup-staged.sh), and update [`install/README.md`](./install/README.md) or [`install/macos/README.md`](./install/macos/README.md) when the order changes. Verify with `just tasks-check` and `just setup-smoke`.
+- **Setup steps:** put first-run machine logic in [`install/`](./install), add a thin wrapper under [`tasks/`](./tasks), and wire the order in [`scripts/dotfiles/mise-setup-staged.sh`](./scripts/dotfiles/mise-setup-staged.sh). Inspect it with `just setup-plan`. Document new prerequisites or options, then verify with `just tasks-check` and `just setup-smoke`.
 - **Tools and apps:** put portable language runtimes and CLI tools in [`target/home/.config/mise/config.toml`](./target/home/.config/mise/config.toml). Put Linux-only tools in [`config.linux.toml`](./target/home/.config/mise/config.linux.toml). Put macOS GUI apps and fonts in [`install/macos/common/nanobrew-casks.Brewfile`](./install/macos/common/nanobrew-casks.Brewfile). Use [`install/macos/common/nanobrew-formulae.Brewfile`](./install/macos/common/nanobrew-formulae.Brewfile) only when mise has no practical backend. Verify ownership with `just packages`; use `just versions` or `just versions-update` for lockfiles.
 - **Agent configuration:** put shared instructions and vendored skills under [`target/home/.agents`](./target/home/.agents). Declare Claude and Codex plugin installation in [`scripts/dotfiles/agent-plugins.json`](./scripts/dotfiles/agent-plugins.json), and keep Claude's enabled plugin IDs in [`target/home/.claude/settings.json`](./target/home/.claude/settings.json) synchronized. Verify with `just dotfiles-check`, `just update-check plugins`, and JSON validation for edited JSON files.
 - **Bootstrap and machine state:** treat [`setup.sh`](./setup.sh), [`install/common/mise.sh`](./install/common/mise.sh), and [`install/macos/common/defaults.sh`](./install/macos/common/defaults.sh) as real machine mutators. Start with non-mutating proof: `just setup-plan`, `just setup-smoke`, `just git-signing-check`, and `bash -n` for changed shell scripts. Use a separate macOS account or VM for a full first-run bootstrap.
@@ -301,13 +293,10 @@ just update self         # pull, re-apply dotfiles, then restore agent adapters
 
 Like every recipe, the updater is backed by a plain script so a machine without
 `just` can run it directly: `bash scripts/dotfiles/update.sh [--check] [component ...]`.
-Each component updates its own store: `mise` upgrades installed tools and refreshes
-the tracked lockfile, `casks`/`formulae` update installed apps, `plugins` updates
-agent plugin state, `vscode` installs missing managed VS Code extensions (the
-list lives in [`install/common/vscode-extensions.sh`](./install/common/vscode-extensions.sh)),
-and `skills` only reports. Only `self` re-applies managed
-dotfiles to `$HOME`, and `mise bootstrap dotfiles apply` refuses to overwrite existing
-whole-file targets without `--force`.
+The default `all` run pulls the checkout first, updates tools and apps, reports
+skill drift, then applies dotfiles and restores agent plugins. The `self`
+component runs only the pull, apply, and agent-adapter steps. Mise refuses to
+overwrite existing whole-file targets without `--force`.
 
 To pull repo changes on an already-provisioned machine:
 
@@ -338,8 +327,6 @@ To inspect what mise bootstrap dotfiles would do against the current `$HOME` wit
 mise bootstrap dotfiles status
 mise bootstrap dotfiles apply --dry-run
 ```
-
-Note that `mise bootstrap dotfiles apply` refuses to overwrite existing whole-file targets unless given `--force`.
 
 For end-to-end bootstrap testing (`setup.sh`, staged setup tasks, package bundles, and SSH key generation), use an isolated environment. A second macOS account or VM covers macOS. A disposable Debian 12 or Ubuntu 24.04 VM covers Linux.
 

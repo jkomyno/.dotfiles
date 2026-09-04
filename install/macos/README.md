@@ -2,24 +2,11 @@
 
 This directory contains macOS provisioning scripts used by the staged mise tasks in `tasks/install/macos`.
 
-The active target is Apple Silicon macOS. These macOS-specific scripts run in
-this relative order within the full staged setup (see the complete step list in
-[`install/README.md`](../README.md)):
-
-1. Xcode Command Line Tools
-2. nanobrew
-3. nanobrew casks from `install/macos/common/nanobrew-casks.Brewfile`
-4. Ghostty terminfo (`xterm-ghostty`) for incoming SSH sessions
-5. nanobrew formulae from `install/macos/common/nanobrew-formulae.Brewfile`
-6. macOS preferences from `install/macos/common/defaults.sh`
-
-Note that `defaults.sh` is the **last** step of the whole staged setup: it runs
-after the common mise, Git, GitHub, Ollama, and MLX tasks, not immediately after
-the formulae bundle.
+The active target is Apple Silicon macOS. Run `just setup-plan` from the repository root to inspect the setup order, including common tasks. See [`install/README.md`](../README.md) for how the staged runner uses task dependencies.
 
 After `mise bootstrap dotfiles apply` exposes the managed config as `~/.config/mise/config.toml`, the common mise task installs the configured development tools from `target/home/.config/mise/config.toml`. Later common tasks pull the Ollama models declared in `install/common/ollama-models.sh`, starting a temporary `ollama serve` if none is already running.
 
-Tool ownership stays split by package class. mise owns language runtimes and command-line developer tools. nanobrew owns GUI apps and fonts through casks; its formula bundle should stay empty unless a required package has no practical mise backend.
+Tool ownership stays split by package class. Mise owns language runtimes and command-line developer tools. Nanobrew owns GUI apps and fonts through casks. Its formula bundle should stay empty unless a required package has no practical mise backend.
 
 Keep scripts standalone and idempotent. The task wrappers should only decide whether a script runs and in what order.
 
