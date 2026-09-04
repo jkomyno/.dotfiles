@@ -85,7 +85,7 @@ codex-review base="main":
 
 # Check vendored third-party agent skills against upstream.
 sync-skills-check:
-    @bash target/home/.agents/skills/sync-skills/scripts/sync.sh --keep-upstream
+    @bash target/home/.agents/skills/sync-skills/scripts/sync.sh
 
 # Benchmark interactive shell startup. Override with: just benchmark-shell zsh 20
 benchmark-shell shell="zsh" runs="10":
