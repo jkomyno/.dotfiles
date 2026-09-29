@@ -52,7 +52,7 @@ gh = "latest"
 # https://github.com/aws/aws-cli - AWS command-line interface
 aws-cli = "latest"
 # https://github.com/kitlangton/ghui - GitHub pull request TUI
-"npm:@kitlangton/ghui" = "latest"
+"npm:@kitlangton/ghui" = { version = "latest", trust_policy_excludes = ["@kitlangton/ghui@0.9.1"] }
 # https://github.com/dandavison/delta - syntax-highlighting, side-by-side Git diff pager
 delta = "latest"
 # https://github.com/git-lfs/git-lfs - Git extension for versioning large files
@@ -121,7 +121,7 @@ ast-grep = "latest"
 # loaded by install/common/paseo.sh, with remote access through SSH forwarding
 "npm:@getpaseo/cli" = "latest"
 # https://tryglen.com - shared team memory and transcript handoff CLI for coding agents
-"npm:@tryglen/cli" = "latest"
+"npm:@tryglen/cli" = { version = "latest", trust_policy_excludes = ["@tryglen/cli@0.37.0"] }
 # https://github.com/monid-ai/cli - unified catalog and runner for third-party data APIs;
 # shared agent instructions are tracked in target/home/.agents/skills/monid
 "npm:@monid-ai/cli" = "latest"
