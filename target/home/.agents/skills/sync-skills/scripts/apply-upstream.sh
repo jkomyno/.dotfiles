@@ -36,7 +36,7 @@ if [[ -f "$MANIFEST" ]]; then
   done < <(jq -r --arg name "$NAME" '.skills[$name].include[]?' "$MANIFEST")
 fi
 
-for include_path in "${INCLUDE_PATHS[@]}"; do
+for include_path in ${INCLUDE_PATHS[@]+"${INCLUDE_PATHS[@]}"}; do
   case "/$include_path/" in
     *"/../"*) echo "ERROR: unsafe include path for $NAME: $include_path" >&2; exit 1 ;;
   esac
