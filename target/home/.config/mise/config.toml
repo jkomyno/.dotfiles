@@ -8,7 +8,10 @@
 # take precedence over the versions bundled with Node and Corepack.
 node = "24"
 python = "3.13"
-rust = { version = "1.96.0", targets = "wasm32-unknown-unknown" }
+# mr_boxington wraps plain Cargo commands through Mr Boxington (mbx): a shared,
+# content-addressed compilation cache across projects and worktrees with
+# budgeted collection of managed target/ directories (docs: mr-boxington.jdx.dev).
+rust = { version = "1.96.0", targets = "wasm32-unknown-unknown", mr_boxington = true }
 erlang = "29.0.2"
 elixir = "1.20.2-otp-29"
 
@@ -31,8 +34,10 @@ ty = "latest"
 "pipx:huggingface_hub" = "latest"
 
 # Rust tooling
-# https://github.com/mozilla/sccache - bounded compiler cache shared across Rust workspaces
-sccache = "latest"
+# https://github.com/jdx/mr-boxington - shared Cargo compilation cache; pairs with
+# the mr_boxington option on the rust entry above and replaces sccache +
+# cargo-clean-all (its managed target collection subsumes both)
+mr-boxington = "latest"
 # https://github.com/cargo-bins/cargo-binstall - installs Rust binaries from prebuilt releases
 cargo-binstall = "latest"
 # https://github.com/wasm-bindgen/wasm-bindgen - Rust and JavaScript WebAssembly bindings
@@ -41,9 +46,6 @@ cargo-binstall = "latest"
 "cargo:cargo-deny" = "latest"
 # https://github.com/rustsec/rustsec - audits Cargo.lock against the RustSec advisory database
 "cargo:cargo-audit" = "latest"
-# https://github.com/dnlmlr/cargo-clean-all - prunes inactive workspace target directories
-"cargo:cargo-clean-all" = "0.6.5"
-
 # Git and GitHub tooling
 # https://github.com/cli/cli - GitHub's official command-line tool
 gh = "latest"

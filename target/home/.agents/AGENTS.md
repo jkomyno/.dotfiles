@@ -20,6 +20,13 @@ These rules apply to every coding agent on this machine. Harness-specific entryp
 - Prefer a pull request for the default or a protected branch. If the user explicitly requests a direct push, follow that request when repository policy permits it.
 - Before any push, finish implementation and local review, and run the relevant fast checks. An explicit request to push, publish a branch, or create or open a pull request authorizes the corresponding feature-branch push; do not ask again unless its target or scope changes. When the task includes a pull request, open it immediately after first publishing its branch.
 
+
+## Rust build cache (Mr Boxington)
+
+- Plain `cargo`/`rustc` commands run through Mr Boxington (mbx) via the `mr_boxington` option on mise's `rust` tool: compilations are shared across projects, worktrees, and CI, and `target/` directories are managed under a budget.
+- A workspace's `target/` is a symlink into the mbx cache. Never `rm -rf target/` or `cargo clean` to reclaim disk; use `mbx clean` (this workspace) or `mbx cache remove <path>` (forget claims), and `mbx gc --dry-run` | `mbx gc` for machine-wide collection. `mbx cache stats` and `mbx doctor` report usage and health.
+- Collection is automatic (checkout gone, 30 days unused, budget, or low disk). `sccache` and `cargo-clean-all` are retired; do not reintroduce `rustc-wrapper` in Cargo config.
+
 ## Local context
 
 - Read a repository's `AGENTS.local.md` when present. Never commit it, add it to a tracked ignore file, or quote it; it contains private machine context.

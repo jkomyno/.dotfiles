@@ -3,9 +3,9 @@
 <!--
   Managed by dotfiles: target/home/Library/LaunchAgents/com.jkomyno.rust-cache-maintenance.plist
 
-  A daily trigger makes missed runs recover after sleep. The script's persistent
-  timestamp admits cleanup only once every 14 days. It removes workspace-local
-  Cargo targets unused for 30 days; sccache keeps recompilation inexpensive.
+  A daily trigger makes missed runs recover after sleep. Mr Boxington (mbx)
+  collects managed target directories after builds on its own; this daily
+  `mbx gc` is the safety net for abandoned checkouts between builds.
 -->
 <plist version="1.0">
 <dict>

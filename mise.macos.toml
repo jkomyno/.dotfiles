@@ -3,7 +3,6 @@
 "~/Library/Application Support/qBittorrent/nova3/engines/thepiratebay.py" = { source = "target/home/Library/Application Support/qBittorrent/nova3/engines/thepiratebay.py", mode = "symlink" }
 "~/.handy/settings_store.json" = { source = "target/home/.handy/settings_store.json", mode = "copy" }
 "~/Library/Application Support/com.pais.handy/settings_store.json" = { source = "target/home/.handy/settings_store.json", mode = "copy" }
-"~/Library/Application Support/Mozilla.sccache/config" = { source = "target/home/.config/sccache/config", mode = "symlink" }
 "~/.local/bin/coffee" = { source = "target/home/.local/bin/coffee", mode = "symlink" }
 "~/.local/bin/dsp" = { source = "target/home/.local/bin/dsp", mode = "symlink" }
 "~/.local/bin/keychain-run" = { source = "target/home/.local/bin/keychain-run", mode = "symlink" }
