@@ -51,6 +51,7 @@ check_required_files() {
     "target/home/.agents/skills/sync-skills/SKILL.md"
     "target/home/.claude/CLAUDE.md"
     "target/home/.claude/hooks/block-claude-attribution.sh"
+    "target/home/.claude/hooks/guard-rm.py"
     "target/home/.claude/hooks/rtk-rewrite.sh"
     "target/home/.claude/settings.json"
     "target/home/.codex/AGENTS.md"

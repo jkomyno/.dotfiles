@@ -250,10 +250,10 @@ verify_unrelated_directory_link_is_preserved() {
 
 verify_dotfiles() {
   verify_no_template_delimiters ".zprofile"
-  verify_no_template_delimiters ".claude/settings.json"
+  verify_symlink ".claude/settings.json" "target/home/.claude/settings.json"
   verify_no_template_delimiters ".ssh/config"
   verify_json ".claude/settings.json"
-  verify_file_matches_source ".pi/agent/settings.json" "target/home/.pi/agent/settings.json"
+  verify_symlink ".pi/agent/settings.json" "target/home/.pi/agent/settings.json"
   verify_symlink ".pi/agent/extensions/agentmemory" "target/home/.pi/agent/extensions/agentmemory"
   verify_symlink ".pi/agent/extensions/subagent" "target/home/.pi/agent/extensions/subagent"
   verify_symlink ".pi/agent/agents" "target/home/.pi/agent/agents"

@@ -9,17 +9,11 @@
   "outputStyle": "Concise",
   "permissions": {
     "allow": [
-      "Read(**)",
-      "Edit(**)",
-      "Grep(**)",
-      "LS(**)",
       "Agent(compound-engineering:*)",
-      "Skill(compound-engineering:*)",
-      "WebFetch",
-      "WebSearch",
-      "Bash(.venv*)",
       "Bash(* --help *)",
       "Bash(* --version)",
+      "Bash(.venv*)",
+      "Bash(awk *)",
       "Bash(awk)",
       "Bash(basename *)",
       "Bash(bun *)",
@@ -60,6 +54,7 @@
       "Bash(python *)",
       "Bash(python3 *)",
       "Bash(realpath *)",
+      "Bash(rm *)",
       "Bash(ruff *)",
       "Bash(sed *)",
       "Bash(sed)",
@@ -77,17 +72,21 @@
       "Bash(xargs *)",
       "Bash(yarn *)",
       "Bash(yq *)",
+      "Edit(**)",
+      "Grep(**)",
+      "LS(**)",
+      "Read(**)",
+      "Skill(compound-engineering:*)",
+      "WebFetch",
+      "WebSearch",
       "mcp__ide__getDiagnostics",
       "mcp__linear-server__get_*",
       "mcp__plugin_compound-engineering_context7__query-docs",
       "mcp__plugin_compound-engineering_context7__resolve-library-id"
     ],
-    "ask": [
-      "Bash(rm -rf *)"
-    ],
     "defaultMode": "acceptEdits"
   },
-  "model": "claude-fable-5[1m]",
+  "model": "opus",
   "hooks": {
     "PreToolUse": [
       {
@@ -95,7 +94,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "{{ env.HOME }}/.claude/hooks/rtk-rewrite.sh"
+            "command": "~/.claude/hooks/rtk-rewrite.sh"
           }
         ]
       },
@@ -104,18 +103,16 @@
         "hooks": [
           {
             "type": "command",
-            "command": "{{ env.HOME }}/.claude/hooks/block-claude-attribution.sh"
+            "command": "~/.claude/hooks/block-claude-attribution.sh"
           }
         ]
-      }
-    ],
-    "PermissionRequest": [
+      },
       {
         "matcher": "Bash",
         "hooks": [
           {
             "type": "command",
-            "command": "{{ env.HOME }}/.claude/hooks/approve-temp-cleanup.sh"
+            "command": "~/.claude/hooks/guard-rm.py"
           }
         ]
       }
@@ -123,15 +120,20 @@
   },
   "statusLine": {
     "type": "command",
-    "command": "{{ env.HOME }}/.local/share/mise/shims/ccstatusline"
+    "command": "~/.local/share/mise/shims/ccstatusline"
   },
   "enabledPlugins": {
     "compound-engineering@compound-engineering-plugin": true,
     "frontend-design@claude-plugins-official": true,
     "interface-design@interface-design": true,
-    "rust-analyzer-lsp@claude-plugins-official": true
+    "rust-analyzer-lsp@claude-plugins-official": true,
+    "clangd-lsp@claude-plugins-official": true
   },
   "effortLevel": "medium",
-  "fastMode": true,
-  "skipDangerousModePermissionPrompt": true
+  "skipDangerousModePermissionPrompt": true,
+  "modelSettings": {
+    "claude-opus-5-5": {
+      "effortLevel": "high"
+    }
+  }
 }

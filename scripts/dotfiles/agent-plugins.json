@@ -18,6 +18,7 @@
     "compound-engineering@compound-engineering-plugin",
     "frontend-design@claude-plugins-official",
     "rust-analyzer-lsp@claude-plugins-official",
+    "clangd-lsp@claude-plugins-official",
     "interface-design@interface-design"
   ],
   "mcpServers": [
