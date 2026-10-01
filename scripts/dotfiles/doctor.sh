@@ -62,6 +62,8 @@ check_required_files() {
     "target/home/.pi/agent/settings.json"
     "target/home/.pi/agent/extensions/agentmemory/index.ts"
     "target/home/.pi/agent/extensions/agentmemory/security.ts"
+    "target/home/.pi/agent/extensions/subagent/index.ts"
+    "target/home/.pi/agent/agents/scout.md"
     "target/home/.ssh/config"
     "target/home/.uv/uv.toml"
     "target/home/.config/ccstatusline/settings.json"

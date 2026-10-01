@@ -255,6 +255,8 @@ verify_dotfiles() {
   verify_json ".claude/settings.json"
   verify_file_matches_source ".pi/agent/settings.json" "target/home/.pi/agent/settings.json"
   verify_symlink ".pi/agent/extensions/agentmemory" "target/home/.pi/agent/extensions/agentmemory"
+  verify_symlink ".pi/agent/extensions/subagent" "target/home/.pi/agent/extensions/subagent"
+  verify_symlink ".pi/agent/agents" "target/home/.pi/agent/agents"
   verify_agent_skill_links
   verify_file_matches_source ".config/gh/config.yml" "target/home/.config/gh/config.yml"
   verify_file_matches_source ".config/ccstatusline/settings.json" "target/home/.config/ccstatusline/settings.json"
