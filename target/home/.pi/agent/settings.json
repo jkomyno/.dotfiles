@@ -1,5 +1,5 @@
 {
-  "lastChangelogVersion": "0.75.5",
+  "lastChangelogVersion": "1.0.0",
   "defaultProvider": "zai",
   "defaultModel": "glm-5.3-flash",
   "defaultThinkingLevel": "medium",
@@ -18,5 +18,6 @@
   ],
   "warnings": {
     "anthropicExtraUsage": false
-  }
+  },
+  "theme": "dark"
 }

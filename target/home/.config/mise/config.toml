@@ -1,3 +1,4 @@
+wrappers = { cargo = { command = "mbx", env = { MBX_CARGO_SHIM_MODE = "1" } } }
 [tools]
 # Programming languages
 # Track npm independently from the older version bundled with Node.
@@ -11,7 +12,7 @@ python = "3.13"
 # mr_boxington wraps plain Cargo commands through Mr Boxington (mbx): a shared,
 # content-addressed compilation cache across projects and worktrees with
 # budgeted collection of managed target/ directories (docs: mr-boxington.jdx.dev).
-rust = { version = "1.96.0", targets = "wasm32-unknown-unknown", mr_boxington = true }
+rust = { version = "stable", targets = "wasm32-unknown-unknown", mr_boxington = true }
 erlang = "29.0.2"
 elixir = "1.20.2-otp-29"
 

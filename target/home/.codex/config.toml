@@ -2,12 +2,12 @@
 # deployed ~/.codex/config.toml at runtime (per-project [projects.*] trust
 # entries, [notice.*] migrations, [tui.*] flags); that state is intentionally
 # not tracked here.
-model = "gpt-5.6-sol"
-model_reasoning_effort = "xhigh"
+model = "gpt-6.1-sol"
+model_reasoning_effort = "high"
 model_reasoning_summary = "concise"
 model_verbosity = "low"
 personality = "pragmatic"
-service_tier = "fast"
+service_tier = "default"
 
 # Codex is updated through mise (just update codex). Its npm self-updater
 # targets the active Node prefix instead of mise's isolated package install.

@@ -7370,11 +7370,10 @@ url_api = "https://api.github.com/repos/astral-sh/ruff/releases/assets/586788044
 provenance = "github-attestations"
 
 [[tools.rust]]
-version = "nightly-2026-08-25"
+version = "stable"
 backend = "core:rust"
 
 [tools.rust.options]
-components = "rust-src,rustc-codegen-cranelift-preview,rustfmt"
 targets = "wasm32-unknown-unknown"
 
 [[tools.sccache]]
