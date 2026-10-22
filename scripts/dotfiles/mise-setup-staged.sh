@@ -30,7 +30,6 @@ setup_plan=(
   "task|install:common:mise|install/common/mise.sh"
   "task|install:common:rust-cache|install/common/rust-cache.sh"
   "task|install:common:paseo|install/common/paseo.sh"
-  "task|install:common:agentmemory|install/common/agentmemory.sh"
   "task|install:common:git|install/common/git.sh"
   "task|install:common:git-signing|install/common/git-signing.sh"
   "task|install:common:gh|install/common/gh.sh"
@@ -46,7 +45,7 @@ setup_plan=(
 # Steps allowed to fail without aborting the staged run. These fetch things over
 # the network (the Claude Code installer, coding-agent plugins, local-LLM assets)
 # or depend on host state a fresh/headless run may lack (sudo for the tailscaled
-# daemon, or a user service manager for paseo and agentmemory), so a flaky download or
+# daemon, or a user service manager for paseo), so a flaky download or
 # a missing prerequisite must not block the remaining setup (notably macOS
 # defaults, which runs after them). They can also be skipped outright via their
 # own DOTFILES_SKIP_* env vars.
@@ -55,7 +54,6 @@ optional_steps=(
   "install:macos:tailscale"
   "install:common:paseo"
   "install:common:rust-cache"
-  "install:common:agentmemory"
   "install:common:claude"
   "install:common:agents"
   "install:common:amp"

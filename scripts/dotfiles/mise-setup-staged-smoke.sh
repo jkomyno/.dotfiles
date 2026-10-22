@@ -112,7 +112,6 @@ verify_smoke_home() {
   if is_linux; then
     assert_exists "${smoke_home}/.config/mise/config.linux.toml"
     assert_exists "${smoke_home}/.config/systemd/user/paseo.service"
-    assert_exists "${smoke_home}/.config/systemd/user/agentmemory.service"
     assert_absent "${smoke_home}/Library"
     assert_absent "${smoke_home}/.handy"
     assert_absent "${smoke_home}/.local/bin/coffee"

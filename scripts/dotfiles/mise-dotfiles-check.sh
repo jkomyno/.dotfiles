@@ -249,12 +249,12 @@ verify_unrelated_directory_link_is_preserved() {
 }
 
 verify_dotfiles() {
+  verify_symlink ".local/bin/pstack-skill" "target/home/.local/bin/pstack-skill"
   verify_no_template_delimiters ".zprofile"
   verify_symlink ".claude/settings.json" "target/home/.claude/settings.json"
   verify_no_template_delimiters ".ssh/config"
   verify_json ".claude/settings.json"
   verify_symlink ".pi/agent/settings.json" "target/home/.pi/agent/settings.json"
-  verify_symlink ".pi/agent/extensions/agentmemory" "target/home/.pi/agent/extensions/agentmemory"
   verify_symlink ".pi/agent/extensions/subagent" "target/home/.pi/agent/extensions/subagent"
   verify_symlink ".pi/agent/agents" "target/home/.pi/agent/agents"
   verify_agent_skill_links
@@ -281,7 +281,6 @@ verify_dotfiles() {
     verify_symlink ".config/mise/config.linux.toml" "target/home/.config/mise/config.linux.toml"
     verify_symlink ".config/mise/mise.linux.lock" "target/home/.config/mise/mise.linux.lock"
     verify_symlink ".config/systemd/user/paseo.service" "target/home/.config/systemd/user/paseo.service"
-    verify_symlink ".config/systemd/user/agentmemory.service" "target/home/.config/systemd/user/agentmemory.service"
     verify_symlink ".config/systemd/user/rust-cache-maintenance.service" "target/home/.config/systemd/user/rust-cache-maintenance.service"
     verify_symlink ".config/systemd/user/rust-cache-maintenance.timer" "target/home/.config/systemd/user/rust-cache-maintenance.timer"
     verify_absent "Library"

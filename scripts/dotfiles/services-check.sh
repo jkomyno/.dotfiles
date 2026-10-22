@@ -31,7 +31,6 @@ case " $* " in
   *' exec npm:@getpaseo/cli -- paseo --version '*) printf 'paseo test\n' ;;
   *' exec npm:@getpaseo/cli -- paseo daemon status '*) ;;
   *' exec npm:@getpaseo/cli -- paseo daemon pair '*) ;;
-  *' exec npm:@agentmemory/agentmemory -- agentmemory --version '*) printf 'agentmemory test\n' ;;
   *' exec cargo:cargo-clean-all -- cargo-clean-all '*)
     if [[ "$*" == *' --yes '* && "${MOCK_CLEANER_FAIL:-0}" == "1" ]]; then
       exit 42
@@ -294,11 +293,11 @@ main() {
   write_launchd_mocks
   check_rust_cache_installer
 
-  # paseo.sh and agentmemory.sh only drive systemctl on Linux (main() branches
+  # paseo.sh only drives systemctl on Linux (main() branches
   # on `uname -s`; Darwin uses launchctl/a tracked LaunchAgent instead), so the
   # systemd mocks below have nothing to assert against on macOS runners.
   if [[ "$(uname -s)" != "Linux" ]]; then
-    info "skipping systemd user-service checks on $(uname -s); paseo.sh/agentmemory.sh use launchctl here"
+    info "skipping systemd user-service checks on $(uname -s); paseo.sh uses launchctl here"
     return 0
   fi
 
@@ -306,17 +305,12 @@ main() {
     "install/common/paseo.sh" \
     "paseo.service" \
     "target/home/.config/systemd/user/paseo.service"
-  check_one_service \
-    "install/common/agentmemory.sh" \
-    "agentmemory.service" \
-    "target/home/.config/systemd/user/agentmemory.service"
 
   MOCK_SYSTEMCTL_AVAILABLE=0 run_service "install/common/paseo.sh" >/dev/null 2>&1
 
   if command -v systemd-analyze >/dev/null 2>&1; then
     systemd-analyze --user verify \
       "${DOTFILES_ROOT}/target/home/.config/systemd/user/paseo.service" \
-      "${DOTFILES_ROOT}/target/home/.config/systemd/user/agentmemory.service" \
       "${DOTFILES_ROOT}/target/home/.config/systemd/user/rust-cache-maintenance.service" \
       "${DOTFILES_ROOT}/target/home/.config/systemd/user/rust-cache-maintenance.timer"
   fi

@@ -1,0 +1,5 @@
+interface:
+  display_name: "pstack"
+  short_description: "Load a pstack skill on demand"
+policy:
+  allow_implicit_invocation: false

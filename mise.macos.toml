@@ -8,7 +8,6 @@
 "~/.local/bin/keychain-run" = { source = "target/home/.local/bin/keychain-run", mode = "symlink" }
 "~/.local/share/dsp/README.md" = { source = "target/home/.local/share/dsp/README.md", mode = "symlink" }
 "~/.local/share/dsp/monitor.py" = { source = "target/home/.local/share/dsp/monitor.py", mode = "symlink" }
-"~/Library/LaunchAgents/com.agentmemory.daemon.plist" = { source = "target/home/Library/LaunchAgents/com.agentmemory.daemon.plist", mode = "template" }
 "~/Library/LaunchAgents/com.jkomyno.rust-cache-maintenance.plist" = { source = "target/home/Library/LaunchAgents/com.jkomyno.rust-cache-maintenance.plist", mode = "template" }
 "~/Library/LaunchAgents/sh.paseo.daemon.plist" = { source = "target/home/Library/LaunchAgents/sh.paseo.daemon.plist", mode = "template" }
 "~/.config/fish/conf.d/nanobrew.fish" = { source = "target/home/.config/fish/conf.d/nanobrew.fish", mode = "symlink" }

@@ -33,15 +33,10 @@
       {
         "name": "compound-engineering-plugin",
         "source": "EveryInc/compound-engineering-plugin"
-      },
-      {
-        "name": "agentmemory",
-        "source": "rohitg00/agentmemory"
       }
     ],
     "plugins": [
-      "compound-engineering@compound-engineering-plugin",
-      "agentmemory@agentmemory"
+      "compound-engineering@compound-engineering-plugin"
     ]
   }
 }

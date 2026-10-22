@@ -27,7 +27,7 @@ versions:
 versions-update:
     @scripts/dotfiles/versions.sh --write
 
-# Update every managed layer, or one component: just update [all|mise|casks|formulae|plugins|vscode|skills|codex|pi|agentmemory|self]
+# Update every managed layer, or one component: just update [all|mise|casks|formulae|plugins|vscode|skills|codex|pi|self]
 update *args:
     @scripts/dotfiles/update.sh {{args}}
 
@@ -58,10 +58,6 @@ screen-sharing *args:
 # Start or restart the paseo user service. Pair: --pair. Status: --status. Undo: --remove.
 paseo *args:
     @bash install/common/paseo.sh {{args}}
-
-# Start or restart the agentmemory user service. Status: --status. Undo: --remove.
-agentmemory *args:
-    @bash install/common/agentmemory.sh {{args}}
 
 # Manage periodic Rust target cleanup. Preview: just rust-cache --dry-run. Run now: --run.
 rust-cache *args:

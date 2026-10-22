@@ -21,9 +21,6 @@ work.
 
 ## Rules
 
-- Save a reusable lesson to agentmemory before the handoff only when the
-  repository guidance permits memory writes. Store the pattern, evidence path,
-  and verification command; never store secrets or transcript dumps.
 - Suggest `ship-it` only when implementation is complete but publication,
   merge, tagging, or promotion remains.
 - Keep the next prompt under roughly 150 words. Link existing context when

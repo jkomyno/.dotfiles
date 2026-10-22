@@ -1,0 +1,103 @@
+#!/usr/bin/env bash
+# Load pinned pstack skills on demand, outside agent skill discovery.
+set -Eeuo pipefail
+
+readonly REPO="https://github.com/backnotprop/pstack.git"
+readonly REVISION="e44668c2aad92eacf4e84df47984121fefb11b82"
+readonly CACHE_ROOT="${XDG_CACHE_HOME:-${HOME}/.cache}/pstack"
+readonly COLLECTION="${CACHE_ROOT}/${REVISION}"
+staging=""
+
+die() { printf 'pstack-skill: %s\n' "$*" >&2; exit 1; }
+cleanup() { [[ -z "${staging}" ]] || rm -rf -- "${staging}"; }
+trap cleanup EXIT
+
+usage() {
+  cat <<'USAGE'
+Usage: pstack-skill list
+       pstack-skill path SKILL
+       pstack-skill prompt SKILL [TASK...]
+       pstack-skill {codex|pi|claude} SKILL [TASK...]
+       pstack-skill check
+
+The first use downloads a pinned copy of backnotprop/pstack into ~/.cache/pstack
+(or $XDG_CACHE_HOME/pstack). Later uses work offline. No skills are registered
+with agents at startup. `prompt` prints text to paste into an existing chat;
+an agent name starts an interactive session with the selected skill and task.
+`check` reports whether upstream main differs from the pinned revision.
+USAGE
+}
+
+ensure_collection() {
+  if [[ -f "${COLLECTION}/skills/poteto-mode/SKILL.md" ]]; then
+    return
+  fi
+  mkdir -p "${CACHE_ROOT}"
+  staging="$(mktemp -d "${CACHE_ROOT}/.download.XXXXXX")"
+  git -C "${staging}" init --quiet
+  git -C "${staging}" fetch --quiet --depth=1 "${REPO}" "${REVISION}"
+  git -C "${staging}" -c advice.detachedHead=false checkout --quiet --detach FETCH_HEAD
+  [[ "$(git -C "${staging}" rev-parse HEAD)" == "${REVISION}" ]] || die "unexpected upstream revision"
+  # Another invocation may have finished the same download while we fetched.
+  if [[ ! -d "${COLLECTION}" ]]; then
+    mv "${staging}" "${COLLECTION}"
+    staging=""
+  fi
+  cleanup
+  staging=""
+}
+
+command="${1:---help}"
+[[ $# -eq 0 ]] || shift
+case "${command}" in
+  -h | --help) usage; exit 0 ;;
+  check)
+    [[ $# -eq 0 ]] || die "check takes no arguments"
+    upstream="$(git ls-remote "${REPO}" refs/heads/main)"
+    upstream="${upstream%%[[:space:]]*}"
+    [[ -n "${upstream}" ]] || die "upstream main was not found"
+    printf 'pstack pinned: %s\npstack upstream: %s\n' "${REVISION}" "${upstream}"
+    if [[ "${upstream}" != "${REVISION}" ]]; then
+      printf 'Review upstream changes, then update REVISION in the managed pstack-skill source.\n'
+    fi
+    exit 0
+    ;;
+  list)
+    [[ $# -eq 0 ]] || die "list takes no arguments"
+    ensure_collection
+    for entry in "${COLLECTION}"/skills/*/SKILL.md; do
+      name="${entry%/SKILL.md}"
+      printf '%s\n' "${name##*/}"
+    done
+    exit 0
+    ;;
+  path | prompt | codex | pi | claude) ;;
+  *) usage >&2; die "unknown command: ${command}" ;;
+esac
+
+[[ $# -gt 0 ]] || die "a skill name is required"
+skill="$1"
+shift
+case "${skill}" in
+  '' | *[!a-z0-9-]* | -*) die "invalid skill name: ${skill}" ;;
+esac
+[[ "${command}" != path || $# -eq 0 ]] || die "path takes one skill name"
+ensure_collection
+skill_file="${COLLECTION}/skills/${skill}/SKILL.md"
+[[ -f "${skill_file}" ]] || die "unknown skill: ${skill}; use pstack-skill list"
+if [[ "${command}" == path ]]; then
+  printf '%s\n' "${skill_file}"
+  exit 0
+fi
+
+prompt="Read and use the pstack skill at ${skill_file}. Resolve bundled skills, agents, scripts, and references from ${COLLECTION}; read only what this task needs."
+if [[ $# -gt 0 ]]; then
+  prompt="${prompt}
+
+Task: $*"
+fi
+if [[ "${command}" == prompt ]]; then
+  printf '%s\n' "${prompt}"
+else
+  exec "${command}" "${prompt}"
+fi

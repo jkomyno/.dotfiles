@@ -10,7 +10,6 @@
 #   skills    Report vendored agent-skill drift vs upstream (apply via /sync-skills).
 #   codex     Upgrade just the Codex CLI via mise (subset of `mise`).
 #   pi        Upgrade just the pi coding agent via mise (subset of `mise`).
-#   agentmemory Upgrade just the agentmemory CLI via mise (subset of `mise`).
 #   self      Pull, re-apply mise bootstrap dotfiles, then restore agent adapters.
 #   all       Everything above in a safe order (default).
 #
@@ -38,7 +37,6 @@ UPDATE_FAILURES=0
 
 CODEX_MISE_TOOL="npm:@openai/codex"
 PI_MISE_TOOL="npm:@earendil-works/pi-coding-agent"
-AGENTMEMORY_MISE_TOOL="npm:@agentmemory/agentmemory"
 
 usage() {
   cat <<'USAGE'
@@ -46,7 +44,7 @@ Usage: scripts/dotfiles/update.sh [--check] [COMPONENT ...]
 
 Update every managed layer of these dotfiles with one interface.
 
-Components: all (default) mise casks formulae plugins vscode skills codex pi agentmemory self
+Components: all (default) mise casks formulae plugins vscode skills codex pi self
 
 Options:
   --check   Non-mutating preview: show what each component would change.
@@ -64,7 +62,7 @@ while [[ $# -gt 0 ]]; do
       usage
       exit 0
       ;;
-    all | mise | casks | formulae | plugins | vscode | skills | codex | pi | agentmemory | self)
+    all | mise | casks | formulae | plugins | vscode | skills | codex | pi | self)
       COMPONENTS+=("$1")
       shift
       ;;
@@ -113,7 +111,6 @@ update_mise() {
 
 update_codex() { update_mise "${CODEX_MISE_TOOL}"; }
 update_pi() { update_mise "${PI_MISE_TOOL}"; }
-update_agentmemory() { update_mise "${AGENTMEMORY_MISE_TOOL}"; }
 
 update_bundle() {
   # $1 = human title, $2 = Brewfile path, $3 = kind (cask|brew)
@@ -200,6 +197,7 @@ update_vscode() {
 }
 
 update_skills() {
+  bash "${DOTFILES_ROOT}/target/home/.local/bin/pstack-skill" check || warn "skills: pstack upstream check failed"
   local sync="${DOTFILES_ROOT}/target/home/.agents/skills/sync-skills/scripts/sync.sh"
   [[ -f "${sync}" ]] || {
     warn "skills: sync-skills not found"
@@ -278,7 +276,6 @@ run_component() {
     mise) update_mise ;;
     codex) update_codex ;;
     pi) update_pi ;;
-    agentmemory) update_agentmemory ;;
     casks) update_casks ;;
     formulae) update_formulae ;;
     plugins) update_plugins ;;

@@ -22,10 +22,10 @@ includes = ["tasks"]
 "~/.codex/hooks/glen-composio.sh" = { source = "target/home/.codex/hooks/glen-composio.sh", mode = "symlink" }
 "~/.local/bin/clipboard-copy" = { source = "target/home/.local/bin/clipboard-copy", mode = "symlink" }
 "~/.local/bin/clipboard-paste" = { source = "target/home/.local/bin/clipboard-paste", mode = "symlink" }
+"~/.local/bin/pstack-skill" = { source = "target/home/.local/bin/pstack-skill", mode = "symlink" }
 "~/.local/bin/rust-cache-maintenance" = { source = "target/home/.local/bin/rust-cache-maintenance", mode = "symlink" }
 "~/.pi/agent/settings.json" = { source = "target/home/.pi/agent/settings.json", mode = "symlink" }
 "~/.pi/agent/claude-bridge.json" = { source = "target/home/.pi/agent/claude-bridge.json", mode = "symlink" }
-"~/.pi/agent/extensions/agentmemory" = { source = "target/home/.pi/agent/extensions/agentmemory", mode = "symlink" }
 "~/.pi/agent/extensions/subagent" = { source = "target/home/.pi/agent/extensions/subagent", mode = "symlink" }
 "~/.pi/agent/agents" = { source = "target/home/.pi/agent/agents", mode = "symlink" }
 "~/.ssh/config" = { source = "target/home/.ssh/config", mode = "template" }

@@ -30,7 +30,6 @@ These rules apply to every coding agent on this machine. Harness-specific entryp
 ## Local context
 
 - Read a repository's `AGENTS.local.md` when present. Never commit it, add it to a tracked ignore file, or quote it; it contains private machine context.
-- Use agentmemory for reusable lessons about recurring or repository-specific work. Never store secrets, tokens, private state, or transcript dumps there.
 - Shared skills live in `~/.agents/skills/`; edit their managed sources under the dotfiles checkout's `target/home/.agents/skills/`.
 
 ## Skill authoring

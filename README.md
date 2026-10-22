@@ -71,7 +71,7 @@ The root [`setup.sh`](./setup.sh) is intentionally small:
 4. Installs or finds the pinned standalone `mise` binary.
 5. Runs the staged mise setup order from `scripts/dotfiles/mise-setup-staged.sh`.
 
-The staged setup starts with platform prerequisites, generates an SSH key, applies the platform-specific mise dotfile profile, sets the Linux login shell, installs the complete mise toolchain, starts the paseo and agentmemory user services, and runs the shared Git and agent setup. macOS then completes its existing nanobrew, Tailscale, Ollama, MLX, and defaults work. Linux skips those macOS-only steps.
+The staged setup starts with platform prerequisites, generates an SSH key, applies the platform-specific mise dotfile profile, sets the Linux login shell, installs the complete mise toolchain, starts the paseo user service, and runs the shared Git and agent setup. macOS then completes its existing nanobrew, Tailscale, Ollama, MLX, and defaults work. Linux skips those macOS-only steps.
 
 On Linux, `apt` owns only OS prerequisites such as zsh, build libraries, SSH, and `trash-cli`. Mise owns development runtimes and portable CLI tools, including `fish`, `ffmpeg`, and `ttyd`. Desktop Linux configuration, GUI application installation, Tailscale provisioning, and package managers other than Debian `apt` are outside this repository's scope.
 
@@ -147,19 +147,11 @@ A few tools need a long-lived process that survives logout and reboot. On macOS,
 | --- | --- | --- | --- | --- |
 | **tailscaled** | system LaunchDaemon (root) | `install:macos:tailscale` | `just tailscale` | tailnet |
 | **paseo** | user LaunchAgent / systemd user unit | `install:common:paseo` | `just paseo` | `127.0.0.1:6767` |
-| **agentmemory** | user LaunchAgent / systemd user unit | `install:common:agentmemory` | `just agentmemory` | `localhost:3111` / `:3113` |
 | **Rust cache maintenance** | scheduled user job | `install:common:rust-cache` | `just rust-cache` | `~/work` |
 
 - **tailscaled** is a root system daemon installed by Homebrew (`tailscaled install-system-daemon`); it needs sudo once and is not a mise tool. See [Remote Access](#remote-access-tailscale-screen-sharing-and-paseo).
 - **paseo** uses [`sh.paseo.daemon.plist`](./target/home/Library/LaunchAgents/sh.paseo.daemon.plist) on macOS and [`paseo.service`](./target/home/.config/systemd/user/paseo.service) on Linux. See [Remote Access](#remote-access-tailscale-screen-sharing-and-paseo).
-- **agentmemory** uses [`com.agentmemory.daemon.plist`](./target/home/Library/LaunchAgents/com.agentmemory.daemon.plist) on macOS and [`agentmemory.service`](./target/home/.config/systemd/user/agentmemory.service) on Linux. Both keep the shared memory server on localhost and use `~/.agentmemory` as the working directory so persistent engine state stays at `~/.agentmemory/data`.
 - **Rust cache maintenance** keeps Cargo's final artifacts in each workspace, shares compiler outputs through a 20 GiB `sccache`, and removes complete target directories unused for 30 days. A daily native trigger recovers missed runs after sleep or downtime; a persistent timestamp admits cleanup only once every 14 days. macOS uses [`com.jkomyno.rust-cache-maintenance.plist`](./target/home/Library/LaunchAgents/com.jkomyno.rust-cache-maintenance.plist); Linux uses [`rust-cache-maintenance.timer`](./target/home/.config/systemd/user/rust-cache-maintenance.timer).
-
-  ```sh
-  just agentmemory            # start / restart the daemon user service
-  just agentmemory --status   # report agent state + server health
-  just agentmemory --remove   # disable the user service
-  ```
 
   ```sh
   just rust-cache --dry-run   # preview eligible Cargo targets
@@ -174,7 +166,6 @@ Inspect Linux logs with:
 
 ```sh
 journalctl --user -u paseo.service
-journalctl --user -u agentmemory.service
 journalctl --user -u rust-cache-maintenance.service
 ```
 
@@ -207,12 +198,26 @@ Coding-agent configuration follows a shared-canonical-plus-adapters layout inspi
 - [`target/home/.agents`](./target/home/.agents) is the shared layer, deployed to `~/.agents`. `AGENTS.md` holds instructions common to every harness, and `skills/` holds both first-party skills and vendored third-party skills as real files. Each third-party skill is mapped to its upstream repository in [`sync-skills/manifest.json`](./target/home/.agents/skills/sync-skills/manifest.json); the `sync-skills` skill (inspired by dmmulroy's `sync-pocock-skills`) updates vendored copies from upstream while re-applying local modifications stored as patch files.
 - [`target/home/.claude`](./target/home/.claude) deploys Claude Code's global `settings.json`, `CLAUDE.md` (which imports `~/.agents/AGENTS.md`), and hooks. Claude's `~/.claude/skills` remains a real, host-owned directory because plugins and local tools install their own skills there; [`scripts/dotfiles/claude-skill-links.sh`](./scripts/dotfiles/claude-skill-links.sh) adds per-skill links into the shared `~/.agents/skills` tree without replacing those host-owned entries. The plugins that `settings.json` enables are made reproducible by [`install/common/agents.sh`](./install/common/agents.sh), which reads [`scripts/dotfiles/agent-plugins.json`](./scripts/dotfiles/agent-plugins.json) and registers each marketplace and installs each plugin. It runs during staged setup and on `just update plugins`, and skips gracefully when the `claude` CLI is not installed yet.
 - [`target/home/.codex`](./target/home/.codex) deploys a curated `~/.codex/config.toml` and `AGENTS.md` (which defers to `~/.agents/AGENTS.md`). The Codex CLI itself is provisioned via mise (`npm:@openai/codex`). Codex needs no skill symlinks: it scans `~/.agents/skills/` natively (its own `~/.codex/skills/` location is deprecated upstream). Codex plugins declared in [`scripts/dotfiles/agent-plugins.json`](./scripts/dotfiles/agent-plugins.json) are also converged by `install/common/agents.sh`.
-- [`target/home/.pi`](./target/home/.pi) deploys pi's `~/.pi/agent/settings.json`, the managed `~/.pi/agent/extensions/agentmemory` extension, and a first-party `subagent` extension (`~/.pi/agent/extensions/subagent`) whose agents are the markdown files in `~/.pi/agent/agents`; the pi CLI is provisioned via mise (`npm:@earendil-works/pi-coding-agent`) and auto-discovers `~/.agents/skills`, so no per-skill wiring is needed.
-- [`agentmemory`](https://github.com/rohitg00/agentmemory) is the shared persistent memory layer for Claude Code, Codex, and pi. The CLI is provisioned via mise (`npm:@agentmemory/agentmemory`), Claude/Codex plugin installation is declared in `agent-plugins.json`, and pi uses the vendored extension under `target/home/.pi/agent/extensions/agentmemory`. Its memory API (`http://localhost:3111`) and viewer (`http://localhost:3113`) run as an always-on user service. See [Always-on Background Services](#always-on-background-services) and manage it with `just agentmemory`.
+- [`target/home/.pi`](./target/home/.pi) deploys pi's `~/.pi/agent/settings.json` and a first-party `subagent` extension (`~/.pi/agent/extensions/subagent`) whose agents are the markdown files in `~/.pi/agent/agents`; the pi CLI is provisioned via mise (`npm:@earendil-works/pi-coding-agent`) and auto-discovers `~/.agents/skills`, so no per-skill wiring is needed.
 
 All three harnesses (Claude Code, Codex, pi) read the same first-party and vendored skills from `~/.agents/skills`. Plugin-delivered skills are host-specific; to expose a skill to every harness, vendor it into `~/.agents/skills` via `sync-skills`.
 
-Only curated configuration is tracked. Runtime state in `~/.claude` (sessions, history, caches, host-specific skills), `~/.codex` (the `[projects.*]` trust list, `rules/`, sqlite databases), and `~/.agentmemory` (memory database, engine state, optional `.env`) stays unmanaged. Mise only applies explicit entries from [`mise.toml`](./mise.toml) and the active platform profile. Skill directories not listed in this repository (for example one-off installs by other tooling) are left alone. To take a previously installed skill under management, vendor it via `sync-skills` instead of editing the deployed copy.
+[pstack](https://github.com/backnotprop/pstack) is available through one small loader skill: `$pstack how Explain the auth flow` in Codex, `/pstack how Explain the auth flow` in Claude Code, or `/skill:pstack how Explain the auth flow` in pi. With no skill name, it opens pstack's help skill. Only the loader is discoverable at startup; the 57 upstream skills and their instructions stay outside discovery until requested. Claude and Codex also mark the loader as explicit-only. The complete collection is downloaded at a pinned revision on first use and cached with its bundled dependencies. Later uses work offline.
+
+The managed `pstack-skill` command can also launch a fresh agent session or print a prompt for an existing chat:
+
+```sh
+pstack-skill list                                  # list the available skills
+pstack-skill codex how "Explain this project's auth flow"
+pstack-skill pi architect "Design the import pipeline"
+pstack-skill claude poteto-mode "Implement the requested change"
+pstack-skill prompt how "Explain the auth flow"     # paste into an existing chat
+pstack-skill path how                              # locate the skill file
+```
+
+`just update skills` reports upstream drift without changing the pin. To accept an update, review the upstream changes and update `REVISION` in [`pstack-skill`](./target/home/.local/bin/pstack-skill). The cached upstream checkout is machine state under `${XDG_CACHE_HOME:-~/.cache}/pstack`, outside this repository; no pstack plugin or rule is enabled globally. Verify the loader command with `bash scripts/dotfiles/pstack-skill-check.sh`.
+
+Only curated configuration is tracked. Runtime state in `~/.claude` (sessions, history, caches, host-specific skills) and `~/.codex` (the `[projects.*]` trust list, `rules/`, sqlite databases) stays unmanaged. Mise only applies explicit entries from [`mise.toml`](./mise.toml) and the active platform profile. Skill directories not listed in this repository (for example one-off installs by other tooling) are left alone. To take a previously installed skill under management, vendor it via `sync-skills` instead of editing the deployed copy.
 
 Per-idea reference corpora (pinned shallow clones of upstream repositories, blog-post snapshots, and agent-written digests) live under `~/.jk/ideas/<name>` and are managed by the first-party `jk-cli` skill. Projects opt in through an `AGENTS.local.md` at the repository root (hidden by the global gitignore and read by every harness via the shared `AGENTS.md`), so reference material never appears in a project's git history. `~/.jk` is machine state owned by the `jk` CLI and is not managed by these dotfiles.
 
@@ -287,7 +292,6 @@ just update plugins      # register Claude/Codex marketplaces and update enabled
 just update vscode       # install managed VS Code extensions that are missing
 just update skills       # report vendored agent-skill drift (apply with /sync-skills)
 just update codex        # upgrade just the Codex CLI (subset of `just update mise`)
-just update agentmemory  # upgrade just the agentmemory CLI (subset of `just update mise`)
 just update self         # pull, re-apply dotfiles, then restore agent adapters
 ```
 

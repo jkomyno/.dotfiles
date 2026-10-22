@@ -331,13 +331,6 @@ Cargo.lock
 
 # End of https://www.toptal.com/developers/gitignore/api/python,node,rust
 
-# agentmemory's iii engine writes its KV store to a cwd-relative ./data dir, so
-# running `agentmemory` from this repo root drops a stray data/ here. The tracked
-# daemon pins WorkingDirectory=~/.agentmemory (store lives in ~/.agentmemory/data),
-# so this only guards against accidental manual runs. Root-anchored; does not
-# affect target/home.
-/data/
-
 # FFmpeg's patcheck (shipped by the Homebrew `ffmpeg` formula, on PATH) and its
 # CVE cross-check dump patcheck.* / cvelist* into the current working directory.
 # When a patch review runs with cwd here (e.g. an agent session), they land at the
@@ -361,3 +354,6 @@ Cargo.lock
 !target/home/
 !target/home/**/
 !target/home/**
+
+# Downloaded Impeccable engine; the managed launcher fetches it when needed.
+/target/home/.agents/skills/impeccable/scripts/bin/
