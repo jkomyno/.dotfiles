@@ -8,7 +8,8 @@ wrappers = { cargo = { command = "mbx", env = { MBX_CARGO_SHIM_MODE = "1" } } }
 # Keep the standalone npm and pnpm declarations before Node so their binaries
 # take precedence over the versions bundled with Node and Corepack.
 node = "26"
-python = "3.15"
+# Upgrade pip independently from the version bundled with each Python release.
+python = { version = "3.15", postinstall = "python -m pip install --upgrade pip" }
 # mr_boxington wraps plain Cargo commands through Mr Boxington (mbx): a shared,
 # content-addressed compilation cache across projects and worktrees with
 # budgeted collection of managed target/ directories (docs: mr-boxington.jdx.dev).
