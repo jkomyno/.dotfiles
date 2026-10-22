@@ -16,6 +16,14 @@
       "repo": "https://github.com/mattpocock/skills.git",
       "path": "skills/engineering/research"
     },
+    "improve-codebase-architecture": {
+      "repo": "https://github.com/mattpocock/skills.git",
+      "path": "skills/engineering/improve-codebase-architecture"
+    },
+    "codebase-design": {
+      "repo": "https://github.com/mattpocock/skills.git",
+      "path": "skills/engineering/codebase-design"
+    },
     "postgres-drizzle": {
       "repo": "https://github.com/ccheney/robust-skills.git",
       "path": "skills/postgres-drizzle"

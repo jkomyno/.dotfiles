@@ -103,7 +103,7 @@ Symptoms:
 
 Fix:
 
-Escalate to `composio run` only when the user needs control flow, loops, `Promise.all`, `search()` inside a script, `proxy()`, or `experimental_subAgent()`.
+Escalate to `composio run` only when the user needs control flow, loops, `Promise.all`, `search()` inside a script, or `proxy()`.
 
 ```bash
 composio execute --parallel \

@@ -101,11 +101,11 @@ composio proxy https://api.github.com/user --toolkit github --account work --met
 Key flags:
 - `--account`: Select which connected account to use by alias, word_id, or account id.
 
-## `run` - Scripting, LLMs, and Programmatic Workflows
+## `run` - Scripting and Programmatic Workflows
 
 For programmatic calls, loops, output plumbing, or anything beyond a single tool call, prefer `composio run`.
 
-`composio run` executes an inline ESM JavaScript/TypeScript snippet with authenticated `execute()`, `search()`, `proxy()`, and the experimental `experimental_subAgent()` helper pre-injected. No SDK setup required.
+`composio run` executes an inline ESM JavaScript/TypeScript snippet with authenticated `execute()`, `search()`, and `proxy()` pre-injected. No SDK setup required.
 
 Chain multiple tools:
 ```bash
@@ -124,18 +124,6 @@ composio run '
     execute("GMAIL_FETCH_EMAILS", { max_results: 5 }),
   ]);
   console.log({ login: me.data.login, emailCount: emails.data.messages?.length });
-'
-```
-
-Feed tool output into an LLM and get structured JSON back:
-```bash
-composio run --logs-off '
-  const emails = await execute("GMAIL_FETCH_EMAILS", { max_results: 5 });
-  const brief = await experimental_subAgent(
-    `Summarize these emails and count them.\n\n${emails.prompt()}`,
-    { schema: z.object({ summary: z.string(), count: z.number() }) }
-  );
-  console.log(brief.structuredOutput);
 '
 ```
 

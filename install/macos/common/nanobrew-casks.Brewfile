@@ -11,6 +11,7 @@ cask "brave-browser"
 cask "google-chrome"
 
 # Core apps
+cask "bettershot"
 cask "discord"
 cask "ghostty"
 cask "handy"

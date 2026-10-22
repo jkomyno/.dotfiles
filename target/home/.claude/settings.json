@@ -1,12 +1,11 @@
 {
+  "env": {
+    "CLAUDE_CODE_REPL": "true"
+  },
   "attribution": {
     "commit": "",
     "pr": ""
   },
-  "env": {
-    "CLAUDE_CODE_REPL": "true"
-  },
-  "outputStyle": "Concise",
   "permissions": {
     "allow": [
       "Agent(compound-engineering:*)",
@@ -129,11 +128,15 @@
     "rust-analyzer-lsp@claude-plugins-official": true,
     "clangd-lsp@claude-plugins-official": true
   },
+  "outputStyle": "Concise",
   "effortLevel": "medium",
-  "skipDangerousModePermissionPrompt": true,
   "modelSettings": {
     "claude-opus-5-5": {
       "effortLevel": "high"
+    },
+    "claude-fable-5-1": {
+      "effortLevel": "high"
     }
-  }
+  },
+  "skipDangerousModePermissionPrompt": true
 }

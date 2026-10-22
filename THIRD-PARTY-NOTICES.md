@@ -3,7 +3,7 @@
 The repository [LICENSE](./LICENSE) (MIT, Copyright (c) 2026 Alberto Schiabel) covers
 first-party content only. The agent skills vendored under
 [`target/home/.agents/skills/`](./target/home/.agents/skills) remain under their
-upstream licenses, reproduced or referenced below. Each vendored skill is mapped to
+upstream licenses, reproduced or referenced below. Git-vendored skills are mapped to
 its upstream repository in
 [`sync-skills/manifest.json`](./target/home/.agents/skills/sync-skills/manifest.json),
 and local modifications are recorded as patch files under
@@ -20,7 +20,7 @@ copyright notices:
 | Skill(s) | Upstream | Copyright |
 | --- | --- | --- |
 | `create-cli` | [steipete/agent-scripts](https://github.com/steipete/agent-scripts) | Copyright (c) 2026 Peter Steinberger |
-| `tdd`, `grilling`, `domain-modeling`, `grill-with-docs` | [mattpocock/skills](https://github.com/mattpocock/skills) | Copyright (c) 2026 Matt Pocock |
+| `tdd`, `grilling`, `domain-modeling`, `grill-with-docs`, `improve-codebase-architecture`, `codebase-design` | [mattpocock/skills](https://github.com/mattpocock/skills) | Copyright (c) 2026 Matt Pocock |
 | `postgres-drizzle` | [ccheney/robust-skills](https://github.com/ccheney/robust-skills) | Copyright (c) 2026 robust-skills contributors |
 | `drizzle-orm-patterns` | [giuseppe-trisciuoglio/developer-kit](https://github.com/giuseppe-trisciuoglio/developer-kit) | Copyright (c) 2025 Giuseppe Trisciuoglio |
 | `lfd-design` | [elvisun/loss-function-development](https://github.com/elvisun/loss-function-development) | Copyright (c) 2026 Elvis Sun |
@@ -28,6 +28,14 @@ copyright notices:
 | `find-skills` | [vercel-labs/skills](https://github.com/vercel-labs/skills) | MIT declared in the upstream README; upstream publishes no LICENSE file |
 
 ## Apache-2.0-licensed skills
+
+- `amazon-bedrock`, `aws-*`, `launch-with-aws`,
+  `setting-up-cloudwatch-observability`, and `signing-in-to-aws` come from
+  [Agent Toolkit for AWS](https://github.com/aws/agent-toolkit-for-aws) under the
+  Apache License 2.0 (full text below). Their `.aws-skill-metadata` files record
+  the installed AWS skill versions; these CLI-delivered snapshots are separate
+  from the Git-based `sync-skills` manifest. Upstream NOTICE:
+  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 
 - `impeccable`, from [pbakaus/impeccable](https://github.com/pbakaus/impeccable),
   Copyright Paul Bakaus, is distributed under the Apache License 2.0 (full text
