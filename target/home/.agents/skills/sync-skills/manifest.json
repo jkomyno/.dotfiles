@@ -1,5 +1,9 @@
 {
   "skills": {
+    "security-audit": {
+      "repo": "https://github.com/cloudflare/security-audit-skill.git",
+      "path": "skills/security-audit"
+    },
     "find-skills": {
       "repo": "https://github.com/vercel-labs/skills.git",
       "path": "skills/find-skills"

@@ -19,6 +19,7 @@ copyright notices:
 
 | Skill(s) | Upstream | Copyright |
 | --- | --- | --- |
+| `security-audit` | [cloudflare/security-audit-skill](https://github.com/cloudflare/security-audit-skill) | Copyright (c) 2025-2026 Cloudflare, Inc. |
 | `create-cli` | [steipete/agent-scripts](https://github.com/steipete/agent-scripts) | Copyright (c) 2026 Peter Steinberger |
 | `tdd`, `grilling`, `domain-modeling`, `grill-with-docs`, `improve-codebase-architecture`, `codebase-design` | [mattpocock/skills](https://github.com/mattpocock/skills) | Copyright (c) 2026 Matt Pocock |
 | `postgres-drizzle` | [ccheney/robust-skills](https://github.com/ccheney/robust-skills) | Copyright (c) 2026 robust-skills contributors |
