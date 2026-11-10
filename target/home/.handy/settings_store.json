@@ -150,7 +150,7 @@
     "recording_retention_period": "preserve_limit",
     "selected_language": "auto",
     "selected_microphone": null,
-    "selected_model": "parakeet-tdt-0.6b-v3",
+    "selected_model": "handy-computer/parakeet-unified-en-0.6b-gguf/parakeet-unified-en-0.6b-Q8_0.gguf",
     "selected_output_device": null,
     "show_tray_icon": true,
     "sound_theme": "marimba",
