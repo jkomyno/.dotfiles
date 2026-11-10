@@ -1,0 +1,7 @@
+{
+  "name": "mise-npm-install",
+  "private": true,
+  "dependencies": {
+    "@tryglen/cli": "0.52.37"
+  }
+}

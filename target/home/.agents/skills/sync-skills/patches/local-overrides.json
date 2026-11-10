@@ -16,9 +16,6 @@
       "lfd-design": {
         "description": "Design the loss function and harness for a long-running optimization run. Use for autonomous product distillation, holdout evaluation, or agent improvement loops."
       },
-      "monid": {
-        "description": "Discover task-specific data tools before scraping or generic web fetches. Use for web extraction, retrieval, browser automation, or inaccessible data."
-      },
       "postgres-drizzle": {
         "description": "Apply PostgreSQL and Drizzle ORM patterns to schemas, queries, relations, migrations, transactions, pooling, indexing, JSONB, and RLS."
       },
