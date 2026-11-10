@@ -62,6 +62,7 @@ includes = ["tasks"]
 "~/.config/mise/config.toml" = { source = "target/home/.config/mise/config.toml", mode = "symlink" }
 "~/.config/mise/miserc.toml" = { source = ".miserc.toml", mode = "symlink" }
 "~/.config/mise/mise.lock" = { source = "target/home/.config/mise/mise.lock", mode = "symlink" }
+"~/.config/zed/settings.json" = { source = "target/home/.config/zed/settings.json", mode = "symlink" }
 "~/.config/nvim/.gitignore" = { source = "target/home/.config/nvim/.gitignore", mode = "symlink" }
 "~/.config/nvim/.neoconf.json" = { source = "target/home/.config/nvim/.neoconf.json", mode = "symlink" }
 "~/.config/nvim/init.lua" = { source = "target/home/.config/nvim/init.lua", mode = "symlink" }

@@ -6,6 +6,10 @@ My ([jkomyno](https://x.com/jkomyno)) personal development environment for Apple
 
 Mise manages both the toolchain and dotfiles. Edit files under [`target/home`](./target/home), which mirrors `$HOME`. The [`mise.toml`](./mise.toml) mappings deploy them as symlinks, copies, or templates. Nanobrew manages macOS GUI apps and fonts. Claude Code, Codex, and pi share the instructions and skills under [`target/home/.agents`](./target/home/.agents).
 
+Use `just audit-home` to review home configuration coverage and `just prune-tools`
+to preview obsolete managed tool versions. See [local software maintenance](./docs/maintenance.md)
+for storage policy, cleanup, and configuration ownership.
+
 ## Start Here
 
 On a fresh Apple Silicon Mac, Debian 12 host, or Ubuntu 24.04 host, paste:

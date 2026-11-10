@@ -11,6 +11,14 @@ doctor:
 status:
     @git status --short
 
+# Inventory home configuration coverage without exporting configuration values.
+audit-home *args:
+    @python3 scripts/dotfiles/audit-home.py {{args}}
+
+# Preview obsolete managed tool versions. Pass --apply to remove them.
+prune-tools *args:
+    @bash scripts/dotfiles/prune-tools.sh {{args}}
+
 # Show a mise bootstrap dotfiles dry-run against the current HOME.
 diff:
     @MISE_TRUSTED_CONFIG_PATHS="$PWD" mise -C "$PWD" bootstrap dotfiles apply --dry-run
