@@ -1,4 +1,5 @@
 [dotfiles]
+"~/Library/Application Support/mbx/config.toml" = { source = "target/home/.config/mbx/config.toml", mode = "symlink" }
 "~/Library/Application Support/qBittorrent/nova3/engines/one337x.py" = { source = "target/home/Library/Application Support/qBittorrent/nova3/engines/one337x.py", mode = "symlink" }
 "~/Library/Application Support/qBittorrent/nova3/engines/thepiratebay.py" = { source = "target/home/Library/Application Support/qBittorrent/nova3/engines/thepiratebay.py", mode = "symlink" }
 "~/.handy/settings_store.json" = { source = "target/home/.handy/settings_store.json", mode = "copy" }

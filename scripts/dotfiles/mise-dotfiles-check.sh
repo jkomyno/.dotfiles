@@ -263,8 +263,8 @@ verify_dotfiles() {
   verify_symlink ".config/ghostty/config" "target/home/.config/ghostty/config"
   verify_file_matches_source ".config/ghui/config.json" "target/home/.config/ghui/config.json"
   verify_symlink ".config/hunk/config.toml" "target/home/.config/hunk/config.toml"
-  verify_no_template_delimiters ".cargo/config.toml"
-  grep -Fq "${check_home}/.local/bin/rustc-cache-wrapper" "${check_home}/.cargo/config.toml"
+  verify_absent ".cargo/config.toml"
+  verify_absent ".local/bin/rustc-cache-wrapper"
   verify_symlink ".config/mise/config.toml" "target/home/.config/mise/config.toml"
   verify_symlink ".config/mise/miserc.toml" ".miserc.toml"
   verify_symlink ".config/mise/mise.lock" "target/home/.config/mise/mise.lock"
@@ -274,10 +274,9 @@ verify_dotfiles() {
   verify_symlink ".local/bin/clipboard-copy" "target/home/.local/bin/clipboard-copy"
   verify_symlink ".local/bin/clipboard-paste" "target/home/.local/bin/clipboard-paste"
   verify_symlink ".local/bin/rust-cache-maintenance" "target/home/.local/bin/rust-cache-maintenance"
-  verify_symlink ".local/bin/rustc-cache-wrapper" "target/home/.local/bin/rustc-cache-wrapper"
 
   if is_linux; then
-    verify_symlink ".config/sccache/config" "target/home/.config/sccache/config"
+    verify_absent ".config/sccache/config"
     verify_symlink ".config/mise/config.linux.toml" "target/home/.config/mise/config.linux.toml"
     verify_symlink ".config/mise/mise.linux.lock" "target/home/.config/mise/mise.linux.lock"
     verify_symlink ".config/systemd/user/paseo.service" "target/home/.config/systemd/user/paseo.service"
@@ -299,7 +298,7 @@ verify_dotfiles() {
   else
     verify_no_template_delimiters "Library/LaunchAgents/sh.paseo.daemon.plist"
     verify_no_template_delimiters "Library/LaunchAgents/com.jkomyno.rust-cache-maintenance.plist"
-    verify_symlink "Library/Application Support/Mozilla.sccache/config" "target/home/.config/sccache/config"
+    verify_absent "Library/Application Support/Mozilla.sccache/config"
     verify_file_matches_source "Library/Application Support/com.pais.handy/settings_store.json" "target/home/.handy/settings_store.json"
   fi
 }

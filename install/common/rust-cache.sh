@@ -2,14 +2,14 @@
 # rust-cache.sh — install and manage periodic Rust build-cache maintenance.
 #
 # macOS uses a LaunchAgent; Linux uses a systemd user timer. Both trigger daily
-# so missed runs recover after sleep or downtime. The maintenance script's
-# persistent timestamp permits an actual cleanup only once every 14 days.
+# so missed runs recover after sleep or downtime. Mr Boxington applies its
+# collection policy and protects active builds.
 #
 # Modes:
 #   (default)  Install and enable the platform scheduler.
 #   --status   Report whether the scheduler is loaded.
 #   --dry-run  Preview currently eligible target directories.
-#   --run      Run cleanup now, outside the 14-day cadence.
+#   --run      Run collection now.
 #   --remove   Disable the scheduler.
 
 set -Eeuo pipefail
@@ -128,14 +128,14 @@ linux_main() {
     return 0
   }
   cleaner_available || {
-    warn "cargo-clean-all is unavailable; run 'mise install cargo:cargo-clean-all'"
+    warn "mbx is unavailable; run 'mise install mr-boxington'"
     return 0
   }
 
   ensure_lingering
   systemctl --user daemon-reload
   systemctl --user enable --now "${SYSTEMD_TIMER_NAME}"
-  log "Rust cache maintenance timer enabled; cleanup is admitted every 14 days"
+  log "Rust cache maintenance timer enabled; mbx collection runs daily"
 }
 
 macos_main() {
@@ -161,7 +161,7 @@ macos_main() {
     return 0
   }
   cleaner_available || {
-    warn "cargo-clean-all is unavailable; run 'mise install cargo:cargo-clean-all'"
+    warn "mbx is unavailable; run 'mise install mr-boxington'"
     return 0
   }
 
@@ -172,7 +172,7 @@ macos_main() {
     return 0
   fi
   launchctl enable "${DOMAIN}/${LABEL}" 2>/dev/null || true
-  log "Rust cache maintenance LaunchAgent loaded; cleanup is admitted every 14 days"
+  log "Rust cache maintenance LaunchAgent loaded; mbx collection runs daily"
 }
 
 main() {

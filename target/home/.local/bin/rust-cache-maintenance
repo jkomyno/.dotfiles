@@ -10,14 +10,13 @@ set -Eeuo pipefail
 
 MISE_BIN="${MISE_INSTALL_PATH:-${HOME}/.local/bin/mise}"
 
-log() { printf '==> %s\n' "$*" >&2; }
 die() { printf 'error: %s\n' "$*" >&2; exit 1; }
 
-run_gc() {
+run_mbx() {
   if command -v mbx >/dev/null 2>&1; then
-    mbx gc "$@"
+    mbx "$@"
   elif [[ -x "${MISE_BIN}" ]]; then
-    "${MISE_BIN}" x mr-boxington -- mbx gc "$@"
+    "${MISE_BIN}" x mr-boxington -- mbx "$@"
   else
     die "mbx is unavailable; install the managed mise tool"
   fi
@@ -42,12 +41,12 @@ done
 
 case "${mode}" in
   check)
-    command -v mbx >/dev/null 2>&1 && log "mbx available" || die "mbx missing"
+    run_mbx --version
     ;;
   preview)
-    run_gc --dry-run
+    run_mbx gc --dry-run
     ;;
   apply)
-    run_gc
+    run_mbx gc
     ;;
 esac

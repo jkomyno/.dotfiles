@@ -1,7 +1,9 @@
-wrappers = { cargo = { command = "mbx", env = { MBX_CARGO_SHIM_MODE = "1" } } }
 min_version = "2026.11.5"
 
 [tools]
+# Select mbx before Rust's ~/.cargo/bin, which can contain an older Cargo install.
+# The Rust tool's mr_boxington option supplies Cargo wrapping natively.
+mr-boxington = "latest"
 # Programming languages
 # Track npm independently from the older version bundled with Node.
 "npm:npm" = "12"
@@ -39,10 +41,6 @@ ty = "latest"
 "pipx:huggingface_hub" = "latest"
 
 # Rust tooling
-# https://github.com/jdx/mr-boxington - shared Cargo compilation cache; pairs with
-# the mr_boxington option on the rust entry above and replaces sccache +
-# cargo-clean-all (its managed target collection subsumes both)
-mr-boxington = "latest"
 # https://github.com/cargo-bins/cargo-binstall - installs Rust binaries from prebuilt releases
 cargo-binstall = "latest"
 # https://github.com/wasm-bindgen/wasm-bindgen - Rust and JavaScript WebAssembly bindings

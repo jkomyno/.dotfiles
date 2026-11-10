@@ -147,11 +147,11 @@ A few tools need a long-lived process that survives logout and reboot. On macOS,
 | --- | --- | --- | --- | --- |
 | **tailscaled** | system LaunchDaemon (root) | `install:macos:tailscale` | `just tailscale` | tailnet |
 | **paseo** | user LaunchAgent / systemd user unit | `install:common:paseo` | `just paseo` | `127.0.0.1:6767` |
-| **Rust cache maintenance** | scheduled user job | `install:common:rust-cache` | `just rust-cache` | `~/work` |
+| **Rust cache maintenance** | scheduled user job | `install:common:rust-cache` | `just rust-cache` | managed mbx cache |
 
 - **tailscaled** is a root system daemon installed by Homebrew (`tailscaled install-system-daemon`); it needs sudo once and is not a mise tool. See [Remote Access](#remote-access-tailscale-screen-sharing-and-paseo).
 - **paseo** uses [`sh.paseo.daemon.plist`](./target/home/Library/LaunchAgents/sh.paseo.daemon.plist) on macOS and [`paseo.service`](./target/home/.config/systemd/user/paseo.service) on Linux. See [Remote Access](#remote-access-tailscale-screen-sharing-and-paseo).
-- **Rust cache maintenance** keeps Cargo's final artifacts in each workspace, shares compiler outputs through a 20 GiB `sccache`, and removes complete target directories unused for 30 days. A daily native trigger recovers missed runs after sleep or downtime; a persistent timestamp admits cleanup only once every 14 days. macOS uses [`com.jkomyno.rust-cache-maintenance.plist`](./target/home/Library/LaunchAgents/com.jkomyno.rust-cache-maintenance.plist); Linux uses [`rust-cache-maintenance.timer`](./target/home/.config/systemd/user/rust-cache-maintenance.timer).
+- **Rust cache maintenance** uses Mr Boxington (`mbx`) to share compilations and manage workspace `target` symlinks. It collects inactive build data by age, storage budget, and free disk space. A daily native trigger also runs `mbx gc` between builds. Inspect usage with `mise exec -- mbx cache stats` and policy with `mise exec -- mbx settings ls`; preview collection before changing budgets. Never delete a managed `target` directly or run `cargo clean`; use `mbx clean` for one workspace. macOS uses [`com.jkomyno.rust-cache-maintenance.plist`](./target/home/Library/LaunchAgents/com.jkomyno.rust-cache-maintenance.plist); Linux uses [`rust-cache-maintenance.timer`](./target/home/.config/systemd/user/rust-cache-maintenance.timer).
 
   ```sh
   just rust-cache --dry-run   # preview eligible Cargo targets

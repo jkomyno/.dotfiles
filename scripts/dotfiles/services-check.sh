@@ -31,21 +31,15 @@ case " $* " in
   *' exec npm:@getpaseo/cli -- paseo --version '*) printf 'paseo test\n' ;;
   *' exec npm:@getpaseo/cli -- paseo daemon status '*) ;;
   *' exec npm:@getpaseo/cli -- paseo daemon pair '*) ;;
-  *' exec cargo:cargo-clean-all -- cargo-clean-all '*)
-    if [[ "$*" == *' --yes '* && "${MOCK_CLEANER_FAIL:-0}" == "1" ]]; then
-      exit 42
-    fi
+  ' x mr-boxington -- mbx --version ') printf 'mbx test\n' ;;
+  ' x mr-boxington -- mbx gc '* )
+    [[ "${MOCK_CLEANER_FAIL:-0}" != "1" ]] || exit 42
     ;;
   *) printf 'unexpected mise call: %s\n' "$*" >&2; exit 1 ;;
 esac
 MOCK
 
-  cat >"${check_home}/bin/rustc" <<'MOCK'
-#!/usr/bin/env sh
-printf 'rustc %s\n' "$*" >>"${MOCK_RUSTC_LOG}"
-MOCK
-
-  chmod +x "${check_home}/bin/mise" "${check_home}/bin/rustc"
+  chmod +x "${check_home}/bin/mise"
 }
 
 write_systemd_mocks() {
@@ -108,102 +102,44 @@ MOCK
   chmod +x "${check_home}/bin/launchctl" "${check_home}/bin/uname"
 }
 
-check_rustc_cache_wrapper() {
-  : >"${MOCK_RUSTC_LOG}"
-  HOME="${check_home}" \
-    PATH="${check_home}/bin:/usr/bin:/bin" \
-    MISE_INSTALL_PATH="${check_home}/bin/mise" \
-    bash "${DOTFILES_ROOT}/target/home/.local/bin/rustc-cache-wrapper" \
-    "${check_home}/bin/rustc" --version
-  grep -Fq -- "rustc --version" "${MOCK_RUSTC_LOG}"
-
-  cat >"${check_home}/bin/sccache" <<'MOCK'
-#!/usr/bin/env sh
-printf 'sccache %s\n' "$*" >>"${MOCK_SCCACHE_LOG}"
-MOCK
-  chmod +x "${check_home}/bin/sccache"
-  : >"${MOCK_SCCACHE_LOG}"
-  HOME="${check_home}" \
-    PATH="${check_home}/bin:/usr/bin:/bin" \
-    MISE_INSTALL_PATH="${check_home}/bin/mise" \
-    bash "${DOTFILES_ROOT}/target/home/.local/bin/rustc-cache-wrapper" \
-    "${check_home}/bin/rustc" --version
-  grep -Fq -- "sccache ${check_home}/bin/rustc --version" "${MOCK_SCCACHE_LOG}"
-}
-
 run_rust_cache_maintenance() {
   HOME="${check_home}" \
-    XDG_STATE_HOME="${check_home}/.local/state" \
+    PATH="${check_home}/bin:/usr/bin:/bin" \
     MISE_INSTALL_PATH="${check_home}/bin/mise" \
     bash "${DOTFILES_ROOT}/target/home/.local/bin/rust-cache-maintenance" "$@"
 }
 
-assert_maintenance_rejected() {
-  local expected="$1"
-  local output
-  shift
-
-  : >"${MOCK_MISE_LOG}"
-  if output="$(env "$@" \
-    HOME="${check_home}" \
-    XDG_STATE_HOME="${check_home}/.local/state" \
-    MISE_INSTALL_PATH="${check_home}/bin/mise" \
-    bash "${DOTFILES_ROOT}/target/home/.local/bin/rust-cache-maintenance" --apply 2>&1)"; then
-    error "expected Rust cache maintenance to reject unsafe configuration"
-    return 1
-  fi
-  grep -Fq -- "${expected}" <<<"${output}"
-  [[ ! -s "${MOCK_MISE_LOG}" ]]
-}
-
 check_rust_cache_maintenance() {
-  local output
-
-  mkdir -p "${check_home}/work"
   : >"${MOCK_MISE_LOG}"
-
-  run_rust_cache_maintenance --check
-  grep -Fq -- "exec cargo:cargo-clean-all -- cargo-clean-all --version" "${MOCK_MISE_LOG}"
-  : >"${MOCK_MISE_LOG}"
-
-  output="$({
-    run_rust_cache_maintenance --dry-run
-  } 2>&1)"
-
-  grep -Fq "Previewing Cargo targets unused for 30 days under ${check_home}/work" <<<"${output}"
-  grep -Fq -- "exec cargo:cargo-clean-all -- cargo-clean-all --dry-run --keep-days 30 ${check_home}/work" "${MOCK_MISE_LOG}"
+  run_rust_cache_maintenance --check >/dev/null
+  grep -Fxq -- "x mr-boxington -- mbx --version" "${MOCK_MISE_LOG}"
 
   : >"${MOCK_MISE_LOG}"
-  RUST_TARGET_KEEP_DAYS=14 run_rust_cache_maintenance --scheduled >/dev/null
-  grep -Fq -- "exec cargo:cargo-clean-all -- cargo-clean-all --yes --keep-days 14 ${check_home}/work" "${MOCK_MISE_LOG}"
+  run_rust_cache_maintenance --dry-run
+  grep -Fxq -- "x mr-boxington -- mbx gc --dry-run" "${MOCK_MISE_LOG}"
 
   : >"${MOCK_MISE_LOG}"
-  RUST_TARGET_KEEP_DAYS=14 run_rust_cache_maintenance --scheduled >/dev/null
-  [[ ! -s "${MOCK_MISE_LOG}" ]]
+  run_rust_cache_maintenance --scheduled
+  grep -Fxq -- "x mr-boxington -- mbx gc" "${MOCK_MISE_LOG}"
 
-  touch -t 200001010000 "${check_home}/.local/state/rust-cache-maintenance/last-run"
-  RUST_TARGET_KEEP_DAYS=14 run_rust_cache_maintenance --scheduled >/dev/null
-  grep -Fq -- "exec cargo:cargo-clean-all -- cargo-clean-all --yes --keep-days 14 ${check_home}/work" "${MOCK_MISE_LOG}"
-
-  mkdir "${check_home}/.local/state/rust-cache-maintenance/lock"
-  touch -t 200001010000 "${check_home}/.local/state/rust-cache-maintenance/lock"
-  : >"${MOCK_MISE_LOG}"
-  run_rust_cache_maintenance --apply >/dev/null
-  grep -Fq -- "exec cargo:cargo-clean-all -- cargo-clean-all --yes --keep-days 30 ${check_home}/work" "${MOCK_MISE_LOG}"
-
-  assert_maintenance_rejected "refusing broad Rust workspace root" "RUST_TARGET_CLEAN_ROOT=${check_home}"
-  assert_maintenance_rejected "refusing broad Rust workspace root" "RUST_TARGET_CLEAN_ROOT=/"
-  assert_maintenance_rejected "refusing broad Rust workspace root" "RUST_TARGET_CLEAN_ROOT=${check_home}/work/.."
-  assert_maintenance_rejected "RUST_TARGET_KEEP_DAYS must be a positive integer" "RUST_TARGET_KEEP_DAYS=0"
-  assert_maintenance_rejected "RUST_TARGET_KEEP_DAYS must be a positive integer" "RUST_TARGET_KEEP_DAYS=invalid"
-
-  rm -f "${check_home}/.local/state/rust-cache-maintenance/last-run"
-  if MOCK_CLEANER_FAIL=1 run_rust_cache_maintenance --scheduled >/dev/null 2>&1; then
-    error "expected a cleaner failure to fail Rust cache maintenance"
+  if MOCK_CLEANER_FAIL=1 run_rust_cache_maintenance --apply >/dev/null 2>&1; then
+    error "expected mbx failure to fail Rust cache maintenance"
     return 1
   fi
-  [[ ! -e "${check_home}/.local/state/rust-cache-maintenance/last-run" ]]
-  [[ ! -e "${check_home}/.local/state/rust-cache-maintenance/lock" ]]
+
+  cat >"${check_home}/bin/mbx" <<'MOCK'
+#!/usr/bin/env bash
+printf '%s\n' "$*" >>"${MOCK_MBX_LOG}"
+MOCK
+  chmod +x "${check_home}/bin/mbx"
+  : >"${MOCK_MBX_LOG}"
+  : >"${MOCK_MISE_LOG}"
+  run_rust_cache_maintenance --check
+  run_rust_cache_maintenance --dry-run
+  grep -Fxq -- "--version" "${MOCK_MBX_LOG}"
+  grep -Fxq -- "gc --dry-run" "${MOCK_MBX_LOG}"
+  [[ ! -s "${MOCK_MISE_LOG}" ]]
+  rm "${check_home}/bin/mbx"
 }
 
 run_service() {
@@ -282,12 +218,10 @@ main() {
   export MOCK_SYSTEMCTL_STATE="${check_home}/systemctl.state"
   export MOCK_SYSTEMCTL_LOG="${check_home}/systemctl.log"
   export MOCK_MISE_LOG="${check_home}/mise.log"
-  export MOCK_RUSTC_LOG="${check_home}/rustc.log"
-  export MOCK_SCCACHE_LOG="${check_home}/sccache.log"
+  export MOCK_MBX_LOG="${check_home}/mbx.log"
   export MOCK_LAUNCHCTL_STATE="${check_home}/launchctl.state"
   export MOCK_LAUNCHCTL_LOG="${check_home}/launchctl.log"
   write_common_mocks
-  check_rustc_cache_wrapper
   check_rust_cache_maintenance
   write_systemd_mocks
   write_launchd_mocks

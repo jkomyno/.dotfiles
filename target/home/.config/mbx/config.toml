@@ -1,0 +1,6 @@
+[target]
+evict_first = ["worktrees", ".claude/worktrees"]
+
+[gc]
+max_total_size = "20GiB"
+min_free_size = "40GiB"
