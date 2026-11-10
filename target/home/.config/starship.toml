@@ -1,5 +1,9 @@
 # Starship prompt configuration (shared by zsh and fish)
 
+# Directory scanning has its own deadline, including worker scheduling time.
+# Allow brief CPU contention without abandoning project detection.
+scan_timeout = 100
+
 # Version probes (node, python, ...) can exceed the default 500ms timeout on
 # cold caches, which makes starship print a warning into the prompt.
 command_timeout = 2000
