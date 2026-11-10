@@ -134,12 +134,19 @@ update_bundle() {
   fi
 
   local -a names=()
+  local -a package_args=()
+  [[ "${kind}" == cask ]] && package_args+=(--cask)
   while IFS= read -r n; do [[ -n "${n}" ]] && names+=("${n}"); done \
     < <(bundle_package_names "${bundle}" "${kind}")
 
   if [[ "${CHECK_ONLY}" == true ]]; then
     log "${title}: outdated report via nb"
-    nb outdated 2>/dev/null || info "${title}: nanobrew has no outdated report; would converge bundle"
+    if [[ ${#names[@]} -gt 0 ]]; then
+      nb outdated ${package_args[@]+"${package_args[@]}"} "${names[@]}" || {
+        warn "${title}: nanobrew outdated report failed"
+        return 1
+      }
+    fi
     return 0
   fi
 
@@ -150,11 +157,13 @@ update_bundle() {
   # cask-only run must not touch formulae and vice versa.
   nb bundle install "${bundle}" || { warn "${title}: nanobrew bundle did not converge"; rc=1; }
   if [[ ${#names[@]} -gt 0 ]]; then
-    nb upgrade ${names[@]+"${names[@]}"} 2>/dev/null \
-      || info "${title}: nanobrew per-package upgrade unavailable; bundle converged only"
+    nb upgrade ${package_args[@]+"${package_args[@]}"} "${names[@]}" || {
+      warn "${title}: nanobrew package upgrade failed"
+      rc=1
+    }
   fi
   # Non-zero when the managed bundle did not converge, so `just update casks`
-  # signals failure; `all` still tolerates it via `update_casks || warn`.
+  # signals failure; `all` records it and continues with the other components.
   return "${rc}"
 }
 

@@ -57,6 +57,7 @@ run_update() {
     HOME="${fixture_home}" \
     DOTFILES="${fixture_root}/repo" \
     PATH="${fixture_bin}:/usr/bin:/bin" \
+    NANOBREW_BIN_DIR="${fixture_bin}" \
     UPDATE_CHECK_LOG="${fixture_log}" \
     /bin/bash "${fixture_root}/repo/scripts/dotfiles/update.sh" "$@"
 }
@@ -121,6 +122,43 @@ check_missing_jq_status() {
   grep -qF "declared agent state not fully reproduced" "${fixture_root}/missing-jq.out"
 }
 
+check_bundle_upgrades() {
+  mkdir -p "${fixture_root}/repo/install/macos/common"
+  printf 'cask "handy"\n' >"${fixture_root}/repo/install/macos/common/nanobrew-casks.Brewfile"
+  printf 'brew "example"\n' >"${fixture_root}/repo/install/macos/common/nanobrew-formulae.Brewfile"
+  write_executable "${fixture_bin}/uname" '#!/usr/bin/env bash' 'echo Darwin'
+  write_executable "${fixture_bin}/nb" \
+    '#!/usr/bin/env bash' \
+    'printf "nb:%s\n" "$*" >>"${UPDATE_CHECK_LOG}"' \
+    'if [[ "$1" == upgrade && "${NB_STUB_FAIL:-0}" == 1 ]]; then echo "upgrade failed" >&2; exit 1; fi'
+
+  : >"${fixture_log}"
+  run_update casks formulae
+  if ! grep -qxF 'nb:upgrade --cask handy' "${fixture_log}"; then
+    error "GUI app update did not use nanobrew's cask upgrade mode"
+    return 1
+  fi
+  grep -qxF 'nb:upgrade example' "${fixture_log}"
+
+  : >"${fixture_log}"
+  run_update --check casks
+  grep -qxF 'nb:outdated --cask handy' "${fixture_log}"
+  if grep -qF 'nb:upgrade' "${fixture_log}"; then
+    error "cask update preview performed an upgrade"
+    return 1
+  fi
+
+  local component
+  for component in casks all; do
+    if NB_STUB_FAIL=1 run_update "${component}" >"${fixture_root}/cask-failure.out" 2>&1; then
+      error "${component} update hid a GUI app upgrade failure"
+      return 1
+    fi
+    grep -qF 'upgrade failed' "${fixture_root}/cask-failure.out"
+    grep -qF 'update completed with' "${fixture_root}/cask-failure.out"
+  done
+}
+
 main() {
   trap cleanup EXIT
   prepare_fixture
@@ -128,6 +166,7 @@ main() {
   check_all_order
   check_failure_status
   check_missing_jq_status
+  check_bundle_upgrades
   info "update flow preserves adapter ordering and propagates failures"
 }
 
