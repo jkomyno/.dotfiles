@@ -1603,6 +1603,19 @@ version = "0.2.129"
 backend = "cargo:wasm-bindgen-cli"
 specifiers = ["0.2.129"]
 
+[[tools."conda:coreutils"]]
+version = "9.12"
+backend = "conda:coreutils"
+specifiers = ["latest"]
+
+[tools."conda:coreutils".options]
+channel = "conda-forge"
+
+[tools."conda:coreutils"."platforms.macos-arm64"]
+checksum = "sha256:f9e693d4d68a73d626dbe56452c990d2d249916dd50d8a6ac3001fe1d078160b"
+url = "https://conda.anaconda.org/conda-forge/osx-arm64/coreutils-9.12-h74c22ad_0.conda"
+conda_deps = []
+
 [[tools."conda:ffmpeg"]]
 version = "9.0.2"
 backend = "conda:ffmpeg"

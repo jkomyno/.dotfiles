@@ -195,6 +195,8 @@ Git and GitHub configuration lives under [`target/home/.config/git`](./target/ho
 
 Do not install the same CLI in both mise and nanobrew.
 
+On macOS, mise installs GNU coreutils (`conda:coreutils`) and exposes only `timeout`, preserving the system's other utilities. It works in scripts as `timeout 30s command`; use `timeout -k 5s 30s command` to force termination if the command ignores the initial signal. Linux uses its system GNU `timeout`. The default timeout exit code is 124 (137 if the kill-after signal is needed).
+
 ## Agent Configuration
 
 Coding-agent configuration follows a shared-canonical-plus-adapters layout inspired by [shunk031/dotfiles](https://github.com/shunk031/dotfiles):

@@ -70,6 +70,9 @@ git-lfs = "latest"
 hunk = "latest"
 
 # Shell tooling
+# macOS lacks timeout; Linux already provides it through system coreutils.
+# Expose only timeout from GNU coreutils, preserving macOS's other utilities.
+"conda:coreutils" = { version = "latest", os = ["macos"], postinstall = 'find "$MISE_TOOL_INSTALL_PATH/.mise-bins" -mindepth 1 ! -name timeout -delete' }
 # https://github.com/tmux/tmux - terminal multiplexer; config in target/home/.config/tmux
 tmux = "latest"
 # https://github.com/starship/starship - cross-shell prompt
