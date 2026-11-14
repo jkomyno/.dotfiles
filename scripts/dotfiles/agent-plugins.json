@@ -12,6 +12,10 @@
     {
       "name": "interface-design",
       "source": "Dammyjay93/interface-design"
+    },
+    {
+      "name": "composio",
+      "source": "ComposioHQ/composio-plugin-cc"
     }
   ],
   "plugins": [
@@ -19,7 +23,8 @@
     "frontend-design@claude-plugins-official",
     "rust-analyzer-lsp@claude-plugins-official",
     "clangd-lsp@claude-plugins-official",
-    "interface-design@interface-design"
+    "interface-design@interface-design",
+    "composio@composio"
   ],
   "mcpServers": [
     {

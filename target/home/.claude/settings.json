@@ -126,7 +126,8 @@
     "frontend-design@claude-plugins-official": true,
     "interface-design@interface-design": true,
     "rust-analyzer-lsp@claude-plugins-official": true,
-    "clangd-lsp@claude-plugins-official": true
+    "clangd-lsp@claude-plugins-official": true,
+    "composio@composio": true
   },
   "outputStyle": "Concise",
   "effortLevel": "medium",
@@ -136,6 +137,9 @@
     },
     "claude-fable-5-1": {
       "effortLevel": "high"
+    },
+    "claude-fable-5-2": {
+      "effortLevel": "medium"
     }
   },
   "skipDangerousModePermissionPrompt": true

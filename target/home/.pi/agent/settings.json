@@ -1,5 +1,5 @@
 {
-  "lastChangelogVersion": "1.0.0",
+  "lastChangelogVersion": "1.5.0",
   "defaultProvider": "zai",
   "defaultModel": "glm-5.3-flash",
   "defaultThinkingLevel": "medium",
@@ -16,5 +16,9 @@
   "warnings": {
     "anthropicExtraUsage": false
   },
-  "theme": "dark"
+  "theme": "dark",
+  "extensionChangelogVersions": {
+    "{\"source\":\"npm:pi-web-access\",\"scope\":\"user\"}": "0.35.0",
+    "{\"source\":\"git:github.com/EveryInc/compound-engineering-plugin\",\"scope\":\"user\"}": "3.30.3"
+  }
 }
