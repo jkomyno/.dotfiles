@@ -208,7 +208,15 @@ Coding-agent configuration follows a shared-canonical-plus-adapters layout inspi
 
 All three harnesses (Claude Code, Codex, pi) read the same first-party and vendored skills from `~/.agents/skills`. Plugin-delivered skills are host-specific; to expose a skill to every harness, vendor it into `~/.agents/skills` via `sync-skills`.
 
-[pstack](https://github.com/backnotprop/pstack) is available through one small loader skill: `$pstack how Explain the auth flow` in Codex, `/pstack how Explain the auth flow` in Claude Code, or `/skill:pstack how Explain the auth flow` in pi. With no skill name, it opens pstack's help skill. Only the loader is discoverable at startup; the 57 upstream skills and their instructions stay outside discovery until requested. Claude and Codex also mark the loader as explicit-only. The complete collection is downloaded at a pinned revision on first use and cached with its bundled dependencies. Later uses work offline.
+[pstack](https://github.com/backnotprop/pstack) is available through a small loader skill: `$pstack how Explain the auth flow` in Codex, `/pstack how Explain the auth flow` in Claude Code, or `/skill:pstack how Explain the auth flow` in pi. With no skill name, it opens pstack's help skill. The `bro` and `potetomode` shortcuts load upstream `bro` and `poteto-mode` directly:
+
+| Agent | Plain-language rewrite | Poteto mode |
+| --- | --- | --- |
+| Claude Code | `/bro` | `/potetomode <task>` |
+| pi | `/bro` or `/skill:bro` | `/potetomode <task>` or `/skill:potetomode <task>` |
+| Codex | `$bro` | `$potetomode <task>` |
+
+Codex also lists both shortcuts in `/skills`. Pi's bare slash commands are prompt templates managed individually under `~/.pi/agent/prompts`. Only the three small loaders are discoverable at startup; the 57 upstream skills and their instructions stay outside discovery until requested. All loaders remain explicit-only. The complete collection is downloaded at a pinned revision on first use and cached with its bundled dependencies. Later uses work offline.
 
 The managed `pstack-skill` command can also launch a fresh agent session or print a prompt for an existing chat:
 

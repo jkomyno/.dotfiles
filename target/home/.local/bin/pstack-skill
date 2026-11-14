@@ -3,7 +3,7 @@
 set -Eeuo pipefail
 
 readonly REPO="https://github.com/backnotprop/pstack.git"
-readonly REVISION="e44668c2aad92eacf4e84df47984121fefb11b82"
+readonly REVISION="0b239bbfa26674efd5c371055eadfc5f488ac1be"
 readonly CACHE_ROOT="${XDG_CACHE_HOME:-${HOME}/.cache}/pstack"
 readonly COLLECTION="${CACHE_ROOT}/${REVISION}"
 staging=""

@@ -1,0 +1,5 @@
+interface:
+  display_name: "potetomode"
+  short_description: "Load pstack's poteto-mode workflow"
+policy:
+  allow_implicit_invocation: false
