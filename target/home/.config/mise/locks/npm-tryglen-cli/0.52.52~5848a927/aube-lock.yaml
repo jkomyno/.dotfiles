@@ -9,21 +9,21 @@ importers:
   .:
     dependencies:
       '@tryglen/cli':
-        specifier: 0.52.37
-        version: 0.52.37
+        specifier: 0.52.52
+        version: 0.52.52
 
 packages:
 
-  '@clack/core@1.5.1':
-    resolution: {integrity: sha512-iHTrHA8MtVuLl2TfZySmcKv1qO2PoyC9Z7pfSDozEuV5vtY3/wcOPKJXlqJ5Oq2Cx5DDGQGAMVx6HZfRRoVEbQ==}
+  '@clack/core@1.6.0':
+    resolution: {integrity: sha512-4GZynIB2IIe431odxesswvWTCP6orvqd6e2b07b3VFWBQRqUqIHc/EPIZwFoKS692QBp+ooPuXKaJV8g4kXuYA==}
     engines: {node: '>= 20.12.0'}
 
-  '@clack/prompts@1.8.1':
-    resolution: {integrity: sha512-dlT1m5e/0yUL0kRNcQn7yGLVThkgbB0Ga/1AmfDDC/8ik6AIiSf2QLQO2zPYvefsHP0aFgxO93cVLCCfDp7kzQ==}
+  '@clack/prompts@1.9.0':
+    resolution: {integrity: sha512-tEj8X2No2A1c9NDnZECxiiJ8TP3vmFlN9tLlLeSaMqVW4tUmVG2R4qpv/eP4zymWxnymYLkLcIYVV0VcWj3RCQ==}
     engines: {node: '>= 20.12.0'}
 
-  '@tryglen/cli@0.52.37':
-    resolution: {integrity: sha512-hzEEa8HoDpjDVgz+/z81LJzFRP43qOD+v+3awS4BrMpQnRNy5ZWUAKyIYpTuWI2D8UmdONVljpIwH2hiFvLjxQ==}
+  '@tryglen/cli@0.52.52':
+    resolution: {integrity: sha512-8vplul+zMBeCEeFJa97eE915/mdja7XkSrKm+7LXhSRA/rshqN3mgjX4ixG2GsisH1Cqpb07cm8sQjiIM1kcFQ==}
     engines: {node: '>=20'}
     hasBin: true
 
@@ -40,8 +40,9 @@ packages:
   fast-wrap-ansi@0.2.2:
     resolution: {integrity: sha512-7F2Fl+TjRSenLqlU3UjSH0iyqopqoZIu7eZVpEirP2g1GtWa2G/ecEmBdgz31+Mxr+ELclgg6sokpSFIQiZ02Q==}
 
-  sisteransi@1.0.5:
-    resolution: {integrity: sha512-bLGGlR1QxBcynn2d5YmDX4MGjlZvy2MRBDRNHLJ8VI6l6+9FUiyTFNJ0IveOSP0bcXgVDPRcfGqA0pjaqUpfVg==}
+  sisteransi@2.0.0:
+    resolution: {integrity: sha512-2WCqLdt12eN6ehLI50S2/ZxoowXU3DD1KVPRyVP0WEsFahrGZZmCdq1K59qjJljMRIDTwx1D9YaRK+hDneBUMg==}
+    engines: {node: '>=20'}
 
   smol-toml@1.9.1:
     resolution: {integrity: sha512-j7WyPdf0CJoutMzMoPLF/bVXHtKZIT9Rb4eGeEbWw8X2t5oirjPgpL+OpaENZrILYaXqYwnVH+qgUwVbl+pUJQ==}
@@ -56,21 +57,22 @@ packages:
 
 snapshots:
 
-  '@clack/core@1.5.1':
+  '@clack/core@1.6.0':
     dependencies:
-      fast-wrap-ansi: 0.2.2
-      sisteransi: 1.0.5
-
-  '@clack/prompts@1.8.1':
-    dependencies:
-      '@clack/core': 1.5.1
       fast-string-width: 3.0.2
       fast-wrap-ansi: 0.2.2
-      sisteransi: 1.0.5
+      sisteransi: 2.0.0
 
-  '@tryglen/cli@0.52.37':
+  '@clack/prompts@1.9.0':
     dependencies:
-      '@clack/prompts': 1.8.1
+      '@clack/core': 1.6.0
+      fast-string-width: 3.0.2
+      fast-wrap-ansi: 0.2.2
+      sisteransi: 2.0.0
+
+  '@tryglen/cli@0.52.52':
+    dependencies:
+      '@clack/prompts': 1.9.0
       cac: 6.7.14
       smol-toml: 1.9.1
       undici: 6.29.1
@@ -88,7 +90,7 @@ snapshots:
     dependencies:
       fast-string-width: 3.0.2
 
-  sisteransi@1.0.5: {}
+  sisteransi@2.0.0: {}
 
   smol-toml@1.9.1: {}
 

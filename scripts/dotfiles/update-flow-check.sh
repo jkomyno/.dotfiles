@@ -42,7 +42,8 @@ prepare_fixture() {
     'printf "git:%s\n" "$*" >>"${UPDATE_CHECK_LOG}"'
   write_executable "${fixture_bin}/mise" \
     '#!/usr/bin/env bash' \
-    'printf "mise:%s\n" "$*" >>"${UPDATE_CHECK_LOG}"'
+    'printf "mise:%s\n" "$*" >>"${UPDATE_CHECK_LOG}"' \
+    '[[ "$*" != *"pi update --extensions"* || "${PI_STUB_FAIL:-0}" != 1 ]]'
   write_executable "${fixture_root}/repo/scripts/dotfiles/versions.sh" \
     '#!/usr/bin/env bash' \
     'printf "versions:%s\n" "$*" >>"${UPDATE_CHECK_LOG}"'
@@ -101,6 +102,25 @@ check_failure_status() {
     return 1
   fi
   grep -qF "update completed with 1 failed component(s)" "${fixture_root}/failure.out"
+}
+
+check_pi_extensions() {
+  : >"${fixture_log}"
+  run_update plugins
+  grep -qF 'exec github:earendil-works/pi -- pi update --extensions' "${fixture_log}"
+
+  : >"${fixture_log}"
+  run_update --check plugins
+  if grep -qF 'pi update' "${fixture_log}"; then
+    error "plugin preview updated Pi extensions"
+    return 1
+  fi
+
+  if PI_STUB_FAIL=1 run_update plugins >"${fixture_root}/pi-failure.out" 2>&1; then
+    error "plugin update hid a Pi extension update failure"
+    return 1
+  fi
+  grep -qF 'update completed with 1 failed component(s)' "${fixture_root}/pi-failure.out"
 }
 
 check_missing_jq_status() {
@@ -165,6 +185,7 @@ main() {
   check_standalone_self
   check_all_order
   check_failure_status
+  check_pi_extensions
   check_missing_jq_status
   check_bundle_upgrades
   info "update flow preserves adapter ordering and propagates failures"

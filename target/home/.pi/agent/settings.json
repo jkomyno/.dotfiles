@@ -6,6 +6,7 @@
   "packages": [
     "npm:@ff-labs/pi-fff",
     "npm:pi-claude-bridge",
+    "npm:pi-claude-bridge-askclaude",
     "npm:pi-simplify",
     "npm:pi-web-access",
     "npm:@quintinshaw/pi-dynamic-workflows",

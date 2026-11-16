@@ -1,4 +1,4 @@
-min_version = "2026.11.5"
+min_version = "2026.11.8"
 
 [tools]
 # Select mbx before Rust's ~/.cargo/bin, which can contain an older Cargo install.
@@ -20,7 +20,7 @@ python = { version = "3.15", postinstall = "python -m pip install --upgrade pip"
 # budgeted collection of managed target/ directories (docs: mr-boxington.jdx.dev).
 rust = { version = "stable", targets = "wasm32-unknown-unknown", mr_boxington = true }
 erlang = "29.1.2"
-elixir = "1.20.4-otp-29"
+elixir = "1.20.5-otp-29"
 
 # JavaScript and TypeScript tooling
 # https://github.com/oven-sh/bun - JavaScript runtime, package manager, and bundler
@@ -38,13 +38,14 @@ ty = "latest"
 # https://nox.thea.codes - Python task automation driven by noxfile.py sessions
 "pipx:nox" = "latest"
 # https://github.com/huggingface/huggingface_hub - Hugging Face Hub CLI (`hf`); huggingface-cli is deprecated
-"pipx:huggingface_hub" = "latest"
+# PyYAML has no Python 3.15 wheel; isolate hf on Python 3.14 for locked installs.
+"pipx:huggingface_hub" = { version = "latest", python = "3.14" }
 
 # Rust tooling
 # https://github.com/cargo-bins/cargo-binstall - installs Rust binaries from prebuilt releases
 cargo-binstall = "latest"
 # https://github.com/wasm-bindgen/wasm-bindgen - Rust and JavaScript WebAssembly bindings
-"cargo:wasm-bindgen-cli" = "0.2.129"
+"cargo:wasm-bindgen-cli" = "0.2.130"
 # https://github.com/EmbarkStudios/cargo-deny - lints Rust dependency graphs: advisories, licenses, bans, sources
 "cargo:cargo-deny" = "latest"
 # https://github.com/rustsec/rustsec - audits Cargo.lock against the RustSec advisory database
@@ -105,8 +106,9 @@ ast-grep = "latest"
 # global config and shared-agent adapter tracked in target/home/.codex
 "npm:@openai/codex" = "latest"
 # https://github.com/earendil-works/pi (https://pi.dev) - Pi, a minimal extensible coding agent;
-# global config and skills wiring tracked in target/home/.pi
-"npm:@earendil-works/pi-coding-agent" = "latest"
+# The standalone release includes its runtime, so project Node pins cannot break Pi.
+# Global config and skills wiring tracked in target/home/.pi.
+"github:earendil-works/pi" = "latest"
 # https://github.com/vercel-labs/agent-browser - browser automation CLI for AI agents
 "npm:agent-browser" = "latest"
 # https://github.com/docker/sbx-releases - Docker Sandboxes CLI for isolated AI agent microVMs

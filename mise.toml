@@ -1,5 +1,5 @@
 # Keep the entrypoint aligned with the bootstrap and shared lockfile format.
-min_version = "2026.11.5"
+min_version = "2026.11.8"
 
 [task_config]
 includes = ["tasks"]

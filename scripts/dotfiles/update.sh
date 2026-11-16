@@ -5,7 +5,7 @@
 #   mise      Upgrade mise-managed CLIs/runtimes and refresh the source lockfile.
 #   casks     Converge and upgrade nanobrew GUI apps and fonts (macOS).
 #   formulae  Converge and upgrade nanobrew exceptional formulae (macOS).
-#   plugins   Register/update managed coding-agent marketplaces and plugins.
+#   plugins   Register/update managed coding-agent marketplaces and Pi extensions.
 #   vscode    Install managed VS Code extensions that are missing.
 #   skills    Report vendored agent-skill drift vs upstream (apply via /sync-skills).
 #   codex     Upgrade just the Codex CLI via mise (subset of `mise`).
@@ -36,7 +36,7 @@ COMPONENTS=()
 UPDATE_FAILURES=0
 
 CODEX_MISE_TOOL="npm:@openai/codex"
-PI_MISE_TOOL="npm:@earendil-works/pi-coding-agent"
+PI_MISE_TOOL="github:earendil-works/pi"
 
 usage() {
   cat <<'USAGE'
@@ -177,17 +177,24 @@ update_formulae() {
 
 update_plugins() {
   local agents="${DOTFILES_ROOT}/install/common/agents.sh"
+  local pi_cmd rc=0
   [[ -f "${agents}" ]] || {
     warn "plugins: installer not found: ${agents#"${DOTFILES_ROOT}"/}"
     return 0
   }
   if [[ "${CHECK_ONLY}" == true ]]; then
     log "plugins: reporting configured vs installed agent plugins"
-    bash "${agents}" --check
+    bash "${agents}" --check || rc=1
+    if pi_cmd="$(run_source_mise which pi 2>/dev/null)" && [[ -x "${pi_cmd}" ]]; then
+      "${pi_cmd}" list || rc=1
+    fi
   else
     log "plugins: registering marketplaces and updating enabled agent plugins"
-    bash "${agents}" --update
+    bash "${agents}" --update || rc=1
+    log "plugins: updating Pi extensions"
+    run_source_mise exec "${PI_MISE_TOOL}" -- pi update --extensions || rc=1
   fi
+  return "${rc}"
 }
 
 update_vscode() {

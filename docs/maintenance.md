@@ -3,10 +3,14 @@
 `just update mise` updates declared tools and refreshes the shared lockfile.
 The standalone mise bootstrap version is pinned in `install/common/mise.sh`;
 run that script with `--binary-only` after changing the pin.
-The current lockfile format requires mise 2026.11.5 or newer. Keep its
+The managed configuration requires mise 2026.11.8 or newer. Keep its
 `locks/` dependency sidecars with the main lockfile. Lock targets match the
 supported hosts: macOS arm64 and Linux x64/arm64. Slack's CLI is skipped on
 Linux arm64 because upstream does not publish that binary.
+
+Pi uses the standalone release, so project Node versions do not affect it.
+Hugging Face uses its own Python 3.14 runtime so its native dependencies can
+be locked and installed without building against the default Python 3.15.
 
 Use `just update-check` before a full update. It reports the managed tools,
 macOS packages, plugins, extensions, and vendored skills. Skill updates require
