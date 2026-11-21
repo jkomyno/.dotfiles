@@ -2523,6 +2523,12 @@ specifiers = ["latest"]
 [tools."npm:ccusage".provenance]
 repository = "github.com/ccusage/ccusage"
 
+[[tools."npm:keyshroud"]]
+version = "0.13.0"
+aube = { path = "locks/npm-keyshroud/0.13.0", digest = "sha256:42b2f4ded93c0c982fe415f85dacf50412057b030bcb04c5db0c49a834fd350d" }
+backend = "npm:keyshroud"
+specifiers = ["latest"]
+
 [[tools."npm:npm"]]
 version = "12.2.2"
 aube = { path = "locks/npm-npm/12.2.2", digest = "sha256:aa1583eaec25bbf8f161baebcfb3b9500e918a9d0772b3278c80b0e57b96c69a" }

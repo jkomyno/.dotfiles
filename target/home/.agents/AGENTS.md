@@ -32,6 +32,13 @@ These rules apply to every coding agent on this machine. Harness-specific entryp
 - Read a repository's `AGENTS.local.md` when present. Never commit it, add it to a tracked ignore file, or quote it; it contains private machine context.
 - Shared skills live in `~/.agents/skills/`; edit their managed sources under the dotfiles checkout's `target/home/.agents/skills/`.
 
+## Keyshroud
+
+- Use Keyshroud by default for API keys and tokens needed by shell commands. Run `keyshroud env` to discover wired names. Pass only the names a trusted command needs with `keyshroud run --only NAME -- <command>`. Use a comma-separated list for multiple names.
+- When a project defines its own mapping in `.env.refs`, use `keyshroud run --no-auth --refs .env.refs --only NAME -- <command>` from the directory containing that file.
+- Work with names and references. Keep raw values out of chat, agent environments, command arguments, logs, and files agents can read. Never look up plaintext credentials in `.env` files or the keychain, dump the environment, or use `keyshroud get`, `keyshroud env --shell`, `keyshroud inject`, or `keyshroud run --no-mask` in an agent session.
+- If a name is missing or outside the project's scope, tell the user which name the command needs. The user enters new credentials in their own terminal or a masked Keyshroud dialog. If Keyshroud requests Touch ID, ask the user to approve the macOS sheet and respect a cancellation.
+
 ## Skill authoring
 
 - Use shared `name` and `description` frontmatter; Claude-only fields such as `argument-hint` and `disable-model-invocation` are allowed.

@@ -105,6 +105,8 @@ ast-grep = "latest"
 # https://github.com/openai/codex - OpenAI Codex CLI coding agent;
 # global config and shared-agent adapter tracked in target/home/.codex
 "npm:@openai/codex" = "latest"
+# https://keyshroud.dev - encrypted local vault and masked secret injection
+"npm:keyshroud" = "latest"
 # https://github.com/earendil-works/pi (https://pi.dev) - Pi, a minimal extensible coding agent;
 # The standalone release includes its runtime, so project Node pins cannot break Pi.
 # Global config and skills wiring tracked in target/home/.pi.

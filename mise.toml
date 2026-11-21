@@ -22,6 +22,7 @@ includes = ["tasks"]
 "~/.local/bin/clipboard-paste" = { source = "target/home/.local/bin/clipboard-paste", mode = "symlink" }
 "~/.local/bin/pstack-skill" = { source = "target/home/.local/bin/pstack-skill", mode = "symlink" }
 "~/.local/bin/rust-cache-maintenance" = { source = "target/home/.local/bin/rust-cache-maintenance", mode = "symlink" }
+"~/.pi/agent/AGENTS.md" = { source = "target/home/.agents/AGENTS.md", mode = "symlink" }
 "~/.pi/agent/settings.json" = { source = "target/home/.pi/agent/settings.json", mode = "symlink" }
 "~/.pi/agent/claude-bridge.json" = { source = "target/home/.pi/agent/claude-bridge.json", mode = "symlink" }
 "~/.pi/agent/extensions/subagent" = { source = "target/home/.pi/agent/extensions/subagent", mode = "symlink" }
