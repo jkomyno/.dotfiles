@@ -20,6 +20,7 @@ mouse-hide-while-typing = true
 mouse-scroll-multiplier = 2
 
 # keybinds
+keybind = cmd+r=text:\x12
 keybind = cmd+s>r=reload_config
 keybind = cmd+s>x=close_surface
 
