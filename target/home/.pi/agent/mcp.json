@@ -1,0 +1,7 @@
+{
+  "mcpServers": {
+    "marked": {
+      "url": "https://marked.dev/api/mcp"
+    }
+  }
+}

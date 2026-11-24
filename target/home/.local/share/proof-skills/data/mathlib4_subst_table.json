@@ -1,0 +1,45 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "project": "ExampleProject",
+  "description": "Generic substitution fixture for instantiating proof-skills templates against a Lean 4 + Mathlib4 formalization project. Project-specific overrides belong in <project>/skills-overrides/subst_table.json.",
+  "substitutions": {
+    "<Project>": "ExampleProject",
+    "<proj>": "example_project",
+    "<paper-file>": "docs/paper.tex",
+    "<paper-anchor-format>": "[T<chapter>.<index>]",
+    "<wave-tag-format>": "W<wave>-B<batch>[-a<attempt>]",
+    "<tactic-module-path>": "ExampleProject/Tactics.lean",
+    "<build-command>": "lake build",
+    "<lake-package-name>": "ExampleProject"
+  },
+  "path_substitutions": {
+    "<Project>/": "ExampleProject/",
+    "<Project>/Foundations/": "ExampleProject/Foundations/",
+    "<Project>/FixedPoints/": "ExampleProject/Foundations/FixedPoints/",
+    "<Project>/Bridge/": "ExampleProject/Bridge/",
+    "<Project>/Tactics.lean": "ExampleProject/Tactics.lean",
+    "<vendor-licenses-dir>": "LICENSES/"
+  },
+  "domain_mappings": {
+    "<MarkovMatrix>": "ExampleProject.Stochastic.StochMatrix",
+    "<TransitionStep>": "ExampleProject.Stochastic.step",
+    "<SimplexType>": "ExampleProject.Stochastic.Distribution",
+    "<MathlibStdSimplex>": "Mathlib.Analysis.Convex.StdSimplex.stdSimplex",
+    "<SimplexBridge>": "ExampleProject.Stochastic.Distribution.toStdSimplex",
+    "<MatrixIsPrimitive>": "Matrix.IsPrimitive",
+    "<MatrixIsIrreducible>": "Matrix.IsIrreducible",
+    "<StationaryDistribution>": "ExampleProject.Stochastic.stationaryDistribution",
+    "<DoeblinContraction>": "ExampleProject.Stochastic.doeblinContraction",
+    "<DiscreteLyapunovFunction>": "ExampleProject.Dynamics.lyapunovVal",
+    "<DiscreteLyapunovDifference>": "ExampleProject.Dynamics.discrete_lyapunov_difference",
+    "<DissipationInequality>": "ExampleProject.Dynamics.dissipation_inequality",
+    "<BellmanContraction>": "ExampleProject.Optimization.Bellman.bellman_contraction",
+    "<FixedPointTheorem>": "ExampleProject.Foundations.FixedPoints.banach_fixed_point",
+    "<ScaledInt>": "ExampleProject.Foundations.ScaledInt",
+    "<StandardScale>": "ExampleProject.Foundations.standardScale",
+    "<ModularSubpackageInterface>": "ProofSkills.Template_ModularSubpackageInterface",
+    "<ProofCarryingCodegen>": "ProofSkills.Template_ProofCarryingCodegen",
+    "<KernelWHNF>": "ProofSkills.Template_KernelWHNF",
+    "<AltProofTactics>": "ProofSkills.Template_AltProofTactics"
+  }
+}

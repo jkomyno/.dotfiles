@@ -1,0 +1,240 @@
+#!/usr/bin/env python3
+# Originally extracted from a Lean 4 verification project and genericized for the proof-skills toolkit.
+"""
+Zettelkasten Linter.
+
+Checks a Markdown Zettelkasten knowledge base for structural issues:
+  - Orphan notes (no incoming links)
+  - Island notes (no outgoing links)
+  - Broken links (reference notes that don't exist)
+  - Stale notes (old fleeting notes not promoted)
+  - Tag inconsistencies
+  - Missing required fields in note templates
+
+Usage:
+    python3 scripts/lean/zettelkasten_lint.py [--zk-dir zettelkasten]
+"""
+
+import argparse
+import re
+import sys
+from datetime import UTC, datetime, timedelta
+from pathlib import Path
+
+ZK_ID_PATTERN = re.compile(r'ZK-(\d{8})-(\d{3})')
+LINK_PATTERN = re.compile(r'\[\[([^\]]+)\]\]')
+TAG_PATTERN = re.compile(r'#(\w[\w-]*)')
+REQUIRED_FIELDS = ['Type', 'Tags', 'Created']
+
+
+def parse_note(filepath: Path) -> dict:
+    """Parse a Zettelkasten note file."""
+    with open(filepath, encoding='utf-8') as f:
+        content = f.read()
+
+    note = {
+        'path': filepath,
+        'filename': filepath.stem,
+        'id': None,
+        'content': content,
+        'links_out': set(),
+        'tags': set(),
+        'note_type': None,
+        'created': None,
+        'missing_fields': [],
+    }
+
+    # Extract YAML frontmatter if present
+    fm_match = re.match(r'^---\s*\n(.*?)\n---\s*\n', content, re.DOTALL)
+    fm_text = fm_match.group(1) if fm_match else ''
+    if fm_text:
+        id_m = re.search(r'^id\s*:\s*(\S+)', fm_text, re.MULTILINE | re.IGNORECASE)
+        if id_m:
+            note['id'] = id_m.group(1).strip('"\'')
+        for ref_m in re.finditer(r'^\s*-\s*(zk-[\w-]+)', fm_text, re.MULTILINE):
+            note['links_out'].add(ref_m.group(1).strip())
+
+    # Extract wikilinks
+    for m in LINK_PATTERN.finditer(content):
+        note['links_out'].add(m.group(1).strip())
+
+    # Extract inline #tags
+    for m in TAG_PATTERN.finditer(content):
+        note['tags'].add(m.group(1))
+
+    # Extract metadata fields (bulleted or YAML frontmatter)
+    for field in REQUIRED_FIELDS:
+        pattern = re.compile(
+            rf'^(?:[-*]\s*\*?\*?{field}\*?\*?|\s*{field})\s*:\s*(.+)',
+            re.MULTILINE | re.IGNORECASE,
+        )
+        m = pattern.search(fm_text if fm_text else content)
+        if not m and fm_text:
+            m = pattern.search(content)
+        if m:
+            value = m.group(1).strip()
+            if field == 'Type':
+                note['note_type'] = value.lower()
+            elif field == 'Created':
+                note['created'] = value
+            elif field == 'Tags':
+                for tok in re.findall(r'[\w-]+', value):
+                    note['tags'].add(tok)
+        else:
+            note['missing_fields'].append(field)
+
+    return note
+
+
+def lint_zettelkasten(zk_dir: Path) -> list[dict]:
+    """Run all lint checks on the Zettelkasten."""
+    issues: list[dict] = []
+    notes: dict[str, dict] = {}
+    alias_to_key: dict[str, str] = {}
+    all_tags: set[str] = set()
+
+    # Skip index and changelog files
+    skip_files = {'_index.md', '_tags.md', '_changelog.md'}
+
+    # Parse all notes
+    for md_file in sorted(zk_dir.rglob('*.md')):
+        if md_file.name in skip_files:
+            continue
+        note = parse_note(md_file)
+        key = note['filename']
+        notes[key] = note
+        alias_to_key[key] = key
+        if note['id']:
+            alias_to_key[note['id']] = key
+        prefix_m = re.match(r'^(zk-\d+)', key, re.IGNORECASE)
+        if prefix_m:
+            alias_to_key.setdefault(prefix_m.group(1).lower(), key)
+        all_tags.update(note['tags'])
+
+    if not notes:
+        issues.append({
+            'severity': 'info',
+            'type': 'empty',
+            'message': f'No notes found in {zk_dir}',
+            'file': None,
+        })
+        return issues
+
+    # Build incoming links
+    links_in: dict[str, set[str]] = {name: set() for name in notes}
+    for name, note in notes.items():
+        for link in note['links_out']:
+            target_key = alias_to_key.get(link)
+            if target_key and target_key in links_in:
+                links_in[target_key].add(name)
+
+    # Also credit incoming links from _index.md if present
+    index_file = zk_dir / '_index.md'
+    if index_file.is_file():
+        index_note = parse_note(index_file)
+        for link in index_note['links_out']:
+            target_key = alias_to_key.get(link)
+            if target_key and target_key in links_in:
+                links_in[target_key].add('_index')
+
+    # Check: Orphan notes (no incoming links, not index/root)
+    for name, incoming in links_in.items():
+        if not incoming and notes[name]['note_type'] != 'index':
+            issues.append({
+                'severity': 'warn',
+                'type': 'orphan',
+                'message': 'No incoming links',
+                'file': notes[name]['path'],
+            })
+
+    # Check: Island notes (no outgoing links)
+    for name, note in notes.items():
+        if not note['links_out']:
+            issues.append({
+                'severity': 'warn',
+                'type': 'island',
+                'message': 'No outgoing links (isolated note)',
+                'file': note['path'],
+            })
+
+    # Check: Broken links
+    for name, note in notes.items():
+        for link in sorted(note['links_out']):
+            if link not in alias_to_key:
+                issues.append({
+                    'severity': 'error',
+                    'type': 'broken-link',
+                    'message': f'Links to non-existent note: {link}',
+                    'file': note['path'],
+                })
+
+    # Check: Missing required fields
+    for name, note in notes.items():
+        for field in note['missing_fields']:
+            issues.append({
+                'severity': 'warn',
+                'type': 'missing-field',
+                'message': f'Missing required field: {field}',
+                'file': note['path'],
+            })
+
+    # Check: Stale fleeting notes (>7 days old, not promoted)
+    for name, note in notes.items():
+        if note['note_type'] == 'fleeting' and note['created']:
+            try:
+                created = datetime.strptime(note['created'][:10], '%Y-%m-%d')
+                created = created.replace(tzinfo=UTC)
+                age = datetime.now(UTC) - created
+                if age > timedelta(days=7):
+                    issues.append({
+                        'severity': 'warn',
+                        'type': 'stale-fleeting',
+                        'message': f'Fleeting note is {age.days} days old - promote or discard',
+                        'file': note['path'],
+                    })
+            except ValueError:
+                pass
+
+    return issues
+
+
+def main():
+    parser = argparse.ArgumentParser(description='Lint Zettelkasten notes')
+    parser.add_argument('--zk-dir', '--zk-root', dest='zk_dir', type=Path, default=Path('zettelkasten'),
+                        help='Zettelkasten directory')
+    parser.add_argument('--strict', action='store_true',
+                        help='Exit non-zero on warnings as well as errors')
+    args = parser.parse_args()
+
+    if not args.zk_dir.exists():
+        print(f"Zettelkasten directory not found: {args.zk_dir}")
+        print("(This is normal for a new project - create notes to populate it)")
+        sys.exit(0)
+
+    issues = lint_zettelkasten(args.zk_dir)
+
+    errors = [i for i in issues if i['severity'] == 'error']
+    warnings = [i for i in issues if i['severity'] == 'warn']
+    infos = [i for i in issues if i['severity'] == 'info']
+
+    print("Zettelkasten Lint Report")
+    print("=" * 50)
+    print(f"Errors: {len(errors)}  Warnings: {len(warnings)}  Info: {len(infos)}")
+    print("-" * 50)
+
+    for issue in sorted(issues, key=lambda i: (
+        {'error': 0, 'warn': 1, 'info': 2}[i['severity']],
+        i['type'],
+        str(i.get('file', '')),
+    )):
+        sev = {'error': '✗', 'warn': '⚠', 'info': 'ℹ'}[issue['severity']]
+        file_str = issue['file'].name if issue['file'] else ''
+        print(f"  {sev} [{issue['type']}] {file_str}: {issue['message']}")
+
+    if errors or (args.strict and warnings):
+        sys.exit(1)
+    sys.exit(0)
+
+
+if __name__ == '__main__':
+    main()

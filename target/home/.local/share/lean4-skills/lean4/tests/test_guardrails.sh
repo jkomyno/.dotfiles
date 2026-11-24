@@ -1,0 +1,1190 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# Regression tests for guardrails.sh
+# Invokes the hook directly with crafted JSON and LEAN4_GUARDRAILS_FORCE=1.
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+HOOK="$SCRIPT_DIR/../hooks/guardrails.sh"
+
+PASS=0
+FAIL=0
+
+# Run a test case.  $1=description  $2=command  $3=expected exit code (0 or 2)
+#
+# Pins LEAN4_GUARDRAILS_COLLAB_POLICY=ask so the legacy soft-gate
+# behavior (block until bypass) is the test baseline. Without this,
+# the v4.5.2 default of `host` (exit 0; let Claude Code ask) would
+# make every collab-op test trivially pass with the wrong intent.
+# Per-op policy tests (run_test_policy, run_test_op_policy) override
+# this on a per-call basis.
+run_test() {
+  local desc="$1" cmd="$2" expected="$3" actual
+  actual=0
+  echo "{\"tool_input\":{\"command\":$(printf '%s' "$cmd" | jq -Rs .)}}" \
+    | LEAN4_GUARDRAILS_FORCE=1 LEAN4_GUARDRAILS_COLLAB_POLICY=ask bash "$HOOK" >/dev/null 2>&1 || actual=$?
+  if [[ "$actual" -eq "$expected" ]]; then
+    echo "  PASS: $desc"
+    (( ++PASS ))
+  else
+    echo "  FAIL: $desc (expected exit $expected, got $actual)"
+    (( ++FAIL ))
+  fi
+}
+
+# Run a test with a specific collaboration policy.
+# $1=desc  $2=policy value (ask|allow|block|"" for unset)  $3=command  $4=expected exit
+run_test_policy() {
+  local desc="$1" policy="$2" cmd="$3" expected="$4" actual
+  actual=0
+  local policy_env=()
+  if [[ -n "$policy" ]]; then
+    policy_env=(LEAN4_GUARDRAILS_COLLAB_POLICY="$policy")
+  fi
+  echo "{\"tool_input\":{\"command\":$(printf '%s' "$cmd" | jq -Rs .)}}" \
+    | env LEAN4_GUARDRAILS_FORCE=1 "${policy_env[@]+"${policy_env[@]}"}" bash "$HOOK" >/dev/null 2>&1 || actual=$?
+  if [[ "$actual" -eq "$expected" ]]; then
+    echo "  PASS: $desc"
+    (( ++PASS ))
+  else
+    echo "  FAIL: $desc (expected exit $expected, got $actual)"
+    (( ++FAIL ))
+  fi
+}
+
+# Run a test with a specific per-op collab policy variable set (v4.5.2+).
+# $1=desc  $2=env var name (PUSH_POLICY|AMEND_POLICY|PR_CREATE_POLICY)
+# $3=value (host|ask|allow|block|"" for unset)  $4=command  $5=expected exit
+#
+# Unlike run_test_policy (which sets the legacy COLLAB_POLICY var), this
+# helper sets one per-op var while leaving the others (and COLLAB_POLICY)
+# unset — so it exercises the per-op default-to-host behavior on the
+# other ops while testing the targeted op's specific policy value.
+run_test_op_policy() {
+  local desc="$1" var_name="$2" value="$3" cmd="$4" expected="$5" actual
+  actual=0
+  local policy_env=()
+  if [[ -n "$value" ]]; then
+    policy_env=("LEAN4_GUARDRAILS_${var_name}=${value}")
+  fi
+  echo "{\"tool_input\":{\"command\":$(printf '%s' "$cmd" | jq -Rs .)}}" \
+    | env LEAN4_GUARDRAILS_FORCE=1 "${policy_env[@]+"${policy_env[@]}"}" bash "$HOOK" >/dev/null 2>&1 || actual=$?
+  if [[ "$actual" -eq "$expected" ]]; then
+    echo "  PASS: $desc"
+    (( ++PASS ))
+  else
+    echo "  FAIL: $desc (expected exit $expected, got $actual)"
+    (( ++FAIL ))
+  fi
+}
+
+# Run a test with a specific destructive policy (path-scoped destructive ops).
+# $1=desc  $2=policy value (ask|allow|block|"" for unset)  $3=command  $4=expected exit
+run_test_destructive_policy() {
+  local desc="$1" policy="$2" cmd="$3" expected="$4" actual
+  actual=0
+  local policy_env=()
+  if [[ -n "$policy" ]]; then
+    policy_env=(LEAN4_GUARDRAILS_DESTRUCTIVE_POLICY="$policy")
+  fi
+  echo "{\"tool_input\":{\"command\":$(printf '%s' "$cmd" | jq -Rs .)}}" \
+    | env LEAN4_GUARDRAILS_FORCE=1 "${policy_env[@]+"${policy_env[@]}"}" bash "$HOOK" >/dev/null 2>&1 || actual=$?
+  if [[ "$actual" -eq "$expected" ]]; then
+    echo "  PASS: $desc"
+    (( ++PASS ))
+  else
+    echo "  FAIL: $desc (expected exit $expected, got $actual)"
+    (( ++FAIL ))
+  fi
+}
+
+echo "=== guardrails.sh regression tests ==="
+echo ""
+
+echo "-- Fix 1: --push false positive --"
+run_test "git remote set-url --push (allow)"      "git remote set-url --push origin url"   0
+
+echo ""
+echo "-- file-baseline drift check passes through (issue #102) --"
+# The canonical agent-side invocation: baseline JSON delivered over stdin
+# via QUOTED heredoc (<<'"'"'EOF'"'"' — an unquoted delimiter would expand
+# $/backticks/$(...) inside the payload, corrupting repository-controlled
+# filenames and potentially executing embedded commands). Not a git/gh op,
+# so guardrails must not gate it on either host; a false block here would
+# break the pre-mutation drift check. The payload deliberately contains
+# dangerous literals to pin the quoted-transport form.
+run_test "file-baseline check via quoted heredoc (allow)" 'lean4-skills-file-baseline check --baseline - <<'"'"'EOF'"'"'
+{"schema":"file-baseline/v1","files":[{"path":"/proj/$HOME `w` $(x) Foo.lean","realpath":"/proj/$HOME `w` $(x) Foo.lean","exists":true,"sha256":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","size":42}]}
+EOF' 0
+
+echo ""
+echo "-- Fix 2: wrapper prefix bypass --"
+run_test "sudo -u root git push (block)"           "sudo -u root git push origin main"      2
+run_test "env -i git push (block)"                 "env -i git push origin main"            2
+
+echo ""
+echo "-- Fix 3: quoted arguments false positive --"
+run_test "git commit -m mentioning push (allow)"   'git commit -m "mention git push"'       0
+run_test "git commit -m mentioning amend (allow)"   'git commit -m "avoid --amend"'          0
+run_test "gh issue body mentioning pr create (allow)" 'gh issue create --body "later gh pr create"' 0
+
+echo ""
+echo "-- Fix 4: quoted operators not splitting --"
+run_test "semicolon inside quotes (allow)"          'git commit -m "fix; git push"'          0
+run_test "ampersand inside quotes (allow)"          'git commit -m "a && git push"'          0
+
+echo ""
+echo "-- Fix 5: absolute-path and command-prefix bypass --"
+run_test "/usr/bin/git push (block)"                "/usr/bin/git push origin main"          2
+run_test "command git push (block)"                 "command git push origin main"           2
+run_test "command -p git push (block)"              "command -p git push origin main"        2
+run_test "sudo /usr/bin/git push (block)"           "sudo /usr/bin/git push origin main"    2
+run_test "/usr/bin/env -i git push (block)"         "/usr/bin/env -i git push origin main"  2
+
+echo ""
+echo "-- Fix 6: bash -c nested shell bypass --"
+run_test "bash -c 'git push' (block)"              "bash -c 'git push origin main'"         2
+run_test "bash -lc 'git push' (block)"             "bash -lc 'git push origin main'"        2
+run_test "sh -c 'git push' (block)"                "sh -c 'git push origin main'"           2
+run_test "/bin/bash -c 'git push' (block)"          "/bin/bash -c 'git push origin main'"   2
+run_test "bash --norc -c 'git push' (block)"        "bash --norc -c 'git push origin main'" 2
+
+echo ""
+echo "-- Fix 7: quoted args/flags handled correctly --"
+run_test "git commit -m \"push\" (allow)"           'git commit -m "push"'                   0
+run_test "git commit -m \"--amend\" (allow)"        'git commit -m "--amend"'                0
+run_test "git commit \"--amend\" -m x (block)"      'git commit "--amend" -m x'              2
+run_test "git \"push\" origin main (block)"         'git "push" origin main'                 2
+run_test "git push \"--dry-run\" (allow)"           'git push "--dry-run"'                   0
+run_test "git reset \"--hard\" (block)"             'git reset "--hard"'                     2
+run_test "git checkout \"--\" file (block)"         'git checkout "--" file.txt'              2
+run_test "git clean \"-f\" (block)"                 'git clean "-f"'                         2
+
+echo ""
+echo "-- Sanity: existing behavior --"
+run_test "git push (block)"                        "git push origin main"                   2
+run_test "sudo git push (block)"                   "sudo git push origin main"              2
+run_test "git push --dry-run (allow)"              "git push --dry-run"                     0
+run_test "git stash push -m msg (allow)"           "git stash push -m msg"                  0
+run_test "echo git push (allow)"                   "echo git push"                          0
+run_test "env FOO=bar git push (block)"            "env FOO=bar git push"                   2
+
+echo ""
+echo "-- Fix 8: quoted env-assignment prefix bypass --"
+run_test "FOO=\"a b\" git push (block)"              'FOO="a b" git push origin main'         2
+run_test "FOO=\"a b\" git reset --hard (block)"      'FOO="a b" git reset --hard'             2
+run_test "/usr/bin/env FOO=\"a b\" git push (block)" '/usr/bin/env FOO="a b" git push origin main' 2
+run_test "FOO=\$(cmd) git push (block)"              'FOO=$(printf "a b") git push origin main'  2
+run_test "FOO=\`cmd\` git push (block)"              'FOO=`printf "a b"` git push origin main'   2
+run_test "FOO=a\\ b git push (block)"                'FOO=a\ b git push origin main'             2
+run_test "FOO=\$(cmd;cmd) git push (block)"          'FOO=$(echo "a b"; echo c) git push origin main' 2
+run_test "FOO=\${BAR:-x y} git push (block)"         'FOO=${BAR:-x y} git push origin main'     2
+run_test "FOO=\$(echo \")b\";cmd) git push (block)"  'FOO=$(echo "a)b"; echo c) git push origin main' 2
+run_test "FOO=\$(echo \")b\";cmd) reset (block)"     'FOO=$(echo "a)b"; echo c) git reset --hard'     2
+run_test "FOO=\$(echo \")b\";cmd) clean (block)"     'FOO=$(echo "a)b"; echo c) git clean -fd'        2
+
+echo ""
+echo "-- Fix 9: mixed nested syntax in assignments --"
+run_test "nested \${..\$(..;..)} git push (block)"    'FOO=${BAR:-$(echo x; echo y)} git push origin main'    2
+run_test "backtick inside \$() git push (block)"      'FOO=$(echo `whoami`) git push origin main'             2
+run_test "double-quote + \$() + ; git reset (block)"  'X="a b" Y=$(echo c; echo d) git reset --hard'         2
+run_test "\$() in env prefix git push (block)"        '/usr/bin/env FOO=$(echo "a;b") git push origin main'   2
+run_test "\$() + ; gh pr create (block)"              'FOO=$(echo "a)b"; echo c) gh pr create --title test'   2
+run_test "echo with \$() assignment (allow)"          'echo FOO=$(echo "a)b"; echo c)'                       0
+
+echo ""
+echo "-- Fix 10: bypass with quoted-value env prefix --"
+run_test "FOO=\"a b\" BYPASS=1 git push (allow)"       'FOO="a b" LEAN4_GUARDRAILS_BYPASS=1 git push origin main'    0
+run_test "FOO=\$(cmd) BYPASS=1 git push (allow)"       'FOO=$(echo "x y") LEAN4_GUARDRAILS_BYPASS=1 git push main'   0
+run_test "FOO=\"BYPASS=1\" git push (block)"            'FOO="LEAN4_GUARDRAILS_BYPASS=1" git push origin main'        2
+
+echo ""
+echo "-- Destructive policy: path-scoped checkout -- <path…> --"
+# Default (unset = ask): blocks without bypass, allows with bypass
+run_test_destructive_policy "unset: checkout -- file (block=ask)"           "" "git checkout -- file.lean"                            2
+run_test_destructive_policy "unset: bypass checkout -- file (allow=ask)"    "" "LEAN4_GUARDRAILS_BYPASS=1 git checkout -- file.lean"  0
+# allow: passes without bypass; covers multi-file and directory pathsets too
+run_test_destructive_policy "allow: checkout -- file"                       allow "git checkout -- file.lean"                       0
+run_test_destructive_policy "allow: checkout -- multi-file"                 allow "git checkout -- a.lean b.lean"                    0
+run_test_destructive_policy "allow: checkout -- directory"                  allow "git checkout -- src/"                             0
+# block: blocks even with bypass token
+run_test_destructive_policy "block: checkout -- file (still block)"         block "git checkout -- file.lean"                       2
+run_test_destructive_policy "block: bypass checkout -- file (still block)"  block "LEAN4_GUARDRAILS_BYPASS=1 git checkout -- file.lean" 2
+
+# git checkout <tree-ish> <path…>  (restore-from-tree-ish form, no `--`)
+# Default (ask): blocks without bypass, allows with bypass.
+run_test_destructive_policy "unset: checkout HEAD file (block=ask)"         "" "git checkout HEAD file.lean"                          2
+run_test_destructive_policy "unset: bypass checkout HEAD file (allow=ask)"  "" "LEAN4_GUARDRAILS_BYPASS=1 git checkout HEAD file.lean" 0
+# allow: any tree-ish + bounded path passes
+run_test_destructive_policy "allow: checkout HEAD file"                     allow "git checkout HEAD file.lean"                      0
+run_test_destructive_policy "allow: checkout main file"                     allow "git checkout main src/foo.lean"                   0
+# Non-force flag prefix before tree-ish + path — same soft-gate.
+run_test_destructive_policy "unset: checkout -q HEAD file (block=ask)"      "" "git checkout -q HEAD file.lean"                         2
+run_test_destructive_policy "unset: checkout --quiet HEAD file (block=ask)" "" "git checkout --quiet HEAD file.lean"                    2
+run_test_destructive_policy "allow: checkout -q HEAD file"                  allow "git checkout -q HEAD file.lean"                    0
+run_test_destructive_policy "allow: checkout --quiet HEAD file"             allow "git checkout --quiet HEAD file.lean"               0
+run_test_destructive_policy "bypass: checkout -q HEAD file"                 "" "LEAN4_GUARDRAILS_BYPASS=1 git checkout -q HEAD file.lean" 0
+# Flag interleaving between tree-ish and path — pins the documented behavior.
+run_test_destructive_policy "unset: checkout HEAD -q file (block=ask)"      "" "git checkout HEAD -q file.lean"                         2
+# Pathspec-oriented flags: single positional with one of these is
+# unambiguously path-restore (empirically confirmed to discard).
+run_test_destructive_policy "unset: checkout --ignore-skip-worktree-bits file" "" "git checkout --ignore-skip-worktree-bits file.lean"  2
+run_test_destructive_policy "unset: checkout --no-overlay file (block=ask)"  "" "git checkout --no-overlay file.lean"                    2
+run_test_destructive_policy "unset: checkout --overlay file (block=ask)"     "" "git checkout --overlay file.lean"                       2
+run_test_destructive_policy "unset: checkout --recurse-submodules file"      "" "git checkout --recurse-submodules file.lean"            2
+run_test_destructive_policy "allow: checkout --no-overlay file"              allow "git checkout --no-overlay file.lean"                 0
+run_test_destructive_policy "allow: checkout --ignore-skip-worktree-bits file" allow "git checkout --ignore-skip-worktree-bits file.lean" 0
+run_test_destructive_policy "bypass: checkout --no-overlay file"             "" "LEAN4_GUARDRAILS_BYPASS=1 git checkout --no-overlay file.lean" 0
+# -p / --patch is interactive but pipeable (yes y | git checkout -p file
+# discards the file). Soft-gate regardless of TTY.
+run_test_destructive_policy "unset: checkout -p file (block=ask)"            "" "git checkout -p file.lean"                              2
+run_test_destructive_policy "unset: checkout --patch file (block=ask)"       "" "git checkout --patch file.lean"                         2
+run_test_destructive_policy "allow: checkout -p file"                        allow "git checkout -p file.lean"                          0
+run_test_destructive_policy "allow: checkout --patch file"                   allow "git checkout --patch file.lean"                     0
+run_test_destructive_policy "bypass: checkout -p file"                       "" "LEAN4_GUARDRAILS_BYPASS=1 git checkout -p file.lean"   0
+# Patch with no path positional — TIER-1 hard-block (whole-worktree
+# interactive sweep; pipes like `yes y | …` bypass interactivity).
+# Empirically verified: both forms wipe every dirty file in the worktree.
+run_test_destructive_policy "git checkout -p              (always block, no path)" allow "git checkout -p"                                2
+run_test_destructive_policy "git checkout --patch         (always block, no path)" allow "git checkout --patch"                           2
+run_test_destructive_policy "git checkout -p HEAD         (always block, no pathspec)" allow "git checkout -p HEAD"                       2
+run_test_destructive_policy "git checkout --patch HEAD    (always block, no pathspec)" allow "git checkout --patch HEAD"                  2
+run_test_destructive_policy "bypass git checkout -p       (still block, no path)" allow "LEAN4_GUARDRAILS_BYPASS=1 git checkout -p"      2
+run_test_destructive_policy "bypass git checkout --patch  (still block, no path)" allow "LEAN4_GUARDRAILS_BYPASS=1 git checkout --patch" 2
+run_test_destructive_policy "bypass git checkout -p HEAD  (still block)"         allow "LEAN4_GUARDRAILS_BYPASS=1 git checkout -p HEAD"  2
+# Negative control: -p WITH a path positional still soft-gates (path-scoped).
+run_test_destructive_policy "allow: checkout -p HEAD file"                       allow "git checkout -p HEAD file.lean"                  0
+# Non-force flag prefix before explicit-prefix path — same soft-gate.
+run_test_destructive_policy "unset: checkout -q ./file (block=ask)"         "" "git checkout -q ./file.lean"                            2
+run_test_destructive_policy "allow: checkout --quiet :/foo.lean"            allow "git checkout --quiet :/foo.lean"                   0
+# Negative controls: branch creation/detach flags must not soft-gate
+# (those forms aren't path-restore).
+run_test_destructive_policy "allow: git checkout -b newbranch"              "" "git checkout -b newbranch"                              0
+run_test_destructive_policy "allow: git checkout -b newbranch main"         "" "git checkout -b newbranch main"                         0
+run_test_destructive_policy "allow: git checkout -B existing main"          "" "git checkout -B existing main"                          0
+run_test_destructive_policy "allow: git checkout --orphan newroot"          "" "git checkout --orphan newroot"                          0
+run_test_destructive_policy "allow: git checkout --detach main"             "" "git checkout --detach main"                             0
+run_test_destructive_policy "allow: checkout HEAD~1 file"                   allow "git checkout HEAD~1 file.lean"                    0
+# block: even bypass token doesn't help
+run_test_destructive_policy "block: checkout HEAD file (still block)"       block "git checkout HEAD file.lean"                      2
+# Branch switching with a single arg is still allowed (not the restore form)
+run_test_destructive_policy "allow: switch to branch by name"               ""    "git checkout main"                                 0
+run_test_destructive_policy "allow: switch to ref by name"                  ""    "git checkout origin/main"                          0
+# -b/-B newbranch creates a branch; not restore, not gated
+run_test_destructive_policy "allow: checkout -b newbranch"                  ""    "git checkout -b newbranch"                         0
+run_test_destructive_policy "allow: checkout -b newbranch start-point"      ""    "git checkout -b newbranch main"                    0
+
+# Option-prefixed checkout pathspec forms (merge-conflict resolution flags
+# + force flag). These are restore-mode operations gated by the
+# destructive policy.
+run_test_destructive_policy "unset: checkout --ours file (block=ask)"       "" "git checkout --ours file.lean"                          2
+run_test_destructive_policy "unset: checkout --theirs file (block=ask)"     "" "git checkout --theirs file.lean"                        2
+# --merge is the long form of -m. Unlike short -m (which _normalize_tokens
+# removes pre-emptively to support `git commit -m "msg"`), the long
+# form survives normalization and IS gated here.
+run_test_destructive_policy "unset: checkout --merge file (block=ask)"      "" "git checkout --merge file.lean"                         2
+run_test_destructive_policy "allow: checkout --merge file"                  allow "git checkout --merge file.lean"                     0
+run_test_destructive_policy "bypass: checkout --merge file"                 "" "LEAN4_GUARDRAILS_BYPASS=1 git checkout --merge file.lean" 0
+# --conflict=<style> takes a value; the regex must accept `--conflict=merge`,
+# `--conflict=zdiff3`, etc., not just bare `--conflict`.
+run_test_destructive_policy "unset: checkout --conflict=merge file (block=ask)" "" "git checkout --conflict=merge file.lean"            2
+run_test_destructive_policy "unset: checkout --conflict=zdiff3 file (block=ask)" "" "git checkout --conflict=zdiff3 file.lean"          2
+run_test_destructive_policy "allow: checkout --conflict=merge file"         allow "git checkout --conflict=merge file.lean"            0
+run_test_destructive_policy "allow: checkout --conflict=zdiff3 file"        allow "git checkout --conflict=zdiff3 file.lean"           0
+# -2 / -3 are short aliases for --ours / --theirs (same conflict-resolution semantics).
+run_test_destructive_policy "unset: checkout -2 file (block=ask)"           "" "git checkout -2 file.lean"                              2
+run_test_destructive_policy "unset: checkout -3 file (block=ask)"           "" "git checkout -3 file.lean"                              2
+run_test_destructive_policy "allow: checkout -2 file"                       allow "git checkout -2 file.lean"                          0
+run_test_destructive_policy "allow: checkout -3 file"                       allow "git checkout -3 file.lean"                          0
+run_test_destructive_policy "bypass: checkout -2 file"                      "" "LEAN4_GUARDRAILS_BYPASS=1 git checkout -2 file.lean"   0
+# Note: -m is not covered — see the _normalize_tokens limitation comment in guardrails.sh
+run_test_destructive_policy "allow: checkout --ours file"                   allow "git checkout --ours file.lean"                      0
+run_test_destructive_policy "allow: checkout --theirs src/foo.lean"         allow "git checkout --theirs src/foo.lean"                  0
+run_test_destructive_policy "bypass: checkout --ours file"                  "" "LEAN4_GUARDRAILS_BYPASS=1 git checkout --ours file.lean" 0
+run_test_destructive_policy "block: checkout --ours file (still block)"     block "git checkout --ours file.lean"                       2
+
+# Single positional with explicit path prefix (./, :/, ../)
+# Distinguishes obvious path arguments from branch names.
+run_test_destructive_policy "unset: checkout ./file (block=ask)"            "" "git checkout ./file.lean"                                2
+run_test_destructive_policy "unset: checkout :/file (block=ask)"            "" "git checkout :/file.lean"                                2
+run_test_destructive_policy "unset: checkout ../file (block=ask)"           "" "git checkout ../file.lean"                               2
+run_test_destructive_policy "allow: checkout ./file"                        allow "git checkout ./file.lean"                            0
+run_test_destructive_policy "bypass: checkout ./file"                       "" "LEAN4_GUARDRAILS_BYPASS=1 git checkout ./file.lean"      0
+run_test_destructive_policy "block: checkout ./file (still block)"          block "git checkout ./file.lean"                            2
+
+# Dotfile path-prefix forms (e.g., ./.env, ./.github/...) — same gating
+# as non-dotfile path-prefix forms.
+run_test_destructive_policy "unset: checkout ./.env (block=ask)"            "" "git checkout ./.env"                                     2
+run_test_destructive_policy "unset: checkout :/.env (block=ask)"            "" "git checkout :/.env"                                     2
+run_test_destructive_policy "unset: checkout ../.env (block=ask)"           "" "git checkout ../.env"                                    2
+run_test_destructive_policy "allow: checkout ./.env"                        allow "git checkout ./.env"                                  0
+run_test_destructive_policy "allow: checkout ./.github path"                allow "git checkout ./.github/workflows/lint.yml"            0
+
+# Force-mode checkout / switch — branch-like vs path-like.
+# Branch-like (no path indicators) is hard-blocked because force branch
+# checkout discards uncommitted edits across the whole worktree.
+run_test_destructive_policy "git checkout -f main             (always block)" allow "git checkout -f main"                              2
+run_test_destructive_policy "git checkout --force main        (always block)" allow "git checkout --force main"                        2
+run_test_destructive_policy "git checkout -f feature_x        (always block)" allow "git checkout -f feature_x"                        2
+run_test_destructive_policy "bypass git checkout -f main      (still block)" allow "LEAN4_GUARDRAILS_BYPASS=1 git checkout -f main"   2
+# git switch in force/discard-changes mode — always hard-block.
+run_test_destructive_policy "git switch -f main               (always block)" allow "git switch -f main"                               2
+run_test_destructive_policy "git switch --force main          (always block)" allow "git switch --force main"                         2
+run_test_destructive_policy "git switch --discard-changes main (always block)" allow "git switch --discard-changes main"               2
+run_test_destructive_policy "bypass git switch -f main        (still block)" allow "LEAN4_GUARDRAILS_BYPASS=1 git switch -f main"     2
+# Force checkout with options interleaved before/after -f: same hard-block.
+run_test_destructive_policy "git checkout -q -f main          (always block)" allow "git checkout -q -f main"                           2
+run_test_destructive_policy "git checkout --quiet --force main (always block)" allow "git checkout --quiet --force main"                 2
+run_test_destructive_policy "git checkout -f --detach HEAD    (always block)" allow "git checkout -f --detach HEAD"                     2
+run_test_destructive_policy "git checkout -f -B tmp main      (always block)" allow "git checkout -f -B tmp main"                       2
+# Force checkout with git ref shorthand forms — branch/ref-switch hard-block.
+run_test_destructive_policy 'git checkout -f @{-1}           (always block)' allow 'git checkout -f @{-1}'                              2
+run_test_destructive_policy "git checkout --force @{-1}      (always block)" allow 'git checkout --force @{-1}'                         2
+run_test_destructive_policy "git checkout -f -                (always block)" allow "git checkout -f -"                                 2
+run_test_destructive_policy "git checkout --force -            (always block)" allow "git checkout --force -"                            2
+run_test_destructive_policy "git checkout -f @                (always block)" allow "git checkout -f @"                                 2
+run_test_destructive_policy "git checkout -f HEAD~3           (always block)" allow "git checkout -f HEAD~3"                            2
+run_test_destructive_policy 'git checkout -f HEAD@{1}        (always block)' allow 'git checkout -f HEAD@{1}'                           2
+# Bypass token does not override ref-shorthand force hard-blocks (Layer 1
+# confirmed these discard the dirty worktree; tier-1 stays absolute).
+run_test_destructive_policy 'bypass git checkout -f @{-1}    (still block)' allow 'LEAN4_GUARDRAILS_BYPASS=1 git checkout -f @{-1}'      2
+run_test_destructive_policy "bypass git checkout -f -         (still block)" allow "LEAN4_GUARDRAILS_BYPASS=1 git checkout -f -"        2
+# Force checkout with path-like and option interleaving: soft-gate.
+run_test_destructive_policy "unset: checkout -q -f file (block=ask)"        "" "git checkout -q -f file.lean"                            2
+run_test_destructive_policy "allow: checkout -q -f file"                    allow "git checkout -q -f file.lean"                       0
+run_test_destructive_policy "allow: checkout --quiet --force file"          allow "git checkout --quiet --force file.lean"             0
+# Force checkout with explicit `--` separator: defers to general -- soft-gate.
+run_test_destructive_policy "allow: checkout -f -- file"                    allow "git checkout -f -- file.lean"                       0
+run_test_destructive_policy "unset: checkout -f -- file (block=ask)"        "" "git checkout -f -- file.lean"                           2
+# Force restore with explicit ./ path prefix — soft-gate (path-scoped).
+run_test_destructive_policy "unset: checkout -f ./file (block=ask)"         "" "git checkout -f ./file.lean"                              2
+run_test_destructive_policy "allow: checkout -f ./file"                     allow "git checkout -f ./file.lean"                        0
+run_test_destructive_policy "bypass: checkout -f ./file"                    "" "LEAN4_GUARDRAILS_BYPASS=1 git checkout -f ./file.lean" 0
+# Path-like -f forms — soft-gate (path-scoped).
+run_test_destructive_policy "unset: checkout -f file (block=ask)"           "" "git checkout -f file.lean"                              2
+run_test_destructive_policy "unset: checkout -f docs/ (block=ask)"          "" "git checkout -f docs/"                                  2
+run_test_destructive_policy "allow: checkout -f file"                       allow "git checkout -f file.lean"                          0
+run_test_destructive_policy "allow: checkout --force file"                  allow "git checkout --force file.lean"                     0
+run_test_destructive_policy "bypass: checkout -f file"                      "" "LEAN4_GUARDRAILS_BYPASS=1 git checkout -f file.lean"   0
+run_test_destructive_policy "block: checkout -f file (still block)"         block "git checkout -f file.lean"                          2
+# Negative: git switch --force-create (creates branch over existing; doesn't touch worktree)
+# should NOT match the switch-force hard-block.
+run_test_destructive_policy "allow: git switch --force-create new" "" "git switch --force-create new-branch" 0
+# Negative: regular branch switching stays allowed.
+run_test_destructive_policy "allow: git switch main" "" "git switch main" 0
+run_test_destructive_policy "allow: git checkout main" "" "git checkout main" 0
+# `git checkout -` (bare dash, no force) is "switch to previous branch"; git
+# itself refuses the operation if the worktree is dirty, so it never destroys
+# data. Stays in the implicit-allow tier — Layer 1 confirmed PRESERVED.
+run_test_destructive_policy "allow: git checkout -" "" "git checkout -" 0
+
+echo ""
+echo "-- Destructive policy: path-scoped git restore <path…> --"
+# Default: same shape
+run_test_destructive_policy "unset: restore file (block=ask)"               "" "git restore file.lean"                                  2
+run_test_destructive_policy "unset: bypass restore file (allow=ask)"        "" "LEAN4_GUARDRAILS_BYPASS=1 git restore file.lean"        0
+# Pure unstaging — always allowed regardless of policy (any pathspec,
+# including the whole-index `--staged .` form — pure unstaging is
+# index-only and recoverable).
+run_test_destructive_policy "unset: restore --staged file (allow always)"   "" "git restore --staged file.lean"                         0
+run_test_destructive_policy "block: restore --staged file (allow always)"   block "git restore --staged file.lean"                     0
+run_test_destructive_policy "unset: restore --staged . (allow always)"      "" "git restore --staged ."                                 0
+run_test_destructive_policy "block: restore --staged . (allow always)"      block "git restore --staged ."                             0
+run_test_destructive_policy "unset: restore --staged ./ (allow always)"     "" "git restore --staged ./"                                0
+# allow: any path-scoped restore
+run_test_destructive_policy "allow: restore file"                           allow "git restore file.lean"                              0
+run_test_destructive_policy "allow: restore directory"                      allow "git restore src/"                                   0
+# block: even bypass token doesn't help
+run_test_destructive_policy "block: restore file (still block)"             block "git restore file.lean"                              2
+run_test_destructive_policy "block: bypass restore file (still block)"      block "LEAN4_GUARDRAILS_BYPASS=1 git restore file.lean"    2
+
+# Short flag aliases: -S = --staged, -W = --worktree.
+# Pure unstaging via -S (or any bundle containing S but not W) is allowed.
+run_test_destructive_policy "unset: restore -S file (allow always)"         "" "git restore -S file.lean"                                0
+run_test_destructive_policy "block: restore -S file (allow always)"         block "git restore -S file.lean"                            0
+run_test_destructive_policy "block: restore -S . (allow always)"            block "git restore -S ."                                    0
+# Combined index+worktree via -SW or mixed long/short → hard-block
+run_test_destructive_policy "git restore -SW file (always block)"           allow "git restore -SW file.lean"                           2
+run_test_destructive_policy "git restore -WS file (always block)"           allow "git restore -WS file.lean"                           2
+run_test_destructive_policy "git restore --staged -W file (always block)"   allow "git restore --staged -W file.lean"                   2
+run_test_destructive_policy "git restore -S --worktree file (always block)" allow "git restore -S --worktree file.lean"                 2
+# Worktree-only via -W alone is path-scoped destructive → soft-gate
+run_test_destructive_policy "allow: restore -W file"                        allow "git restore -W file.lean"                            0
+run_test_destructive_policy "unset: restore -W file (block=ask)"            "" "git restore -W file.lean"                                2
+
+echo ""
+echo "-- Hard-block: whole-worktree variants stay non-bypassable --"
+# These must block regardless of DESTRUCTIVE_POLICY value or bypass token.
+# Coverage includes the broader pathspec variants: `.`, `./`, `:/`,
+# `:(top)`, the `checkout HEAD -- .` form (ref before `--`), and
+# combined `--staged --worktree` restores.
+run_test_destructive_policy "git checkout .                   (always block)" allow "git checkout ."                                    2
+run_test_destructive_policy "git checkout ./                  (always block)" allow "git checkout ./"                                   2
+run_test_destructive_policy "git checkout -- .                (always block)" allow "git checkout -- ."                                 2
+run_test_destructive_policy "git checkout -- ./               (always block)" allow "git checkout -- ./"                                2
+run_test_destructive_policy "git checkout -- :/               (always block)" allow "git checkout -- :/"                                2
+run_test_destructive_policy "git checkout -- :(top)           (always block)" allow "git checkout -- :(top)"                            2
+run_test_destructive_policy "git checkout HEAD -- .           (always block)" allow "git checkout HEAD -- ."                            2
+run_test_destructive_policy "git checkout HEAD -- ./          (always block)" allow "git checkout HEAD -- ./"                           2
+run_test_destructive_policy "git checkout HEAD .              (always block)" allow "git checkout HEAD ."                               2
+run_test_destructive_policy "git checkout HEAD ./             (always block)" allow "git checkout HEAD ./"                              2
+run_test_destructive_policy "git checkout main :/             (always block)" allow "git checkout main :/"                              2
+# Option-prefixed whole-worktree pathspec variants — all hard-block.
+run_test_destructive_policy "git checkout -f .                (always block)" allow "git checkout -f ."                                 2
+run_test_destructive_policy "git checkout --force ./          (always block)" allow "git checkout --force ./"                           2
+run_test_destructive_policy "git checkout --ours .            (always block)" allow "git checkout --ours ."                             2
+run_test_destructive_policy "git checkout --theirs :/         (always block)" allow "git checkout --theirs :/"                          2
+# Note: -m is not covered — see the _normalize_tokens limitation comment in guardrails.sh
+# --pathspec-from-file always hard-blocks (paths hidden in a file)
+run_test_destructive_policy "git checkout --pathspec-from-file (always block)" allow "git checkout --pathspec-from-file=paths.txt"      2
+run_test_destructive_policy "git checkout HEAD --pathspec-from-file (always block)" allow "git checkout HEAD --pathspec-from-file=paths.txt" 2
+run_test_destructive_policy "git restore .                    (always block)" allow "git restore ."                                     2
+run_test_destructive_policy "git restore ./                   (always block)" allow "git restore ./"                                    2
+run_test_destructive_policy "git restore :/                   (always block)" allow "git restore :/"                                    2
+run_test_destructive_policy "git restore --staged --worktree  (always block)" allow "git restore --staged --worktree file.lean"        2
+run_test_destructive_policy "git restore --pathspec-from-file (always block)" allow "git restore --pathspec-from-file=paths.txt"        2
+run_test_destructive_policy "git restore --worktree --pathspec-from-file (always block)" allow "git restore --worktree --pathspec-from-file=paths.txt" 2
+# Pure-unstaging --staged --pathspec-from-file remains allowed (index-only).
+run_test_destructive_policy "restore --staged --pathspec-from-file (allow always)" block "git restore --staged --pathspec-from-file=paths.txt" 0
+run_test_destructive_policy "restore -S --pathspec-from-file (allow always)" block "git restore -S --pathspec-from-file=paths.txt" 0
+run_test_destructive_policy "git reset --hard                 (always block)" allow "git reset --hard"                                  2
+run_test_destructive_policy "git clean -fd                    (always block)" allow "git clean -fd"                                     2
+run_test_destructive_policy "git clean --force                (always block)" allow "git clean --force"                                 2
+# Even with bypass token, whole-worktree ops must stay blocked.
+run_test_destructive_policy "bypass git checkout .            (still block)" allow "LEAN4_GUARDRAILS_BYPASS=1 git checkout ."          2
+run_test_destructive_policy "bypass git checkout -- .         (still block)" allow "LEAN4_GUARDRAILS_BYPASS=1 git checkout -- ."       2
+run_test_destructive_policy "bypass git checkout HEAD -- .    (still block)" allow "LEAN4_GUARDRAILS_BYPASS=1 git checkout HEAD -- ."  2
+run_test_destructive_policy "bypass git checkout HEAD .       (still block)" allow "LEAN4_GUARDRAILS_BYPASS=1 git checkout HEAD ."     2
+run_test_destructive_policy "bypass git checkout -f .         (still block)" allow "LEAN4_GUARDRAILS_BYPASS=1 git checkout -f ."       2
+run_test_destructive_policy "bypass git checkout --ours .     (still block)" allow "LEAN4_GUARDRAILS_BYPASS=1 git checkout --ours ."   2
+run_test_destructive_policy "bypass git checkout --pathspec-from-file (still block)" allow "LEAN4_GUARDRAILS_BYPASS=1 git checkout --pathspec-from-file=paths.txt" 2
+run_test_destructive_policy "bypass git restore --pathspec-from-file (still block)" allow "LEAN4_GUARDRAILS_BYPASS=1 git restore --pathspec-from-file=paths.txt" 2
+run_test_destructive_policy "bypass git restore ./            (still block)" allow "LEAN4_GUARDRAILS_BYPASS=1 git restore ./"           2
+run_test_destructive_policy "bypass git reset --hard          (still block)" allow "LEAN4_GUARDRAILS_BYPASS=1 git reset --hard"        2
+run_test_destructive_policy "bypass git clean -fd             (still block)" allow "LEAN4_GUARDRAILS_BYPASS=1 git clean -fd"           2
+
+echo ""
+echo "-- Policy independence: COLLAB and DESTRUCTIVE govern separately --"
+# DESTRUCTIVE_POLICY=allow doesn't unblock collab ops; COLLAB_POLICY=allow doesn't unblock destructive ops.
+run_test_destructive_policy "allow: git push (collab default host → allow)" allow "git push origin main"                              0
+run_test_policy "allow: checkout -- file (still block — destructive governs)" allow "git checkout -- file.lean"                       2
+run_test_policy "allow: restore file (still block — destructive governs)"    allow "git restore file.lean"                            2
+
+echo ""
+echo "-- Invalid destructive policy values fall back to ask --"
+run_test_destructive_policy "invalid: yolo plain checkout -- (block=ask)"  yolo "git checkout -- file.lean"                            2
+run_test_destructive_policy "invalid: yolo bypass checkout -- (allow=ask)" yolo "LEAN4_GUARDRAILS_BYPASS=1 git checkout -- file.lean" 0
+
+echo ""
+echo "-- Collaboration policy: ask mode --"
+run_test_policy "ask: git push (block)"                 ask "git push origin main"            2
+run_test_policy "ask: git commit --amend (block)"       ask "git commit --amend"              2
+run_test_policy "ask: gh pr create (block)"             ask "gh pr create --title test"       2
+run_test_policy "ask: bypass git push (allow)"          ask "LEAN4_GUARDRAILS_BYPASS=1 git push origin main"   0
+run_test_policy "ask: bypass git commit --amend (allow)" ask "LEAN4_GUARDRAILS_BYPASS=1 git commit --amend"    0
+run_test_policy "ask: bypass gh pr create (allow)"      ask "LEAN4_GUARDRAILS_BYPASS=1 gh pr create --title t" 0
+
+echo ""
+echo "-- Collaboration policy: allow mode --"
+run_test_policy "allow: git push (allow)"               allow "git push origin main"          0
+run_test_policy "allow: git commit --amend (allow)"     allow "git commit --amend"            0
+run_test_policy "allow: gh pr create (allow)"           allow "gh pr create --title test"     0
+run_test_policy "allow: reset --hard (still block)"     allow "git reset --hard"              2
+run_test_policy "allow: clean -f (still block)"         allow "git clean -f"                  2
+run_test_policy "allow: checkout -- (still block)"      allow "git checkout -- file.txt"      2
+
+echo ""
+echo "-- Collaboration policy: block mode --"
+run_test_policy "block: git push (block)"               block "git push origin main"          2
+run_test_policy "block: git commit --amend (block)"     block "git commit --amend"            2
+run_test_policy "block: gh pr create (block)"           block "gh pr create --title test"     2
+run_test_policy "block: bypass git push (still block)"  block "LEAN4_GUARDRAILS_BYPASS=1 git push origin main"   2
+run_test_policy "block: bypass amend (still block)"     block "LEAN4_GUARDRAILS_BYPASS=1 git commit --amend"     2
+run_test_policy "block: bypass pr create (still block)" block "LEAN4_GUARDRAILS_BYPASS=1 gh pr create --title t" 2
+run_test_policy "block: reset --hard (still block)"     block "git reset --hard"              2
+
+echo ""
+echo "-- Collaboration policy: invalid/default --"
+run_test_policy "invalid: yolo push (invalid → ask fallback, blocks)" yolo "git push origin main"           2
+run_test_policy "invalid: yolo bypass push (allow=ask)" yolo "LEAN4_GUARDRAILS_BYPASS=1 git push origin main"   0
+run_test_policy "unset: plain push (host default)"      ""   "git push origin main"           0
+run_test_policy "unset: bypass push (allow=ask)"        ""   "LEAN4_GUARDRAILS_BYPASS=1 git push origin main"   0
+
+echo ""
+echo "-- Per-op collab policies: PUSH_POLICY (v4.5.2+) --"
+run_test_op_policy "PUSH_POLICY=host: plain push (exit 0)"        PUSH_POLICY host  "git push origin main"     0
+run_test_op_policy "PUSH_POLICY=allow: plain push (exit 0)"       PUSH_POLICY allow "git push origin main"     0
+run_test_op_policy "PUSH_POLICY=ask: plain push (block)"          PUSH_POLICY ask   "git push origin main"     2
+run_test_op_policy "PUSH_POLICY=ask: bypass push (allow)"         PUSH_POLICY ask   "LEAN4_GUARDRAILS_BYPASS=1 git push origin main"  0
+run_test_op_policy "PUSH_POLICY=block: plain push (block)"        PUSH_POLICY block "git push origin main"     2
+run_test_op_policy "PUSH_POLICY=block: bypass push (still block)" PUSH_POLICY block "LEAN4_GUARDRAILS_BYPASS=1 git push origin main"  2
+run_test_op_policy "PUSH_POLICY=yolo: plain push (invalid → ask fallback, blocks)" PUSH_POLICY yolo  "git push origin main"     2
+run_test_op_policy "PUSH_POLICY=yolo: bypass push (invalid → ask + bypass, allows)" PUSH_POLICY yolo "LEAN4_GUARDRAILS_BYPASS=1 git push origin main" 0
+run_test_op_policy "PUSH_POLICY=host: push -u origin feat"        PUSH_POLICY host  "git push -u origin feat"  0
+run_test_op_policy "PUSH_POLICY=ask: push -u origin feat (block)" PUSH_POLICY ask   "git push -u origin feat"  2
+
+echo ""
+echo "-- Per-op collab policies: AMEND_POLICY --"
+run_test_op_policy "AMEND_POLICY=host: amend (exit 0)"     AMEND_POLICY host  "git commit --amend -m x"  0
+run_test_op_policy "AMEND_POLICY=ask: amend (block)"       AMEND_POLICY ask   "git commit --amend -m x"  2
+run_test_op_policy "AMEND_POLICY=allow: amend (exit 0)"    AMEND_POLICY allow "git commit --amend -m x"  0
+run_test_op_policy "AMEND_POLICY=block: amend (block)"     AMEND_POLICY block "git commit --amend -m x"  2
+
+echo ""
+echo "-- Per-op collab policies: PR_CREATE_POLICY --"
+run_test_op_policy "PR_CREATE_POLICY=host: gh pr create (exit 0)"  PR_CREATE_POLICY host  "gh pr create --title t --body b" 0
+run_test_op_policy "PR_CREATE_POLICY=ask: gh pr create (block)"    PR_CREATE_POLICY ask   "gh pr create --title t --body b" 2
+run_test_op_policy "PR_CREATE_POLICY=allow: gh pr create (exit 0)" PR_CREATE_POLICY allow "gh pr create --title t --body b" 0
+run_test_op_policy "PR_CREATE_POLICY=block: gh pr create (block)"  PR_CREATE_POLICY block "gh pr create --title t --body b" 2
+
+echo ""
+echo "-- Per-op vs legacy COLLAB_POLICY: per-op wins --"
+# COLLAB_POLICY=block should propagate to ops without explicit per-op overrides;
+# explicit per-op overrides win.
+run_test_op_policy "COLLAB=block + PUSH_POLICY=host: push (exit 0)" PUSH_POLICY host "git push origin main" 0
+# When COLLAB is set (back-compat) and a per-op is also set, the per-op wins.
+# Simulating that requires setting both env vars; use a direct hook call.
+desc="COLLAB=block + PUSH=host: push exits 0 (per-op wins)"
+actual=0
+echo "{\"tool_input\":{\"command\":$(printf '%s' "git push origin main" | jq -Rs .)}}" \
+  | env LEAN4_GUARDRAILS_FORCE=1 LEAN4_GUARDRAILS_COLLAB_POLICY=block LEAN4_GUARDRAILS_PUSH_POLICY=host bash "$HOOK" >/dev/null 2>&1 || actual=$?
+if [[ "$actual" -eq 0 ]]; then echo "  PASS: $desc"; (( ++PASS )); else echo "  FAIL: $desc (expected 0, got $actual)"; (( ++FAIL )); fi
+# Inverse: COLLAB=allow with PUSH=block → push blocks (per-op wins).
+desc="COLLAB=allow + PUSH=block: push blocks (per-op wins)"
+actual=0
+echo "{\"tool_input\":{\"command\":$(printf '%s' "git push origin main" | jq -Rs .)}}" \
+  | env LEAN4_GUARDRAILS_FORCE=1 LEAN4_GUARDRAILS_COLLAB_POLICY=allow LEAN4_GUARDRAILS_PUSH_POLICY=block bash "$HOOK" >/dev/null 2>&1 || actual=$?
+if [[ "$actual" -eq 2 ]]; then echo "  PASS: $desc"; (( ++PASS )); else echo "  FAIL: $desc (expected 2, got $actual)"; (( ++FAIL )); fi
+# AMEND should still respect COLLAB=block via fallback when no AMEND override.
+desc="COLLAB=block + PUSH=host: amend still blocks (AMEND fallback to block)"
+actual=0
+echo "{\"tool_input\":{\"command\":$(printf '%s' "git commit --amend -m x" | jq -Rs .)}}" \
+  | env LEAN4_GUARDRAILS_FORCE=1 LEAN4_GUARDRAILS_COLLAB_POLICY=block LEAN4_GUARDRAILS_PUSH_POLICY=host bash "$HOOK" >/dev/null 2>&1 || actual=$?
+if [[ "$actual" -eq 2 ]]; then echo "  PASS: $desc"; (( ++PASS )); else echo "  FAIL: $desc (expected 2, got $actual)"; (( ++FAIL )); fi
+
+echo ""
+echo "-- Tier-3 push-variant hard-blocks (v4.5.2+): always exit 2, non-bypassable --"
+run_test "git push --force                       (always block)" "git push --force origin main"              2
+run_test "git push -f                            (always block)" "git push -f origin main"                   2
+run_test "git push --force-with-lease            (always block)" "git push --force-with-lease origin main"   2
+run_test "git push --force-with-lease=ref        (always block)" "git push --force-with-lease=ref origin main" 2
+run_test "git push --mirror                      (always block)" "git push --mirror origin"                  2
+run_test "git push --delete                      (always block)" "git push --delete origin feat"             2
+run_test "git push -d                            (always block)" "git push -d origin feat"                   2
+run_test "git push origin :feat (legacy delete)  (always block)" "git push origin :feat"                     2
+# Non-bypassable even with allow / bypass / DISABLE-not-set.
+run_test_op_policy "PUSH_POLICY=allow: --force still blocks" PUSH_POLICY allow "git push --force origin main" 2
+run_test_op_policy "PUSH_POLICY=allow: --mirror still blocks" PUSH_POLICY allow "git push --mirror origin"   2
+run_test "bypass git push --force                (still block)" "LEAN4_GUARDRAILS_BYPASS=1 git push --force origin main" 2
+run_test "bypass git push :feat                  (still block)" "LEAN4_GUARDRAILS_BYPASS=1 git push origin :feat" 2
+# Negative controls: ordinary push variants must NOT match the hard-block regexes.
+run_test_op_policy "PUSH_POLICY=allow: push -u origin feat (no force)" PUSH_POLICY allow "git push -u origin feat" 0
+run_test_op_policy "PUSH_POLICY=allow: push --dry-run (exempt)"        PUSH_POLICY allow "git push --dry-run origin main" 0
+run_test_op_policy "PUSH_POLICY=allow: push --tags (not force)"        PUSH_POLICY allow "git push --tags origin main"    0
+
+echo ""
+echo "-- Bundled short flags and +-refspec push hard-blocks --"
+# Bundled -f short flags: -fu, -uf, -vfu, etc. — any single-dash run containing `f`.
+run_test "git push -fu origin main                (always block)" "git push -fu origin main"                  2
+run_test "git push -uf origin main                (always block)" "git push -uf origin main"                  2
+run_test "git push -vfu origin main               (always block)" "git push -vfu origin main"                 2
+run_test "git push -fnq origin main               (always block, bundled -n doesn't exempt)" "git push -fnq origin main" 2
+# Bundled -d short flags: -dn, -nd, -vd, etc.
+run_test "git push -dn origin feat                (always block)" "git push -dn origin feat"                  2
+run_test "git push -nd origin feat                (always block)" "git push -nd origin feat"                  2
+run_test "git push -vd origin feat                (always block)" "git push -vd origin feat"                  2
+# Leading-+ force-refspec: +HEAD:main, +main, +src:dst.
+run_test "git push origin +HEAD:main              (always block)" "git push origin +HEAD:main"                2
+run_test "git push origin +main                   (always block)" "git push origin +main"                     2
+run_test "git push origin +refs/heads/feat:refs/heads/main (always block)" "git push origin +refs/heads/feat:refs/heads/main" 2
+# Non-bypassable even with PUSH_POLICY=allow + bypass.
+run_test_op_policy "PUSH_POLICY=allow: -fu still blocks" PUSH_POLICY allow "git push -fu origin main"   2
+run_test_op_policy "PUSH_POLICY=allow: -dn still blocks" PUSH_POLICY allow "git push -dn origin feat"   2
+run_test_op_policy "PUSH_POLICY=allow: +HEAD:main still blocks" PUSH_POLICY allow "git push origin +HEAD:main" 2
+run_test "bypass git push -fu origin main         (still block)" "LEAN4_GUARDRAILS_BYPASS=1 git push -fu origin main" 2
+run_test "bypass git push origin +main            (still block)" "LEAN4_GUARDRAILS_BYPASS=1 git push origin +main"   2
+# Negative controls: ordinary short-flag bundles without f/d must NOT hard-block.
+run_test_op_policy "PUSH_POLICY=allow: -uv (verbose+upstream)"  PUSH_POLICY allow "git push -uv origin feat"  0
+run_test_op_policy "PUSH_POLICY=allow: -uvq (multi non-force)"  PUSH_POLICY allow "git push -uvq origin feat" 0
+run_test_op_policy "PUSH_POLICY=allow: -n alone (dry-run)"      PUSH_POLICY allow "git push -n origin main"   0
+# Negative control: colon refspec WITHOUT leading + must NOT match the +-refspec regex.
+run_test_op_policy "PUSH_POLICY=allow: src:dst refspec (no +)"  PUSH_POLICY allow "git push origin main:feat" 0
+# Negative control: --dry-run with long-form force does exempt (back-compat).
+run_test_op_policy "PUSH_POLICY=allow: --force --dry-run (exempt)" PUSH_POLICY allow "git push --force --dry-run origin main" 0
+
+echo ""
+echo "-- Lean script stderr-suppression detector: \$LEAN4_SCRIPTS paths --"
+run_test "\$LEAN4_SCRIPTS/cycle_tracker.sh 2>/dev/null (block)"  'bash "$LEAN4_SCRIPTS/cycle_tracker.sh" tick 2>/dev/null'    2
+run_test "\${LEAN4_SCRIPTS}/sorry_analyzer.py 2>/dev/null (block)" 'python3 "${LEAN4_SCRIPTS}/sorry_analyzer.py" . 2>/dev/null' 2
+run_test "plugins/lean4/lib/scripts/foo.sh 2>/dev/null (block)"   'bash plugins/lean4/lib/scripts/cycle_tracker.sh tick 2>/dev/null' 2
+run_test "./lib/scripts/foo.sh 2>/dev/null (block)"               'bash ./lib/scripts/cycle_tracker.sh tick 2>/dev/null' 2
+
+echo ""
+echo "-- Lean script stderr-suppression detector: lean4-skills-* wrappers (all 4 call forms) --"
+# Bare name (PATH lookup — the autoprove-hot-path case)
+run_test "bare lean4-skills-cycle-tracker 2>/dev/null (block)"  "lean4-skills-cycle-tracker tick 2>/dev/null"  2
+run_test "bare lean4-skills-sorry-analyzer 2>/dev/null (block)" "lean4-skills-sorry-analyzer . 2>/dev/null"   2
+# Relative bin/ path
+run_test "bin/lean4-skills-cycle-tracker 2>/dev/null (block)"   "bin/lean4-skills-cycle-tracker tick 2>/dev/null" 2
+# Explicit ./ relative path
+run_test "./bin/lean4-skills-cycle-tracker 2>/dev/null (block)" "./bin/lean4-skills-cycle-tracker tick 2>/dev/null" 2
+# Full plugin-rooted path
+run_test "plugins/lean4/bin/lean4-skills-foo 2>/dev/null (block)" "plugins/lean4/bin/lean4-skills-cycle-tracker tick 2>/dev/null" 2
+# &>/dev/null variant — should also block (matches detector's combined-redirect branch)
+run_test "lean4-skills-cycle-tracker &>/dev/null (block)" "lean4-skills-cycle-tracker tick &>/dev/null" 2
+# Without stderr suppression — should NOT block (wrappers without 2>/dev/null are fine)
+run_test "lean4-skills-cycle-tracker tick (allow)" "lean4-skills-cycle-tracker tick" 0
+run_test "lean4-skills-sorry-analyzer . --format=json (allow)" "lean4-skills-sorry-analyzer . --format=json" 0
+# Token boundary — only the exact prefix counts; "leaning4-skills" or "lean4-skillsfoo" are non-tokens
+run_test "leaning4-skills-cycle 2>/dev/null (allow — not a real token)" "leaning4-skills-cycle 2>/dev/null" 0
+
+# ---------------------------------------------------------------------------
+# Issue #164: stdin acquisition must not wedge the Bash call, and the ancestor
+# walk must terminate at a non-'/' root (Windows drive). These bypass run_test
+# (they craft stdin directly), using the same PASS/FAIL counters.
+# ---------------------------------------------------------------------------
+p164() { echo "  PASS: $1"; (( ++PASS )); }
+f164() { echo "  FAIL: $1"; (( ++FAIL )); }
+
+# (1) Idle PTY as stdin → the hook must fail open immediately, never read the
+#     terminal (the upstream TTY bug that added ~5s to every command).
+if command -v python3 >/dev/null 2>&1; then
+  _pty_rc=$(python3 - "$HOOK" <<'PY'
+import os, pty, subprocess, sys
+hook = sys.argv[1]
+_master, slave = pty.openpty()
+p = subprocess.Popen(["bash", hook], stdin=slave,
+                     stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+                     env={**os.environ, "LEAN4_GUARDRAILS_FORCE": "1"})
+os.close(slave)
+try:
+    print(p.wait(timeout=8))
+except subprocess.TimeoutExpired:
+    p.kill(); print("WEDGED")
+PY
+)
+  if [[ "$_pty_rc" == "0" ]]; then
+    p164 "idle PTY stdin → exit 0 (no TTY read)"
+  else
+    f164 "idle PTY stdin wedged/errored (got $_pty_rc)"
+  fi
+else
+  echo "  SKIP: idle PTY test (no python3)"
+fi
+
+# (2) Held-open empty pipe (no EOF) → bounded by the backgrounded `cat` plus a
+#     one-second kill-watchdog, must return well inside Claude Code's 5s hook
+#     deadline (<= 3s here, not the old <= 9).
+_fifo=$(mktemp -u)
+mkfifo "$_fifo"
+( exec 3>"$_fifo"; sleep 15 ) &  # writer holds the pipe open, sends nothing
+_w=$!
+_start=$SECONDS
+LEAN4_GUARDRAILS_FORCE=1 bash "$HOOK" <"$_fifo" >/dev/null 2>&1 || true
+_elapsed=$(( SECONDS - _start ))
+kill "$_w" 2>/dev/null || true; wait "$_w" 2>/dev/null || true; rm -f "$_fifo"
+if (( _elapsed <= 3 )); then
+  p164 "held-open empty pipe bounded (${_elapsed}s, well under 5s deadline)"
+else
+  f164 "held-open empty pipe too slow (${_elapsed}s — near/over the 5s host deadline)"
+fi
+
+# (2b) Held-open pipe CONTAINING a complete blocked command (no EOF) → the
+#      payload is captured within the timeout and still ENFORCED (exit 2),
+#      well inside the deadline. This is the explicitly-requested #164 case.
+_fifo2=$(mktemp -u)
+mkfifo "$_fifo2"
+_payload='{"tool_input":{"command":"lean4-skills-cycle-tracker tick 2>/dev/null"}}'
+( exec 3>"$_fifo2"; printf '%s' "$_payload" >&3; sleep 15 ) &  # write, then hold open
+_w2=$!
+_start=$SECONDS
+_rc2=0
+LEAN4_GUARDRAILS_FORCE=1 LEAN4_GUARDRAILS_COLLAB_POLICY=ask \
+  bash "$HOOK" <"$_fifo2" >/dev/null 2>&1 || _rc2=$?
+_elapsed=$(( SECONDS - _start ))
+kill "$_w2" 2>/dev/null || true; wait "$_w2" 2>/dev/null || true; rm -f "$_fifo2"
+if (( _rc2 == 2 && _elapsed <= 3 )); then
+  p164 "held-open pipe w/ complete blocked command → enforced (exit 2, ${_elapsed}s)"
+else
+  f164 "held-open blocked command rc=$_rc2 elapsed=${_elapsed}s (want exit 2 <=3s)"
+fi
+
+# (3) Ordinary closed/empty stdin → instant clean exit (no wedge).
+_start=$SECONDS
+LEAN4_GUARDRAILS_FORCE=1 bash "$HOOK" </dev/null >/dev/null 2>&1; _rc=$?
+_elapsed=$(( SECONDS - _start ))
+if (( _rc == 0 && _elapsed <= 3 )); then
+  p164 "closed stdin → exit 0, instant"
+else
+  f164 "closed stdin rc=$_rc elapsed=${_elapsed}s"
+fi
+
+# (4) Ancestor walk terminates at a non-'/' fixpoint root (Windows drive).
+#     Extract the real function; mock dirname so a mid-tree dir is its own
+#     parent (as a Git-Bash drive-letter path reaches `C:`, where
+#     `dirname "C:"` == "C:"). The old `== "/"` guard would loop forever here;
+#     the fixed-point break terminates.
+_deep=$(mktemp -d)/deep/nest
+mkdir -p "$_deep"
+_root="${_deep%/deep/nest}"
+_rc=0
+# `|| _rc=$?` keeps the expected return 1 from tripping the suite's `set -e`.
+(
+  eval "$(sed -n '/^is_lean_project() {/,/^}/p' "$HOOK")"
+  # shellcheck disable=SC2317  # the mock is invoked indirectly via the eval'd is_lean_project
+  dirname() { if [[ "$1" == "$_root" ]]; then printf '%s\n' "$_root"; else command dirname "$1"; fi; }
+  is_lean_project "$_deep"  # no lakefile anywhere → must return 1, not hang
+) || _rc=$?
+rm -rf "${_root}"
+if (( _rc == 1 )); then
+  p164 "ancestor walk terminates at a non-/ fixpoint root"
+else
+  f164 "ancestor walk did not terminate correctly (rc=$_rc)"
+fi
+
+
+# --- #193: jq-absent fallback parses command AND cwd with ONE python3 startup ---
+# Scrub jq from PATH (shadow every PATH dir that holds a jq with a symlink
+# farm minus jq) and front a counting python3 shim, so the hook's fallback
+# branch is exercised for real and the number of interpreter startups per
+# guarded call is pinned.
+p193() { echo "  PASS: $1"; (( ++PASS )); }
+f193() { echo "  FAIL: $1"; (( ++FAIL )); }
+
+_j=$(mktemp -d)
+mkdir -p "$_j/bin" "$_j/shim" "$_j/lean" "$_j/plain"
+touch "$_j/lean/lean-toolchain"
+_real_py=$(command -v python3 || true)
+_jpath=""
+_ifs_save=$IFS; IFS=:
+for _d in $PATH; do
+  IFS=$_ifs_save
+  [[ -n "$_d" && -d "$_d" ]] || continue
+  if [[ -x "$_d/jq" ]]; then
+    # One ln per directory (thousands of per-file forks cost ~40s on a slow box);
+    # name collisions across shadowed dirs are harmless (first one wins).
+    ln -s "$_d"/* "$_j/bin/" 2>/dev/null || true
+    rm -f "$_j/bin/jq"
+  else
+    _jpath="${_jpath:+$_jpath:}$_d"
+  fi
+done
+IFS=$_ifs_save
+printf '#!/bin/sh\necho x >> "%s/count"\nexec "%s" "$@"\n' "$_j" "$_real_py" > "$_j/shim/python3"
+chmod +x "$_j/shim/python3"
+_jqless_path="$_j/shim:$_j/bin${_jpath:+:$_jpath}"
+# Second shim simulating native Windows CPython, whose text-mode sys.stdout
+# translates every "\n" to "\r\n". It counts like the first shim, then runs
+# the hook's -c program under that translation (argv: -c <wrapper> -c <code>).
+mkdir -p "$_j/shimcrlf"
+printf '#!/bin/sh\necho x >> "%s/count"\nexec "%s" -c '"'"'import sys; sys.stdout.reconfigure(newline="\\r\\n"); exec(sys.argv[2])'"'"' "$@"\n' "$_j" "$_real_py" > "$_j/shimcrlf/python3"
+chmod +x "$_j/shimcrlf/python3"
+_jqless_path_crlf="$_j/shimcrlf:$_j/bin${_jpath:+:$_jpath}"
+
+# $1=json payload  $2=env assignments  [$3=PATH override]  → sets _rc and _pycount
+run193() {
+  local payload="$1" extra="$2" path="${3:-$_jqless_path}"
+  : > "$_j/count"
+  _rc=0
+  # shellcheck disable=SC2086  # $extra is deliberately word-split into env assignments
+  printf '%s' "$payload" | env PATH="$path" $extra bash "$HOOK" >/dev/null 2>&1 || _rc=$?
+  _pycount=$(wc -l < "$_j/count" | tr -d ' ')
+}
+
+if [[ -z "$_real_py" ]]; then
+  echo "  SKIP: jq-absent tests (no python3)"
+elif env PATH="$_jqless_path" bash -c 'command -v jq' >/dev/null 2>&1; then
+  echo "  SKIP: jq-absent tests (could not scrub jq from PATH)"
+else
+  # (1) blocked command + payload cwd inside a Lean project → enforced (exit 2),
+  #     and exactly one python3 startup for the whole call.
+  run193 "{\"cwd\":\"$_j/lean\",\"tool_input\":{\"command\":\"git push origin main\"}}" "LEAN4_GUARDRAILS_COLLAB_POLICY=ask"
+  if (( _rc == 2 )); then p193 "jq-absent: blocked command enforced via payload cwd"; else f193 "jq-absent: blocked command not enforced (rc=$_rc)"; fi
+  if (( _pycount == 1 )); then p193 "jq-absent: exactly one python3 startup per call"; else f193 "jq-absent: expected 1 python3 startup, saw $_pycount"; fi
+
+  # (2) payload cwd outside any Lean project wins over $PWD (run from inside
+  #     the Lean dir) → guardrails skipped (exit 0). Proves cwd was parsed.
+  _rc=0
+  ( cd "$_j/lean" && run193 "{\"cwd\":\"$_j/plain\",\"tool_input\":{\"command\":\"git push origin main\"}}" "LEAN4_GUARDRAILS_COLLAB_POLICY=ask" && exit "$_rc" ) || _rc=$?
+  if (( _rc == 0 )); then p193 "jq-absent: payload cwd overrides \$PWD"; else f193 "jq-absent: payload cwd ignored (rc=$_rc)"; fi
+
+  # (3) multi-line command survives the single-call split (newlines kept).
+  run193 "{\"cwd\":\"$_j/lean\",\"tool_input\":{\"command\":\"echo hi\\ngit push origin main\"}}" "LEAN4_GUARDRAILS_COLLAB_POLICY=ask"
+  if (( _rc == 2 )); then p193 "jq-absent: multi-line command still enforced"; else f193 "jq-absent: multi-line command not enforced (rc=$_rc)"; fi
+
+  # (4) no command in payload → allow (exit 0), even with a Lean cwd.
+  run193 "{\"cwd\":\"$_j/lean\",\"tool_input\":{}}" "LEAN4_GUARDRAILS_COLLAB_POLICY=ask"
+  if (( _rc == 0 )); then p193 "jq-absent: empty command allowed"; else f193 "jq-absent: empty command not allowed (rc=$_rc)"; fi
+
+  # (5) malformed JSON → fails open (exit 0).
+  run193 "not json" "LEAN4_GUARDRAILS_COLLAB_POLICY=ask"
+  if (( _rc == 0 )); then p193 "jq-absent: malformed payload allowed"; else f193 "jq-absent: malformed payload not allowed (rc=$_rc)"; fi
+
+  # (6) native-Windows-Python stdout (LF → CRLF translation) must not break the
+  #     framing: blocked command still exits 2, still one startup. The framing
+  #     writes bytes, so the text wrapper's newline mode is irrelevant.
+  run193 "{\"cwd\":\"$_j/lean\",\"tool_input\":{\"command\":\"git push origin main\"}}" "LEAN4_GUARDRAILS_COLLAB_POLICY=ask" "$_jqless_path_crlf"
+  if (( _rc == 2 )); then p193 "jq-absent (CRLF stdout): blocked command enforced"; else f193 "jq-absent (CRLF stdout): blocked command not enforced (rc=$_rc)"; fi
+  if (( _pycount == 1 )); then p193 "jq-absent (CRLF stdout): exactly one python3 startup"; else f193 "jq-absent (CRLF stdout): expected 1 python3 startup, saw $_pycount"; fi
+
+  # (7) a Lean project whose path contains a newline (legal on Unix) must be
+  #     detected on BOTH paths — the single-call framing has to round-trip the
+  #     cwd exactly, not flatten it (review of PR #194).
+  _nl_dir="$_j/lean
+project"
+  mkdir -p "$_nl_dir"
+  touch "$_nl_dir/lean-toolchain"
+  _nl_payload=$(printf '%s' "$_nl_dir" | jq -Rs '{cwd: ., tool_input: {command: "git push origin main"}}')
+  _rc=0
+  printf '%s' "$_nl_payload" | LEAN4_GUARDRAILS_COLLAB_POLICY=ask bash "$HOOK" >/dev/null 2>&1 || _rc=$?
+  if (( _rc == 2 )); then p193 "jq path: newline-in-cwd Lean project enforced"; else f193 "jq path: newline-in-cwd Lean project not enforced (rc=$_rc)"; fi
+  run193 "$_nl_payload" "LEAN4_GUARDRAILS_COLLAB_POLICY=ask"
+  if (( _rc == 2 )); then p193 "jq-absent: newline-in-cwd Lean project enforced"; else f193 "jq-absent: newline-in-cwd Lean project not enforced (rc=$_rc)"; fi
+fi
+rm -rf "$_j"
+# ---------------------------------------------------------------------------
+# Issue #208: heredoc semantics and parsing cost. The hook must (a) treat a
+# quoted heredoc body as data, (b) still check executable heredoc input —
+# a shell-fed body (even with a quoted delimiter) and the $(…)/`…`
+# substitutions of an unquoted body — (c) keep checking commands after the
+# terminator, and (d) stay far inside the 5 s hook deadline on large input.
+# ---------------------------------------------------------------------------
+echo ""
+echo "--- #208: heredoc bodies are data; executable heredoc input is checked ---"
+_TAB=$'\t'
+run_test "208 quoted heredoc body: literal reset --hard is data" $'cat > notes.md <<\'EOF\'\nDo not do this:\ngit reset --hard\nEOF' 0
+run_test "208 double-quoted delimiter body is data" $'cat > n.md <<"EOF"\ngit reset --hard\nEOF' 0
+run_test "208 backslash-escaped delimiter body is data" $'cat > n.md <<\\EOF\ngit reset --hard\nEOF' 0
+run_test "208 unquoted body: literal text is data" $'cat > n.md <<EOF\ngit reset --hard\nEOF' 0
+run_test "208 unquoted body: \$(…) substitution is executable" $'cat > n.md <<EOF\nx $(git reset --hard)\nEOF' 2
+run_test "208 unquoted body: backtick substitution is executable" $'cat > n.md <<EOF\nx `git clean -fd`\nEOF' 2
+run_test "208 unquoted body: \$(git push) soft-gated (policy ask)" $'cat > n.md <<EOF\nx $(git push origin main)\nEOF' 2
+run_test "208 bash-fed quoted body is executable input" $'bash <<\'EOF\'\ngit reset --hard\nEOF' 2
+run_test "208 sh-fed via pipe, quoted body is executable input" $'cat <<\'EOF\' | sh\ngit reset --hard\nEOF' 2
+run_test "208 guarded command after the terminator is checked" $'cat > n.md <<\'EOF\'\nhello\nEOF\ngit reset --hard' 2
+run_test "208 allowed command after the terminator" $'cat > n.md <<\'EOF\'\ngit reset --hard\nEOF\ngit status' 0
+run_test "208 <<- tab-indented terminator ends the body" "cat <<-'EOF'"$'\n'"${_TAB}git reset --hard"$'\n'"${_TAB}EOF"$'\n'"git status" 0
+run_test "208 <<- body then a blocked command" "cat <<-'EOF'"$'\n'"${_TAB}doc"$'\n'"${_TAB}EOF"$'\n'"git reset --hard" 2
+run_test "208 two heredocs on one line inside <( ): nested ⇒ retained (conservative)" $'diff <(cat <<\'A\') <(cat <<\'B\')\ngit reset --hard\nA\ngit clean -f\nB' 2
+run_test "208 two heredocs on one line, then a blocked command" $'diff <(cat <<\'A\') <(cat <<\'B\')\nx\nA\ny\nB\ngit reset --hard' 2
+run_test "208 unterminated quoted heredoc: body to EOF is data" $'cat > n.md <<\'EOF\'\ngit reset --hard\nno terminator' 0
+run_test "208 unterminated unquoted heredoc: substitution still checked" $'cat > n.md <<EOF\n$(git reset --hard)\nno terminator' 2
+run_test "208 here-string is not a heredoc (quoted literal)" $'cat <<< "git reset --hard"' 0
+run_test "208 heredoc inside \$( ), then a blocked command" $'x=$(cat <<\'EOF\'\ndoc\nEOF\n); git reset --hard' 2
+run_test "208 fast path never excludes a path-qualified git" $'/usr/bin/git reset --hard' 2
+run_test "208 fast path never excludes bash -c" $'bash -c \'git reset --hard\'' 2
+run_test "208 fast path never excludes env prefixes" $'env FOO=1 git reset --hard' 2
+run_test "208 fast path never excludes VAR= prefixes" $'FOO=1 git reset --hard' 2
+run_test "208 fast path never excludes a Lean-script token" $'lean4-skills-run-store load 2>/dev/null' 2
+run_test "208 fast path allows unrelated input" $'echo hello; ls -la; python3 -c "print(1)"' 0
+# review round 1: lexer corrections
+run_test "208 path-qualified shell receiving a heredoc is executable" $'/bin/bash <<\'EOF\'\ngit reset --hard\nEOF' 2
+run_test "208 sudo-prefixed shell receiving a heredoc is executable" $'sudo bash <<\'EOF\'\ngit reset --hard\nEOF' 2
+run_test "208 partially quoted delimiter E\'OF\' names EOF" $'cat <<E\'OF\'\ndocument text\nEOF\ngit reset --hard' 2
+run_test "208 partially quoted delimiter body is data" $'cat <<E\'OF\'\ngit reset --hard\nEOF' 0
+run_test "208 delimiter with \"quoted\" middle names EOF" $'cat <<"E"OF\nx\nEOF\ngit reset --hard' 2
+run_test "208 escaped-middle delimiter E\\OF names EOF" $'cat <<E\\OF\nx\nEOF\ngit reset --hard' 2
+run_test "208 here-string then a guarded command" $'cat <<< "git status"\ngit reset --hard' 2
+run_test "208 here-string on the same line as a guarded command" $'cat <<< "x"; git reset --hard' 2
+run_test "208 quoted ) inside \$( ) in an unquoted body" $'cat > n.md <<EOF\n$(printf \')\'; git reset --hard)\nEOF' 2
+run_test "208 quoted \") in \$( ) then blocked" $'cat > n.md <<EOF\n$(echo ")"; git clean -fd)\nEOF' 2
+run_test "208 a shell word elsewhere on the line is not the receiver" $'echo bash example; cat <<\'EOF\'\ngit reset --hard\nEOF' 0
+run_test "208 shell in an earlier && stage is not the receiver" $'bash -c true && cat <<\'EOF\'\ngit reset --hard\nEOF' 0
+run_test "208 shell in a later pipeline stage is the receiver" $'cat <<\'EOF\' | /usr/bin/env bash\ngit reset --hard\nEOF' 2
+# review round 2: comments, command-word receiver parsing, double-quote escapes
+run_test "208 a comment cannot open a heredoc" $'echo hello # <<EOF\ngit reset --hard' 2
+run_test "208 a comment cannot open a heredoc (quoted delimiter)" $'echo hello # <<\'EOF\'\ngit reset --hard' 2
+run_test "208 # inside quotes is not a comment" $'echo "# <<EOF"; git reset --hard' 2
+run_test "208 # inside a word is not a comment" $'echo a#b <<\'EOF\'\ngit reset --hard\nEOF\ngit status' 0
+run_test "208 a comment line before a real heredoc" $'# note <<EOF\ncat <<\'EOF\'\ngit reset --hard\nEOF' 0
+run_test "208 receiver: bash<<EOF without a space" $'bash<<\'EOF\'\ngit reset --hard\nEOF' 2
+run_test "208 receiver: quoted command word \'bash\'" $'\'bash\' <<\'EOF\'\ngit reset --hard\nEOF' 2
+run_test "208 receiver: double-quoted command word" $'"bash" <<\'EOF\'\ngit reset --hard\nEOF' 2
+run_test "208 receiver: VAR= prefix then bash" $'X=1 bash <<\'EOF\'\ngit reset --hard\nEOF' 2
+run_test "208 not a receiver: bash as an argument" $'cat - bash <<\'EOF\'\ngit reset --hard\nEOF' 0
+run_test "208 not a receiver: a separate command after ;" $'cat <<\'EOF\'; bash -c true\ngit reset --hard\nEOF' 0
+run_test "208 not a receiver: a separate command after &&" $'cat <<\'EOF\' && bash -c true\ngit reset --hard\nEOF' 0
+run_test "208 receiver: later pipe stage after ; boundary" $'true; cat <<\'EOF\' | sudo -u me bash\ngit reset --hard\nEOF' 2
+run_test "208 double-quoted delimiter keeps its backslash" $'cat <<"E\\OF"\ndocument text\nE\\OF\ngit reset --hard' 2
+run_test "208 double-quoted delimiter body is data" $'cat <<"E\\OF"\ngit reset --hard\nE\\OF' 0
+run_test "208 double-quoted delimiter with escaped quote" $'cat <<"E\\"OF"\nx\nE"OF\ngit reset --hard' 2
+# review round 3: assignment syntax vs value quoting; wrapper operands; per-heredoc receivers
+run_test "208 receiver: quoted assignment value then bash" $'X=\'one two\' bash <<\'EOF\'\ngit reset --hard\nEOF' 2
+run_test "208 receiver: double-quoted assignment value then bash" $'X="a b" Y=1 bash <<\'EOF\'\ngit reset --hard\nEOF' 2
+run_test "208 receiver: env -u X bash" $'env -u X bash <<\'EOF\'\ngit reset --hard\nEOF' 2
+run_test "208 receiver: env --unset X -i bash" $'env --unset X -i bash <<\'EOF\'\ngit reset --hard\nEOF' 2
+run_test "208 receiver: sudo -u me -g grp bash" $'sudo -u me -g grp bash <<\'EOF\'\ngit reset --hard\nEOF' 2
+run_test "208 not a receiver: env -u X cat - bash (argument)" $'env -u X cat - bash <<\'EOF\'\ngit reset --hard\nEOF' 0
+run_test "208 not a receiver: quoted assignment then cat" $'X=\'one two\' cat <<\'EOF\'\ngit reset --hard\nEOF' 0
+run_test "208 queued heredocs: cat then bash — second body executable" $'cat <<\'A\'; bash <<\'B\'\ndocument text\nA\ngit reset --hard\nB' 2
+run_test "208 queued heredocs: bash then cat — second body is data" $'bash <<\'A\'; cat <<\'B\'\necho ok\nA\ngit reset --hard\nB' 0
+run_test "208 queued heredocs: bash then cat — first body executable" $'bash <<\'A\'; cat <<\'B\'\ngit reset --hard\nA\ndoc\nB' 2
+run_test "208 queued heredocs via && — receivers kept apart" $'cat <<\'A\' && bash <<\'B\'\nx\nA\ngit clean -fd\nB' 2
+# review round 4: leading redirections; wrapper operands as shell words; env -S; unidentified receivers
+run_test "208 receiver: leading 2>/dev/null before bash" $'2>/dev/null bash <<\'EOF\'\ngit reset --hard\nEOF' 2
+run_test "208 receiver: heredoc operator before the command word" $'<<\'EOF\' bash\ngit reset --hard\nEOF' 2
+run_test "208 receiver: 2>&1 dup then bash" $'2>&1 bash <<\'EOF\'\ngit reset --hard\nEOF' 2
+run_test "208 receiver: >out.txt then bash" $'>out.txt bash <<\'EOF\'\ngit reset --hard\nEOF' 2
+run_test "208 not a receiver: leading redirection then cat" $'2>/dev/null cat <<\'EOF\'\ngit reset --hard\nEOF' 0
+run_test "208 not a receiver: 2>&1 then cat" $'2>&1 cat <<\'EOF\'\ngit reset --hard\nEOF' 0
+run_test "208 receiver: env -u \'A B\' bash (quoted operand)" $'env -u \'A B\' bash <<\'EOF\'\ngit reset --hard\nEOF' 2
+run_test "208 not a receiver: env -u \'A B\' cat" $'env -u \'A B\' cat <<\'EOF\'\ngit reset --hard\nEOF' 0
+run_test "208 receiver: env -S bash" $'env -S bash <<\'EOF\'\ngit reset --hard\nEOF' 2
+run_test "208 receiver: env -S \'bash -x\'" $'env -S \'bash -x\' <<\'EOF\'\ngit reset --hard\nEOF' 2
+run_test "208 receiver: env --split-string=bash" $'env --split-string=bash <<\'EOF\'\ngit reset --hard\nEOF' 2
+run_test "208 not a receiver: env -S cat" $'env -S cat <<\'EOF\'\ngit reset --hard\nEOF' 0
+run_test "208 unidentified receiver \"\$SHELL\" is treated as executable" $'"$SHELL" <<\'EOF\'\ngit reset --hard\nEOF' 2
+run_test "208 unidentified receiver \$(which bash) is treated as executable" $'$(which bash) <<\'EOF\'\ngit reset --hard\nEOF' 2
+run_test "208 unidentified receiver \${SH} is treated as executable" $'${SH} <<\'EOF\'\ngit reset --hard\nEOF' 2
+# review round 5: expansion anywhere in the word; quoted wrapper names; delimiter continuations
+run_test "208 expanded receiver /bin/\$SH is treated as executable" $'SH=bash; /bin/$SH <<\'EOF\'\ngit reset --hard\nEOF' 2
+run_test "208 backtick-produced receiver is treated as executable" $'`printf bash` <<\'EOF\'\ngit reset --hard\nEOF' 2
+run_test "208 expansion inside double quotes is active" $'"/bin/$SH" <<\'EOF\'\ngit reset --hard\nEOF' 2
+run_test "208 unknown command word (\'cat\$x\') is retained, not data" $'\'cat$x\' <<\'EOF\'\ngit reset --hard\nEOF' 2
+run_test "208 quoted wrapper name \'env\' still normalizes" $'\'env\' bash <<\'EOF\'\ngit reset --hard\nEOF' 2
+run_test "208 quoted wrapper name \"env\" -u X still normalizes" $'"env" -u X bash <<\'EOF\'\ngit reset --hard\nEOF' 2
+run_test "208 quoted non-wrapper command stays data" $'\'cat\' <<\'EOF\'\ngit reset --hard\nEOF' 0
+run_test "208 continued delimiter EO\\<nl>F names EOF" $'cat <<EO\\\nF\ndocument text\nEOF\ngit reset --hard' 2
+run_test "208 continued delimiter stays unquoted (substitution scanned)" $'cat <<EO\\\nF\n$(git reset --hard)\nEOF' 2
+run_test "208 continued delimiter body literal is data" $'cat <<EO\\\nF\ngit reset --hard\nEOF' 0
+run_test "208 double-quoted continued delimiter names EOF" $'cat <<"EO\\\nF"\ndocument text\nEOF\ngit reset --hard' 2
+# review round 6: exec/compound prefixes; continued terminator lines; ANSI-C delimiters
+run_test "208 receiver: exec bash" $'exec bash <<\'EOF\'\ngit reset --hard\nEOF' 2
+run_test "208 not a receiver: exec cat" $'exec cat <<\'EOF\'\ngit reset --hard\nEOF' 0
+run_test "208 receiver: if true; then bash" $'if true; then bash <<\'EOF\'\ngit reset --hard\nEOF\nfi' 2
+run_test "208 compound receiver (if … then cat) is retained (conservative)" $'if true; then cat <<\'EOF\'\ngit reset --hard\nEOF\nfi' 2
+run_test "208 receiver: while …; do bash" $'while true; do bash <<\'EOF\'\ngit reset --hard\nEOF\ndone' 2
+run_test "208 receiver: for …; do sudo bash" $'for f in x; do sudo bash <<\'EOF\'\ngit reset --hard\nEOF\ndone' 2
+run_test "208 receiver: { bash" $'{ bash <<\'EOF\'\ngit reset --hard\nEOF\n}' 2
+run_test "208 unsupported compound keyword is conservative" $'case x in y) cat <<\'EOF\'\ngit reset --hard\nEOF\nesac' 2
+run_test "208 continued terminator line ends an unquoted heredoc" $'cat <<EOF\nEO\\\nF\ngit reset --hard' 2
+run_test "208 continued line joins inside an unquoted body (data)" $'cat <<EOF\nline one \\\ngit reset --hard\nEOF' 0
+run_test "208 continued line joins a substitution in an unquoted body" $'cat <<EOF\n$(git reset \\\n--hard)\nEOF' 2
+run_test "208 quoted heredoc compares physical lines (no join)" $'cat <<\'EOF\'\nEO\\\nF\ngit reset --hard\nEOF' 0
+run_test "208 ANSI-C delimiter \$\'EOF\' names EOF" $'cat <<$\'EOF\'\ndata\nEOF\ngit reset --hard' 2
+run_test "208 ANSI-C delimiter body is data" $'cat <<$\'EOF\'\ngit reset --hard\nEOF' 0
+run_test "208 ANSI-C delimiter with \\\\ escape names E\\\\OF" $'cat <<$\'E\\\\OF\'\ndata\nE\\OF\ngit reset --hard' 2
+run_test "208 unsupported ANSI-C escape (\\c) checks the remainder (conservative)" $'cat <<$\'E\\cAF\'\ngit reset --hard\nEOF' 2
+run_test "208 locale-quoted delimiter \$\\"EOF\\" names EOF" $'cat <<$"EOF"\ndata\nEOF\ngit reset --hard' 2
+# review round 7: exec/time options and quoting; ANSI-C escapes decoded; unsupported delimiter checked line by line
+run_test "208 receiver: exec -a custom bash" $'exec -a custom bash <<\'EOF\'\ngit reset --hard\nEOF' 2
+run_test "208 receiver: quoted \'exec\' bash" $'\'exec\' bash <<\'EOF\'\ngit reset --hard\nEOF' 2
+run_test "208 receiver: time -p bash" $'time -p bash <<\'EOF\'\ngit reset --hard\nEOF' 2
+run_test "208 receiver: quoted \'time\' bash (/usr/bin/time)" $'\'time\' bash <<\'EOF\'\ngit reset --hard\nEOF' 2
+run_test "208 not a receiver: exec -a x cat" $'exec -a x cat <<\'EOF\'\ngit reset --hard\nEOF' 0
+run_test "208 not a receiver: time -p cat" $'time -p cat <<\'EOF\'\ngit reset --hard\nEOF' 0
+run_test "208 ANSI-C \\\\x escape decoded: \$\'E\\\\x4fF\' names EOF" $'cat <<$\'E\\x4fF\'\ndon\'t do this\nEOF\ngit reset --hard' 2
+run_test "208 ANSI-C \\\\x-decoded delimiter body is data" $'cat <<$\'E\\x4fF\'\ngit reset --hard\nEOF' 0
+run_test "208 ANSI-C octal escape decoded: \$\'E\\\\117F\' names EOF" $'cat <<$\'E\\117F\'\ndata\nEOF\ngit reset --hard' 2
+run_test "208 unsupported ANSI-C escape: quote in body cannot hide later lines" $'cat <<$\'E\\u004fF\'\ndon\'t do this\nEOF\ngit reset --hard' 2
+run_test "208 unsupported ANSI-C escape: guarded line inside is checked too" $'cat <<$\'E\\u004fF\'\nx\ngit reset --hard\nEOF' 2
+# review round 8: byte semantics (NUL, UTF-8 byte escapes) across awks; continued lines in the fallback
+run_test "208 ANSI-C NUL escape ends the delimiter (EOF)" $'cat <<$\'EOF\\0ignored\'\ndata\nEOF\ngit reset --hard' 2
+run_test "208 ANSI-C NUL-terminated delimiter body is data" $'cat <<$\'EOF\\0ignored\'\ngit reset --hard\nEOF' 0
+run_test "208 ANSI-C \\\\x00 escape ends the delimiter" $'cat <<$\'EOF\\x00x\'\ndata\nEOF\ngit reset --hard' 2
+run_test "208 ANSI-C UTF-8 byte escapes name é (bytewise)" $'cat <<$\'\\xc3\\xa9\'\ndata\n\xc3\xa9\ngit reset --hard' 2
+run_test "208 ANSI-C UTF-8 byte-escape delimiter body is data" $'cat <<$\'\\xc3\\xa9\'\ngit reset --hard\n\xc3\xa9' 0
+run_test "208 fallback: continued command after an unsupported delimiter" $'cat <<$\'E\\u004fF\'\ndata\nEOF\ngit reset \\\n--hard' 2
+# review round 9: octal escapes keep the low byte (bash semantics); NUL only when the reduced value is 0
+run_test "208 ANSI-C octal \\\\505 is E (low byte): \$\'\\\\505OF\' names EOF" $'cat <<$\'\\505OF\'\ndata\nEOF\ngit reset --hard' 2
+run_test "208 ANSI-C octal \\\\505 delimiter body is data" $'cat <<$\'\\505OF\'\ngit reset --hard\nEOF' 0
+# (a terminator line cannot carry a lone 0xff byte through the JSON hook
+# channel — jq/JSON replace it with U+FFFD — so byte values are proven with
+# valid UTF-8 targets: \303\251 and the wrapped \703\251 both name é)
+run_test "208 ANSI-C octal \\\\303\\\\251 names é (bytewise)" $'cat <<$\'\\303\\251\'\ndata\n\xc3\xa9\ngit reset --hard' 2
+run_test "208 ANSI-C octal \\\\400 is NUL: ends the delimiter at E" $'cat <<$\'E\\400F\'\ndata\nE\ngit reset --hard' 2
+run_test "208 ANSI-C octal \\\\401 is byte 0x01" $'cat <<$\'E\\401F\'\ndata\nE\001F\ngit reset --hard' 2
+run_test "208 ANSI-C octal \\\\703 wraps to 0xc3: \\\\703\\\\251 names é" $'cat <<$\'\\703\\251\'\ndata\n\xc3\xa9\ngit reset --hard' 2
+run_test "208 ANSI-C octal wrapped delimiter body is data" $'cat <<$\'\\703\\251\'\ngit reset --hard\n\xc3\xa9' 0
+run_test "208 ANSI-C \\\\377 delimiter never terminates via JSON (all data, as bash)" $'cat <<$\'E\\377F\'\ngit reset --hard\nE\xef\xbf\xbdF' 0
+# review round 10: data-sink policy (unknown receiver is never data); & separator; named fds;
+# timeout/nice/nohup/setsid/stdbuf wrappers; pipeline continuing after the body; comments inside $( )
+run_test "208 & starts a new receiving command: true & bash" $'true & bash <<\'EOF\'\ngit reset --hard\nEOF' 2
+run_test "208 & separator control: true & cat is data" $'true & cat <<\'EOF\'\ngit reset --hard\nEOF' 0
+run_test "208 &> and >& are redirections, not separators" $'cat <<\'EOF\' &>/dev/null\ngit reset --hard\nEOF' 0
+run_test "208 comment ) does not end a substitution" $'cat <<EOF\n$( # )\ngit reset --hard\n)\nEOF' 2
+run_test "208 comment inside a substitution (harmless) is data" $'cat <<EOF\n$( # git reset --hard\necho ok)\nEOF' 0
+run_test "208 timeout wraps a shell receiver" $'timeout 30 bash <<\'EOF\'\ngit reset --hard\nEOF' 2
+run_test "208 timeout -k 5 30 bash" $'timeout -k 5 30 bash <<\'EOF\'\ngit reset --hard\nEOF' 2
+run_test "208 timeout 30 cat is data" $'timeout 30 cat <<\'EOF\'\ngit reset --hard\nEOF' 0
+run_test "208 nice -n 5 bash / nohup bash / stdbuf -oL bash" $'nice -n 5 nohup stdbuf -oL bash <<\'EOF\'\ngit reset --hard\nEOF' 2
+run_test "208 stdbuf -oL cat is data" $'stdbuf -oL cat <<\'EOF\'\ngit reset --hard\nEOF' 0
+run_test "208 named-fd redirection precedes a shell receiver" $'{fd}>/dev/null bash <<\'EOF\'\ngit reset --hard\nEOF' 2
+run_test "208 named-fd redirection then cat is data" $'{fd}>/dev/null cat <<\'EOF\'\ngit reset --hard\nEOF' 0
+run_test "208 receiving pipeline continues after the body: | bash" $'cat <<\'EOF\' |\ngit reset --hard\nEOF\nbash' 2
+run_test "208 receiving pipeline continues after the body: | wc -l is data" $'cat <<\'EOF\' |\ngit reset --hard\nEOF\nwc -l' 0
+run_test "208 unknown tool receiver is retained (policy)" $'mytool <<\'EOF\'\ngit reset --hard\nEOF' 2
+run_test "208 interpreter receiver is retained: python3" $'python3 <<\'EOF\'\ngit reset --hard\nEOF' 2
+run_test "208 xargs receiver is retained" $'xargs -n1 <<\'EOF\'\ngit reset --hard\nEOF' 2
+run_test "208 sink pipeline: cat | grep | wc is data" $'cat <<\'EOF\' | grep x | wc -l\ngit reset --hard\nEOF' 0
+run_test "208 sink then shell stage: cat | sh is retained" $'cat <<\'EOF\' | sh\ngit reset --hard\nEOF' 2
+# review round 11: sed/awk are not sinks; continuation joined until the pipeline is complete
+run_test "208 awk system() executes its input: retained" $'awk \'{system($0)}\' <<\'EOF\'\ngit reset --hard\nEOF' 2
+run_test "208 gawk receiver is retained" $'gawk \'{print}\' <<\'EOF\'\ngit reset --hard\nEOF' 2
+run_test "208 GNU sed e executes its input: retained" $'sed e <<\'EOF\'\ngit reset --hard\nEOF' 2
+run_test "208 cat | sed stage is retained" $'cat <<\'EOF\' | sed -n p\ngit reset --hard\nEOF' 2
+run_test "208 open pipeline continued over a backslash line: | bash" $'cat <<\'EOF\' |\ngit reset --hard\nEOF\ncat \\\n| bash' 2
+run_test "208 open pipeline continued over a backslash line: | wc -l is data" $'cat <<\'EOF\' |\ngit reset --hard\nEOF\ncat \\\n| wc -l' 0
+run_test "208 open pipeline continued over several pipe lines: bash" $'cat <<\'EOF\' |\ngit reset --hard\nEOF\ncat |\ncat |\nbash' 2
+run_test "208 open pipeline continued over several pipe lines: wc is data" $'cat <<\'EOF\' |\ngit reset --hard\nEOF\ncat |\ncat |\nwc -l' 0
+run_test "208 pipeline still open at end of input is retained" $'cat <<\'EOF\' |\ngit reset --hard\nEOF\ncat |' 2
+# review round 12: syntactic completeness — unclosed $( ), ( ), quotes, backticks
+run_test "208 open pipeline: continuation with a multi-line \$( ) then | bash" $'cat <<\'EOF\' |\ngit reset --hard\nEOF\ncat $(\ntrue\n) | bash' 2
+run_test "208 open pipeline: multi-line \$( ) then | wc -l ⇒ nested, retained" $'cat <<\'EOF\' |\ngit reset --hard\nEOF\ncat $(\ntrue\n) | wc -l' 2
+run_test "208 open pipeline: multi-line quoted argument then | bash" $'cat <<\'EOF\' |\ngit reset --hard\nEOF\ngrep "a\nb" | bash' 2
+run_test "208 open pipeline: multi-line backtick then | sh" $'cat <<\'EOF\' |\ngit reset --hard\nEOF\ncat `\ntrue\n` | sh' 2
+run_test "208 open pipeline: subshell continuation then | bash" $'cat <<\'EOF\' |\ngit reset --hard\nEOF\n(\ncat\n) | bash' 2
+run_test "208 unclosed \$( ) at end of input is retained" $'cat <<\'EOF\' |\ngit reset --hard\nEOF\ncat $(' 2
+# review round 13: comments inside the continuation are respected; line boundaries preserved
+run_test "208 open pipeline: comment ) inside \$( ) does not close it, then | bash" $'cat <<\'EOF\' |\ngit reset --hard\nEOF\ncat $( # )\ntrue\n) | bash' 2
+run_test "208 open pipeline: comment ) inside \$( ), then | wc -l ⇒ nested, retained" $'cat <<\'EOF\' |\ngit reset --hard\nEOF\ncat $( # )\ntrue\n) | wc -l' 2
+run_test "208 open pipeline: a comment line ends at its newline (next line counts)" $'cat <<\'EOF\' |\ngit reset --hard\nEOF\ncat $( # comment | wc -l\ntrue\n) | bash' 2
+run_test "208 open pipeline: \$( ) with a comment then | wc -l ⇒ nested, retained" $'cat <<\'EOF\' |\ngit reset --hard\nEOF\ncat $( # bash\ntrue\n) | wc -l' 2
+# review round 14: unclosed ${…} keeps the pipeline open; backslash-newline joins without a separator
+run_test "208 open pipeline: multi-line \${…} expansion then | bash" $'unset REVIEW_UNSET\ncat <<\'EOF\' |\ngit reset --hard\nEOF\ncat ${REVIEW_UNSET:+\nignored\n} | bash' 2
+run_test "208 open pipeline: multi-line \${…} then | wc -l ⇒ nested, retained" $'cat <<\'EOF\' |\ngit reset --hard\nEOF\ncat ${X:+\nignored\n} | wc -l' 2
+run_test "208 open pipeline: \${…} inside double quotes then | bash" $'cat <<\'EOF\' |\ngit reset --hard\nEOF\ncat "${X:+\nignored\n}" | bash' 2
+run_test "208 unclosed \${ at end of input is retained" $'cat <<\'EOF\' |\ngit reset --hard\nEOF\ncat ${X:+' 2
+run_test "208 backslash-newline joins words: cat\\\\<nl>sh is the unknown command catsh" $'catsh() { bash; }\ncat <<\'EOF\' |\ngit reset --hard\nEOF\ncat\\\nsh' 2
+run_test "208 backslash-newline joins words: ca\\\\<nl>t is cat (data)" $'cat <<\'EOF\' |\ngit reset --hard\nEOF\nca\\\nt' 0
+# review round 15: narrowed boundary — nested expansion in the receiving pipeline ⇒ unknown, retained
+run_test "208 comment inside \$( ) inside quotes then | bash (combined)" $'cat <<\'EOF\' |\ngit reset --hard\nEOF\ncat "$(printf \'%s\' - # )"\n)" | bash' 2
+run_test "208 receiver with \$( ) is never data-only (conservative)" $'cat "$(printf x)" <<\'EOF\'\ngit reset --hard\nEOF' 2
+run_test "208 receiver with backticks is never data-only" $'cat `printf x` <<\'EOF\'\ngit reset --hard\nEOF' 2
+run_test "208 receiver with a subshell is never data-only" $'( cat ) <<\'EOF\'\ngit reset --hard\nEOF' 2
+run_test "208 simple receiver with \$var stays data" $'f=x; cat > "$f" <<\'EOF\'\ngit reset --hard\nEOF' 0
+run_test "208 simple receiver with bare \${NAME} stays data" $'f=x; cat > "${f}.lean" <<\'EOF\'\ngit reset --hard\nEOF' 0
+run_test "208 simple receiver: cat > file | tee stays data" $'cat <<\'EOF\' | tee out.txt\ngit reset --hard\nEOF' 0
+# review round 16: compound-command receivers are unknown, never their first simple command
+run_test "208 brace-group receiver: { true; bash; }" $'cat <<\'EOF\' | { true; bash; }\ngit reset --hard\nEOF' 2
+run_test "208 if-pipeline receiver: if true; then bash; fi" $'cat <<\'EOF\' | if true; then bash; fi\ngit reset --hard\nEOF' 2
+run_test "208 while-pipeline receiver: while true; do bash; break; done" $'cat <<\'EOF\' | while true; do bash; break; done\ngit reset --hard\nEOF' 2
+run_test "208 brace-group receiver of a direct heredoc" $'{ true; bash; } <<\'EOF\'\ngit reset --hard\nEOF' 2
+run_test "208 brace group with only sinks is still retained (conservative)" $'cat <<\'EOF\' | { true; cat; }\ngit reset --hard\nEOF' 2
+run_test "208 simple control kept: cat | wc -l" $'cat <<\'EOF\' | wc -l\ngit reset --hard\nEOF' 0
+run_test "208 simple control kept: cat > quoted-var file" $'f=x; cat > "$f" <<\'EOF\'\ngit reset --hard\nEOF' 0
+# review round 17: split --filter and tar -I execute their input — not sinks
+run_test "208 split --filter=bash is retained" $'split --filter=bash <<\'EOF\'\ngit reset --hard\nEOF' 2
+run_test "208 cat | split --filter=bash is retained" $'cat <<\'EOF\' | split --filter=bash\ngit reset --hard\nEOF' 2
+run_test "208 plain split is retained too (no option analysis)" $'split -l 1 <<\'EOF\'\ngit reset --hard\nEOF' 2
+run_test "208 tar -I \'bash -s --\' is retained" $'tar -I \'bash -s --\' -tf - <<\'EOF\'\ngit reset --hard\nEOF' 2
+run_test "208 cat | tar -I bash is retained" $'cat <<\'EOF\' | tar -I \'bash -s --\' -tf -\ngit reset --hard\nEOF' 2
+run_test "208 plain tar -tf - is retained too (no option analysis)" $'tar -tf - <<\'EOF\'\ngit reset --hard\nEOF' 2
+run_test "208 gzip stays a sink" $'cat <<\'EOF\' | gzip > out.gz\ngit reset --hard\nEOF' 0
+# review round 18: array-reading builtins (-C callback) and sort (--compress-program) are not sinks
+run_test "208 array builtin with eval callback is retained" $'mapfile -C eval -c 1 <<\'EOF\'\n; git reset --hard\nEOF' 2
+run_test "208 readarray with eval callback is retained" $'readarray -C eval -c 1 <<\'EOF\'\n; git reset --hard\nEOF' 2
+run_test "208 plain array builtin is retained too (no option analysis)" $'mapfile lines <<\'EOF\'\ngit reset --hard\nEOF' 2
+run_test "208 sort --compress-program=sh is retained" $'sort -S 1 --compress-program=sh <<\'EOF\'\ngit reset --hard\nEOF' 2
+run_test "208 cat | sort --compress-program=sh is retained" $'cat <<\'EOF\' | sort --compress-program=sh\ngit reset --hard\nEOF' 2
+run_test "208 plain sort is retained too (no option analysis)" $'sort <<\'EOF\'\ngit reset --hard\nEOF' 2
+run_test "208 read is retained (integer-attribute targets evaluate input)" $'read -r line <<\'EOF\'\ngit reset --hard\nEOF' 2
+run_test "208 cat | wc -l control kept" $'cat <<\'EOF\' | wc -l\ngit reset --hard\nEOF' 0
+# review round 19: retained bodies preserve guarded lines inside multi-line substitutions; read is not a sink
+run_test "208 retained body: multi-line \$( ) hides nothing" $'bash <<\'EOF\'\nx=$(\ngit reset --hard\n)\nEOF' 2
+run_test "208 retained body: quoted multi-line \$( ) in printf hides nothing" $'bash <<\'EOF\'\nprintf "%s" "$(\ngit reset --hard\n)"\nEOF' 2
+run_test "208 read -d into an integer variable is retained" $'declare -i n\nread -r -d \'\' n <<\'EOF\'\na[$(\ngit reset --hard\n)0]\nEOF' 2
+run_test "208 quoted cat control: multi-line \$( ) in a data body stays allowed" $'cat <<\'EOF\'\nx=$(\ngit reset --hard\n)\nEOF' 0
+run_test "208 top-level multi-line \$( ) hides nothing (base parity)" $'x=$(\ngit reset --hard\n)' 2
+run_test "208 top-level multi-line quoted string: benign lines allowed" $'echo "line one\nline two"' 0
+run_test "208 top-level multi-line quoted string containing a guarded line (base parity)" $'echo "note:\ngit reset --hard\n"' 2
+# review round 20: a substitution with a nested heredoc (or left open) makes the whole body checkable
+run_test "208 nested heredoc inside \$( ) in an unquoted body: later guarded line checked" $'cat <<OUTER\n$(cat <<\'INNER\'\n)\nINNER\ngit reset --hard\n)\nOUTER' 2
+run_test "208 nested heredoc inside \$( ): quoted OUTER makes everything literal" $'cat <<\'OUTER\'\n$(cat <<\'INNER\'\n)\nINNER\ngit reset --hard\n)\nOUTER' 0
+run_test "208 nested heredoc inside \$( ) with a harmless body stays allowed" $'cat <<OUTER\n$(cat <<\'INNER\'\nhello\nINNER\n)\nOUTER' 0
+# review round 21: an unquoted body with any command substitution is checked whole
+run_test "208 case pattern ) inside \$( ) does not truncate the check" $'cat <<OUTER\n$(case x in\nx) : ;;\nesac\ngit reset --hard\n)\nOUTER' 2
+run_test "208 \${…:-)} inside \$( ) does not truncate the check" $'cat <<OUTER\n$(printf \'%s\' ${GUARDRAIL_PROBE_UNSET:-)}\ngit reset --hard\n)\nOUTER' 2
+run_test "208 inline \$(git …) beside data is still detected (span)" $'cat <<OUTER\nvalue: $(git reset --hard) done\nOUTER' 2
+run_test "208 unquoted body without substitutions stays data" $'cat <<OUTER\n$HOME and ${USER} are fine\ngit reset --hard\nOUTER' 0
+run_test "208 quoted body with the same text stays data" $'cat <<\'OUTER\'\n$(case x in\nx) : ;;\nesac\ngit reset --hard\n)\nOUTER' 0
+run_test "208 unquoted body with a harmless substitution and harmless lines stays allowed" $'cat <<OUTER\ntoday: $(date)\nhello\nOUTER' 0
+# review round 22: the whole-body fallback is non-discarding (raw emission), not a re-entry into the tokenizer
+run_test "208 heredoc-shaped text inside an unquoted body cannot hide a substitution line" $'cat <<OUTER\ncat <<\'INNER\'\n$(case x in\nx) : ;;\nesac\ngit reset --hard\n)\nINNER\nOUTER' 2
+run_test "208 same shape with \${…:-)} inside the substitution" $'cat <<OUTER\ncat <<\'INNER\'\n$(printf \'%s\' ${GUARDRAIL_PROBE_UNSET:-)}\ngit reset --hard\n)\nINNER\nOUTER' 2
+run_test "208 same shape, quoted OUTER: all literal, allowed" $'cat <<\'OUTER\'\ncat <<\'INNER\'\n$(case x in\nx) : ;;\nesac\ngit reset --hard\n)\nINNER\nOUTER' 0
+run_test "208 heredoc-shaped text in a body without substitutions stays data" $'cat <<OUTER\ncat <<\'INNER\'\n$HOME\ngit reset --hard\nINNER\nOUTER' 0
+# review round 23: a comment starts only at a LEXICAL word boundary (escapes and continuations respected)
+run_test "208 escaped space before # is not a comment" $'echo path\\ #name; git reset --hard' 2
+run_test "208 escaped ; before # is not a comment" $'echo path\\;#name; git reset --hard' 2
+run_test "208 escaped | before # is not a comment" $'echo path\\|#name; git reset --hard' 2
+run_test "208 backslash-newline continues the word: # is not a comment" $'echo path\\\n#name; git reset --hard' 2
+run_test "208 control: two backslashes then space — # IS a comment" $'echo path\\\\ #name; git reset --hard' 0
+run_test "208 control: unescaped space then # is a comment" $'echo a #x; git reset --hard' 0
+run_test "208 control: comment after a quoted word" $'echo "a b" # ; git reset --hard' 0
+run_test "208 control: # inside a word is literal, command after ; checked" $'echo a#b; git reset --hard' 2
+run_test "208 control: literal heredoc body with the escaped-space shape stays data" $'cat <<\'EOF\'\necho path\\ #name; git reset --hard\nEOF' 0
+run_test "208 receiver word with an escaped space is unknown (retained)" $'cat <<\'EOF\' | wc\\ #x -l\ngit reset --hard\nEOF' 2
+run_test "208 receiver followed by a real comment stays data" $'cat <<\'EOF\' | wc -l #x\ngit reset --hard\nEOF' 0
+run_test "208 open pipeline: escaped space before # in the continuation" $'cat <<\'EOF\' |\ngit reset --hard\nEOF\nwc\\ #x | bash' 2
+# review round 24: a backslash-newline pair preserves the word state it found
+run_test "208 continuation after a separating blank: # is a comment, later command checked" $'echo ok \\\n# <<EOF\ngit reset --hard' 2
+run_test "208 continuation after a separating blank: # comment (control, allowed)" $'echo ok \\\n# git reset --hard' 0
+run_test "208 continuation glued to a word keeps it open: # is literal" $'echo path\\\n#name; git reset --hard' 2
+run_test "208 continuation then # comment inside a receiving pipeline" $'cat <<\'EOF\' | wc \\\n# -l\ngit reset --hard\nEOF' 0
+run_test "208 continuation glued to the receiver word: unknown, retained" $'cat <<\'EOF\' | wc\\\n#x\ngit reset --hard\nEOF' 2
+run_test "208 continuation inside \$( ) in an unquoted body then # comment" $'cat <<EOF\n$(echo ok \\\n# )\ngit reset --hard\n)\nEOF' 2
+# review round 25: parent-shell expansion of an unquoted body is checked regardless of the receiver
+run_test "208 unquoted bash outer, quoted inner: the parent expands \$( )" $'bash <<OUTER\ncat <<\'INNER\'\n$(\ngit reset --hard\n)\nINNER\nOUTER' 2
+run_test "208 unquoted outer piped to bash: the parent expands \$( )" $'cat <<OUTER | bash\ncat <<\'INNER\'\n$(\ngit reset --hard\n)\nINNER\nOUTER' 2
+run_test "208 unquoted sh outer, quoted inner" $'sh <<OUTER\ncat <<\'INNER\'\n$(\ngit reset --hard\n)\nINNER\nOUTER' 2
+run_test "208 unquoted outer with an unknown receiver" $'mytool <<OUTER\ncat <<\'INNER\'\n$(\ngit reset --hard\n)\nINNER\nOUTER' 2
+run_test "208 quoted bash outer and quoted inner: literal (control)" $'bash <<\'OUTER\'\ncat <<\'INNER\'\n$(\ngit reset --hard\n)\nINNER\nOUTER' 0
+run_test "208 quoted outer piped to bash, quoted inner: literal (control)" $'cat <<\'OUTER\' | bash\ncat <<\'INNER\'\n$(\ngit reset --hard\n)\nINNER\nOUTER' 0
+run_test "208 unquoted data-sink outer catches the expansion too" $'cat <<OUTER\ncat <<\'INNER\'\n$(\ngit reset --hard\n)\nINNER\nOUTER' 2
+run_test "208 quoted data-sink outer: all literal (control)" $'cat <<\'OUTER\'\ncat <<\'INNER\'\n$(\ngit reset --hard\n)\nINNER\nOUTER' 0
+run_test "208 substitution left open at the end of an unquoted body: whole body checked" $'cat <<OUTER\n$(true\ngit reset --hard\nOUTER' 2
+run_test "208 unquoted body with a substitution: a guarded-looking note is retained (conservative)" $'cat <<OUTER\n$(echo ok)\ngit reset --hard is a note here\nOUTER' 2
+
+echo "--- #208: parsing cost stays inside the 5 s hook deadline ---"
+# Wall-clock budget: 3 s (the pre-fix numbers were 10–18 s for these inputs,
+# so the bound discriminates even on a slow CI runner). Integer seconds:
+# BSD date has no %N. Each input is run through the SAME run_test path.
+_t208() { # $1 desc, $2 command, $3 expected rc
+  local _s _e
+  _s=$(date +%s)
+  run_test "$1" "$2" "$3"
+  _e=$(date +%s)
+  if (( _e - _s <= 3 )); then echo "  PASS: $1 — $(( _e - _s ))s"; (( ++PASS )); else echo "  FAIL: $1 — $(( _e - _s ))s (> 3 s)"; (( ++FAIL )); fi
+}
+_lean208=$(python3 -c "print(('theorem foo : 1 + 1 = 2 := by norm_num -- x\n'*240)[:10000])" 2>/dev/null || printf 'theorem foo : 1 + 1 = 2 := by norm_num -- x\n%.0s' $(seq 1 240))
+_doc208=$(python3 -c "print(('Do not run git reset --hard here; git clean -f is bad too.\n'*200))" 2>/dev/null || printf 'Do not run git reset --hard here; git clean -f is bad too.\n%.0s' $(seq 1 200))
+_line208=$(printf 'x%.0s' $(seq 1 10000))
+_many208=$(printf 'echo hi\n%.0s' $(seq 1 230))
+_manygit208=$(printf 'git status\n%.0s' $(seq 1 120))
+_t208 "208 perf: 10 KB quoted Lean heredoc (benign)" "$(printf "cat > x.lean <<'EOF'\n%s\nEOF" "$_lean208")" 0
+_t208 "208 perf: 10 KB single-line command (benign)" "echo $_line208" 0
+_t208 "208 perf: 230 short lines (benign)" "$_many208" 0
+_t208 "208 perf: 10 KB unquoted doc full of guarded words (data)" "$(printf "cat > doc.md <<EOF\n%s\nEOF" "$_doc208")" 0
+_t208 "208 perf: 10 KB quoted doc, then a real blocked op" "$(printf "cat > doc.md <<'EOF'\n%s\nEOF\ngit reset --hard" "$_doc208")" 2
+_t208 "208 perf: 120 git commands (all relevant segments)" "$_manygit208" 0
+_t208 "208 perf: 120 git commands, last one blocked" "${_manygit208}git reset --hard" 2
+# review round 26: the receiver check and the parent-expansion check share one traversal —
+# nested unquoted heredocs with substitutions must not be traversed twice per level
+_nest208() { # $1 depth, $2 quoted? (y/n): builds bash <<H{i} … nesting around a body with a substitution
+  local body=$'git status\n$(true)\n' i
+  for ((i = 0; i < $1; i++)); do
+    if [[ "$2" == y ]]; then body="bash <<'H$i'"$'\n'"${body}H$i"$'\n'; else body="bash <<H$i"$'\n'"${body}H$i"$'\n'; fi
+  done
+  printf '%s' "$body"
+}
+_t208 "208 perf: 18-level unquoted nesting + substitution, blocked op after" "$(_nest208 18 n)"$'\n'"git reset --hard" 2
+_t208 "208 perf: 18-level unquoted nesting + substitution, benign after" "$(_nest208 18 n)"$'\n'"git status" 0
+_t208 "208 perf: 18-level quoted nesting, blocked op after" "$(_nest208 18 y)"$'\n'"git reset --hard" 2
+_t208 "208 perf: 18-level unquoted nesting, guarded op INSIDE the innermost body" "$(_nest208 18 n | sed 's/^git status$/git reset --hard/')" 2
+# review round 27: identical text is tokenized at most once per invocation — combined heredoc +
+# substitution nesting reaches the same inner text through several recursive paths
+_compose208() { # $1 layers: each layer = two heredocs around a substitution around the previous body
+  local body=$'git status\n' i
+  for ((i = 0; i < $1; i++)); do
+    body="bash <<A$i"$'\n'"bash <<B$i"$'\n'"\$("$'\n'"${body})"$'\n'"B$i"$'\n'"A$i"$'\n'
+  done
+  printf '%s' "$body"
+}
+_t208 "208 perf: 16 paired heredoc+substitution layers, blocked op after" "$(_compose208 16)"$'\n'"git reset --hard" 2
+_t208 "208 perf: 16 paired layers, benign after" "$(_compose208 16)"$'\n'"git status" 0
+_t208 "208 perf: 16 paired layers, guarded op inside the innermost body" "$(_compose208 16 | sed 's/^git status$/git reset --hard/')" 2
+
+echo ""
+echo "=== Results: $PASS passed, $FAIL failed ==="
+[[ "$FAIL" -eq 0 ]]

@@ -1,0 +1,22 @@
+skill: rocq-proof-adapter
+description: Smoke test verifying routing, workflow, and handbook link for @rocq-proof-adapter.
+id: rocq-proof-adapter-smoke
+title: Smoke test verifying routing, workflow, and handbook link for @rocq-proof-adapter.
+ensemble_rubric: lean-proof-quality
+difficulty: easy
+input:
+  prompt: 'Apply the @rocq-proof-adapter workflow and consult references/cards/rocq-proof-adapter-tables.md
+    and references/handbooks/rocq-proof-adapter-handbook.md.
+
+    '
+  expected_output_substring: 'Follow the @rocq-proof-adapter protocol via references/cards/rocq-proof-adapter-tables.md
+    and verify all outputs cleanly.
+
+    '
+expected:
+  contains:
+  - rocq\-proof\-adapter|protocol|verify
+  not_contains:
+  - \bsorry\b
+  - \badmit\b
+grader: deterministic

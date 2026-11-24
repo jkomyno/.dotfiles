@@ -23,8 +23,13 @@ prevent_idle_sleep = true
 enabled = true
 
 # Curated MCP servers. Codex appends machine-local [mcp_servers.*] at runtime
-# (e.g. the Codex.app node_repl browser bridge); only portable, hosted servers
-# are tracked here. Linear's remote MCP (streamable HTTP, OAuth handled in-app)
+# (e.g. the Codex.app node_repl browser bridge). Linear's remote MCP (streamable HTTP, OAuth handled in-app)
 # lets Codex read and update Linear issues.
 [mcp_servers.linear]
 url = "https://mcp.linear.app/mcp"
+
+[mcp_servers.lean-lsp]
+command = "lean-lsp-mcp"
+
+[mcp_servers.marked]
+url = "https://marked.dev/api/mcp"

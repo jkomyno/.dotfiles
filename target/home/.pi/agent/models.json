@@ -1,0 +1,7 @@
+{
+  "providers": {
+    "openrouter": {
+      "apiKey": "!if [ -n \"$OPENROUTER_API_KEY\" ]; then printf '%s' \"$OPENROUTER_API_KEY\"; elif keyshroud env | grep -Fxq OPENROUTER_API_KEY; then keyshroud api-key --item keyshroud://OpenRouter; fi"
+    }
+  }
+}

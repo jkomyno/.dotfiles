@@ -1,0 +1,28 @@
+__pycache__/
+*.pyc
+.DS_Store
+*.swp
+*.swo
+*~
+.vscode/
+
+# APM consumer artefacts - present only when this repo is *consumed*
+# as a dependency. Always gitignored for producers per
+# https://microsoft.github.io/apm/quickstart.
+apm_modules/
+apm.lock.yaml
+_judge_prompts_workspace/
+lab/.r24-judge-prompts/
+.venv/
+venv/
+*.egg-info/
+build/
+dist/
+itp_ontology_graph.db
+**/itp_ontology_graph.db
+loom_proving_state.db*
+*.db-shm
+*.db-wal
+
+.cache/
+kuzu/*.kuzu

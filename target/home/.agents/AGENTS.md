@@ -19,6 +19,7 @@ These rules apply to every coding agent on this machine. Harness-specific entryp
 - Use small Conventional Commits in imperative mood. Commit only to fulfill an explicit commit, push, or pull-request request.
 - Prefer a pull request for the default or a protected branch. If the user explicitly requests a direct push, follow that request when repository policy permits it.
 - Before any push, finish implementation and local review, and run the relevant fast checks. An explicit request to push, publish a branch, or create or open a pull request authorizes the corresponding feature-branch push; do not ask again unless its target or scope changes. When the task includes a pull request, open it immediately after first publishing its branch.
+- Read the live PR body before editing it, patch the fetched text, then re-read and diff to confirm only the intended lines changed. Never write a local snapshot over a body that may have moved.
 
 
 ## Rust build cache (Mr Boxington)

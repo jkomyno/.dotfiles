@@ -4,7 +4,7 @@ This directory contains macOS provisioning scripts used by the staged mise tasks
 
 The active target is Apple Silicon macOS. Run `just setup-plan` from the repository root to inspect the setup order, including common tasks. See [`install/README.md`](../README.md) for how the staged runner uses task dependencies.
 
-After `mise bootstrap dotfiles apply` exposes the managed config as `~/.config/mise/config.toml`, the common mise task installs the configured development tools from `target/home/.config/mise/config.toml`. Later common tasks pull the Ollama models declared in `install/common/ollama-models.sh`, starting a temporary `ollama serve` if none is already running.
+After `mise bootstrap dotfiles apply` exposes the managed config as `~/.config/mise/config.toml`, the common mise task installs the configured development tools from `target/home/.config/mise/config.toml`.
 
 Tool ownership stays split by package class. Mise owns language runtimes and command-line developer tools. Nanobrew owns GUI apps and fonts through casks. Its formula bundle should stay empty unless a required package has no practical mise backend.
 

@@ -27,6 +27,8 @@ copyright notices:
 | `lfd-design` | [elvisun/loss-function-development](https://github.com/elvisun/loss-function-development) | Copyright (c) 2026 Elvis Sun |
 | `improve` | [shadcn/improve](https://github.com/shadcn/improve) | MIT declared in the skill's frontmatter; upstream publishes no LICENSE file |
 | `find-skills` | [vercel-labs/skills](https://github.com/vercel-labs/skills) | MIT declared in the upstream README; upstream publishes no LICENSE file |
+| `explain-interface` | [jakubkrehel/skills](https://github.com/jakubkrehel/skills/tree/672ae44ace6aaed65b86cbb1e2fd6fbea0e79578/skills/explain-interface) | Copyright (c) 2026 Jakub Krehel |
+| `inference-optimisation` | [sybil-solutions/inference-optimisation-skill](https://github.com/sybil-solutions/inference-optimisation-skill/tree/fda968e7fc1996aa23c67139c755fe541c9d4be0/skills/inference-optimisation) | Copyright (c) 2026 Sybil Solutions contributors |
 
 ## Apache-2.0-licensed skills
 

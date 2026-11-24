@@ -1,0 +1,2 @@
+[tools]
+"github:incoai/splash" = { version = "latest", os = ["macos/arm64"], asset_pattern = "splash-*-arm64-macos26.tar.gz", postinstall = '''mkdir -p "$MISE_TOOL_INSTALL_PATH/bin"; printf '%s\n' '#!/bin/sh' 'root=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)' 'export PYTHONDONTWRITEBYTECODE=1' 'exec "$root/python/bin/python3" -u "$root/install/launcher.py" "$@"' > "$MISE_TOOL_INSTALL_PATH/bin/splash"; chmod +x "$MISE_TOOL_INSTALL_PATH/bin/splash"''' }

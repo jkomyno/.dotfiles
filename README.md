@@ -75,7 +75,7 @@ The root [`setup.sh`](./setup.sh) is intentionally small:
 4. Installs or finds the pinned standalone `mise` binary.
 5. Runs the staged mise setup order from `scripts/dotfiles/mise-setup-staged.sh`.
 
-The staged setup starts with platform prerequisites, generates an SSH key, applies the platform-specific mise dotfile profile, sets the Linux login shell, installs the complete mise toolchain, starts the paseo user service, and runs the shared Git and agent setup. macOS then completes its existing nanobrew, Tailscale, Ollama, MLX, and defaults work. Linux skips those macOS-only steps.
+The staged setup starts with platform prerequisites, generates an SSH key, applies the platform-specific mise dotfile profile, sets the Linux login shell, installs the complete mise toolchain, starts the paseo user service, and runs the shared Git and agent setup. macOS then completes its existing nanobrew, Tailscale, and defaults work. Linux skips those macOS-only steps.
 
 On Linux, `apt` owns only OS prerequisites such as zsh, build libraries, SSH, and `trash-cli`. Mise owns development runtimes and portable CLI tools, including `fish`, `ffmpeg`, and `ttyd`. Desktop Linux configuration, GUI application installation, Tailscale provisioning, and package managers other than Debian `apt` are outside this repository's scope.
 
@@ -175,7 +175,6 @@ journalctl --user -u rust-cache-maintenance.service
 
 On macOS, logs remain under `~/Library/Logs/`.
 
-Not every server here is always-on. **Ollama** is deliberately on-demand: [`install/common/ollama-models.sh`](./install/common/ollama-models.sh) starts a temporary `ollama serve` only while pulling models and stops it afterward.
 
 ## Repository Layout
 
@@ -208,6 +207,8 @@ Coding-agent configuration follows a shared-canonical-plus-adapters layout inspi
 
 All three harnesses (Claude Code, Codex, pi) read the same first-party and vendored skills from `~/.agents/skills`. Plugin-delivered skills are host-specific; to expose a skill to every harness, vendor it into `~/.agents/skills` via `sync-skills`.
 
+The first-party [`traits-review`](./target/home/.agents/skills/traits-review/SKILL.md) skill checks history-derived coding preferences in the current agent session, with no separate model API. See [Traits from coding history](./docs/traits.md) for the shared seeds, subscription-based workflow, and review limits.
+
 [pstack](https://github.com/backnotprop/pstack) is available through a small loader skill: `$pstack how Explain the auth flow` in Codex, `/pstack how Explain the auth flow` in Claude Code, or `/skill:pstack how Explain the auth flow` in pi. With no skill name, it opens pstack's help skill. The `bro` and `potetomode` shortcuts load upstream `bro` and `poteto-mode` directly:
 
 | Agent | Plain-language rewrite | Poteto mode |
@@ -237,9 +238,26 @@ Per-idea reference corpora (pinned shallow clones of upstream repositories, blog
 
 macOS user preferences live in [`install/macos/common/defaults.sh`](./install/macos/common/defaults.sh) and are applied through the staged setup task `install:macos:defaults`. The script handles repeatable user-level defaults by default, including a Dock that shows only running applications; clearing saved Dock pins and sudo-backed power/login settings are explicit opt-ins. Per-device machine identity is set once by [`setup.sh`](./setup.sh), defaulting to `Alberto's MacBook Pro`.
 
-## Encrypted Secrets
+## API Keys and Environment Variables
 
-Per-project secrets are stored encrypted inline in each project's `mise.toml` via mise's built-in [`age`](https://mise.jdx.dev/environments/secrets/age.html) support and decrypted automatically at runtime. The global wiring — the experimental flag and the `[settings.age] ssh_identity_files` setting that uses `~/.ssh/id_ed25519` as the age identity — is tracked in [`target/home/.config/mise/config.toml`](./target/home/.config/mise/config.toml), so a new machine needs only your passphrase-protected SSH key in place. Setup, the `age-keygen`-vs-SSH-key rationale, and the portability caveats are in [`docs/encrypted-secrets.md`](./docs/encrypted-secrets.md).
+I keep API keys and tokens in Keyshroud’s encrypted vault. Mise installs the CLI. I use `keyshroud env` to see which variable names are available, then give each trusted command only the keys it needs. See the [Keyshroud documentation](https://github.com/dinhkarate/keyshroud).
+
+```sh
+keyshroud env
+keyshroud run --only EXAMPLE_API_KEY -- ./scripts/sync-data
+```
+
+For a project with its own `.env.refs`, I run the command from that project directory. The file maps environment variable names to vault references, for example `EXAMPLE_API_KEY=keyshroud://example-api-key`. I review the mappings before using them and commit only names and references.
+
+```sh
+keyshroud run --no-auth --refs .env.refs --only EXAMPLE_API_KEY -- ./scripts/sync-data
+```
+
+`--no-auth` skips my globally wired variables, leaving the project's mappings as the source for injection. The child command receives the actual key in its environment, and Keyshroud masks the resolved value in stdout and stderr.
+
+I enter new keys in my own terminal or a masked Keyshroud dialog. Raw keys stay out of shell startup files, plaintext `.env` files, and agent prompts. Agents work with names and references and use the same command-scoped workflow. See the [shared agent instructions](./target/home/.agents/AGENTS.md#keyshroud).
+
+Projects that use mise's `age` support for encrypted `mise.toml` values still have the [mise setup and portability guide](./docs/encrypted-secrets.md).
 
 ## Shortcuts
 

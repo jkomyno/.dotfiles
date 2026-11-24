@@ -1,0 +1,336 @@
+#!/usr/bin/env python3
+"""Offline structural checks for the Lean skills bundle."""
+
+from __future__ import annotations
+
+import argparse
+import re
+import sys
+import tempfile
+from pathlib import Path
+
+try:
+    import yaml  # type: ignore
+    _HAVE_YAML = True
+except ImportError:  # pragma: no cover - stdlib fallback when PyYAML is absent
+    yaml = None  # type: ignore
+    _HAVE_YAML = False
+
+
+MAX_SKILL_LINES = 500
+MAX_LINE_LENGTH = 160
+PLACEHOLDER_PROMPTS = {
+    "find the current time of day.",
+    "your prompt here",
+    "the prompt to test.",
+}
+
+
+def _stdlib_parse_frontmatter_yaml(block: str) -> dict[str, str]:
+    """Minimal stdlib YAML frontmatter parser supporting literal/folded block scalars."""
+    raw_lines = block.splitlines()
+    out: dict[str, str] = {}
+    i = 0
+    while i < len(raw_lines):
+        line = raw_lines[i]
+        stripped = line.strip()
+        if not stripped or stripped.startswith("#"):
+            i += 1
+            continue
+        indent = len(line) - len(line.lstrip(" "))
+        if indent > 0 or ":" not in line:
+            i += 1
+            continue
+        key_part, val_part = line.split(":", 1)
+        key = key_part.strip()
+        val = val_part.strip()
+        if val in ("|", "|-", "|+", ">", ">-", ">+"):
+            block_lines: list[str] = []
+            block_indent: int | None = None
+            j = i + 1
+            while j < len(raw_lines):
+                bl = raw_lines[j]
+                s_bl = bl.lstrip(" ")
+                this_indent = len(bl) - len(s_bl)
+                if s_bl == "":
+                    block_lines.append("")
+                    j += 1
+                    continue
+                if this_indent <= indent:
+                    break
+                if block_indent is None:
+                    block_indent = this_indent
+                block_lines.append(
+                    bl[block_indent:] if this_indent >= block_indent else s_bl
+                )
+                j += 1
+            while block_lines and block_lines[-1] == "":
+                block_lines.pop()
+            sep = " " if val.startswith(">") else "\n"
+            out[key] = sep.join(block_lines) + ("\n" if not val.endswith("-") else "")
+            i = j
+            continue
+        if len(val) >= 2 and val[0] == val[-1] and val[0] in ('"', "'"):
+            val = val[1:-1]
+        out[key] = val
+        i += 1
+    return out
+
+
+def parse_frontmatter(path: Path) -> tuple[dict[str, str], list[str], bool]:
+    lines = path.read_text(encoding="utf-8").splitlines()
+    if not lines or lines[0].strip() != "---":
+        return {}, lines, False
+
+    closed = False
+    end = len(lines)
+    for index, line in enumerate(lines[1:], start=1):
+        if line.strip() == "---":
+            closed = True
+            end = index
+            break
+
+    # [fix 2026-09-15] The previous line-based parser (split(":", 1) per line)
+    # could not read multi-line YAML values.  Every SKILL.md in this corpus
+    # uses a literal block scalar for `description:` (`description: |`), so
+    # the old parser stored the indicator string "|" as the description and
+    # mass-reported false "duplicate normalized description" errors across
+    # all skills sharing the style (55 false errors at the time of the fix).
+    # Parse the frontmatter block with PyYAML when installed, or with the
+    # block-scalar-aware stdlib fallback in bare Python environments.
+    block = "\n".join(lines[1:end])
+    if _HAVE_YAML and yaml is not None:
+        try:
+            parsed = yaml.safe_load(block) or {}
+        except yaml.YAMLError:
+            return {}, lines, closed
+        if not isinstance(parsed, dict):
+            return {}, lines, closed
+        frontmatter: dict[str, str] = {
+            str(key): value if isinstance(value, str) else str(value)
+            for key, value in parsed.items()
+        }
+        return frontmatter, lines, closed
+
+    return _stdlib_parse_frontmatter_yaml(block), lines, closed
+
+
+def normalized_description(value: str) -> str:
+    return re.sub(r"\s+", " ", value.strip().lower())
+
+
+def check_skill(path: Path) -> tuple[list[str], list[str]]:
+    errors: list[str] = []
+    warnings: list[str] = []
+    frontmatter, lines, frontmatter_closed = parse_frontmatter(path)
+    skill_name = path.parent.name
+
+    if not frontmatter_closed:
+        errors.append("missing closing YAML frontmatter delimiter")
+        return errors, warnings
+
+    if not frontmatter:
+        errors.append("missing YAML frontmatter")
+        return errors, warnings
+
+    name = frontmatter.get("name", "")
+    description = frontmatter.get("description", "")
+    if not name:
+        errors.append("missing frontmatter key: name")
+    elif name != skill_name:
+        errors.append(f"name {name!r} does not match directory {skill_name!r}")
+
+    if not description:
+        errors.append("missing frontmatter key: description")
+    elif len(description) < 40:
+        warnings.append("description is too short for reliable dispatch")
+
+    if len(lines) > MAX_SKILL_LINES:
+        warnings.append(f"{len(lines)} lines exceeds {MAX_SKILL_LINES}-line advisory cap")
+
+    long_lines = [
+        index
+        for index, line in enumerate(lines, start=1)
+        if len(line) > MAX_LINE_LENGTH
+        and not line.startswith("description:")
+        and not line.strip().startswith("|")
+    ]
+    if long_lines:
+        warnings.append(
+            f"{len(long_lines)} line(s) exceed {MAX_LINE_LENGTH} chars outside description"
+        )
+
+    return errors, warnings
+
+
+def check_test(path: Path) -> tuple[list[str], list[str]]:
+    errors: list[str] = []
+    warnings: list[str] = []
+    text = path.read_text(encoding="utf-8")
+    keys = {
+        match.group(1)
+        for match in re.finditer(r"(?m)^([A-Za-z_][A-Za-z0-9_-]*):", text)
+    }
+    for key in ("repo", "sha", "prompt", "description"):
+        if key not in keys:
+            errors.append(f"missing {key}:")
+    lowered = text.lower()
+    if any(prompt in lowered for prompt in PLACEHOLDER_PROMPTS):
+        warnings.append("test prompt appears to be a placeholder")
+    return errors, warnings
+
+
+def run_checks(root: Path) -> tuple[list[str], list[str], int]:
+    """Run all structural checks under ``root``; return (errors, warnings, n_skills)."""
+    skill_files = sorted((root / "skills").glob("*/SKILL.md"))
+    errors: list[str] = []
+    warnings: list[str] = []
+    descriptions: dict[str, Path] = {}
+
+    for skill_file in skill_files:
+        skill_errors, skill_warnings = check_skill(skill_file)
+        errors.extend(f"{skill_file}: {message}" for message in skill_errors)
+        warnings.extend(f"{skill_file}: {message}" for message in skill_warnings)
+
+        frontmatter, _, _ = parse_frontmatter(skill_file)
+        description = normalized_description(frontmatter.get("description", ""))
+        if description:
+            previous = descriptions.get(description)
+            if previous is not None:
+                errors.append(f"{skill_file}: duplicate normalized description with {previous}")
+            descriptions[description] = skill_file
+
+        tests = sorted((skill_file.parent / "tests").glob("*.yaml"))
+        smoke_case = root / "scripts" / "eval" / "cases" / f"{skill_file.parent.name}-smoke.yaml"
+        if not tests and not smoke_case.is_file():
+            warnings.append(f"{skill_file.parent}: no tests/*.yaml files")
+        for test_file in tests:
+            test_errors, test_warnings = check_test(test_file)
+            errors.extend(f"{test_file}: {message}" for message in test_errors)
+            warnings.extend(f"{test_file}: {message}" for message in test_warnings)
+
+    pin_file = root / "tools" / "lean-lsp-mcp.pin"
+    pin_checker = root / "scripts" / "check-engine-pin"
+    if pin_file.is_file() and pin_checker.is_file():
+        import subprocess
+        proc = subprocess.run(
+            [sys.executable, str(pin_checker)],
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        if proc.returncode != 0:
+            for line in (proc.stderr or proc.stdout).splitlines():
+                errors.append(line.removeprefix("ERROR: ").strip())
+
+    return errors, warnings, len(skill_files)
+
+
+def self_test() -> int:
+    """Regression suite for the parser and duplicate-detection logic.
+
+    Pins the 2026-09-15 bug class: the old line-based frontmatter parser
+    stored the literal block-scalar indicator "|" as the description, which
+    made every multi-line-description skill a false duplicate AND made true
+    duplicates of multi-line descriptions undetectable.  The YAML-parser
+    fix must satisfy both directions at once.
+    """
+    long_desc_alpha = "alpha skill with a multi-line block scalar description"
+    long_desc_beta = "alpha skill with a multi-line block scalar description"
+    fixtures = {
+        "alpha": f"---\nname: alpha\ndescription: |\n  {long_desc_alpha}\n  second line for dispatch\n---\n\n# Alpha\n\nBody.\n",
+        "beta": f"---\nname: beta\ndescription: |\n  {long_desc_beta}\n  second line for dispatch\n---\n\n# Beta\n\nBody.\n",
+        "gamma": "---\nname: gamma\ndescription: unclosed frontmatter skill\n\n# Gamma\n",
+        "delta": "---\nname: delta\ndescription: short\n---\n\n# Delta\n\nBody.\n",
+    }
+    with tempfile.TemporaryDirectory() as tmp:
+        root = Path(tmp)
+        for name, body in fixtures.items():
+            skill_dir = root / "skills" / name
+            skill_dir.mkdir(parents=True)
+            (skill_dir / "SKILL.md").write_text(body, encoding="utf-8")
+        errors, warnings, n_skills = run_checks(root)
+        global _HAVE_YAML
+        orig_have_yaml = _HAVE_YAML
+        try:
+            _HAVE_YAML = False
+            fb_errors, fb_warnings, fb_n_skills = run_checks(root)
+        finally:
+            _HAVE_YAML = orig_have_yaml
+
+    failures: list[str] = []
+
+    def assert_true(condition: bool, message: str) -> None:
+        if not condition:
+            failures.append(message)
+
+    assert_true(
+        fb_errors == errors and fb_warnings == warnings and fb_n_skills == n_skills,
+        "stdlib fallback parser must match primary YAML parser on all self-test fixtures",
+    )
+
+    joined_errors = "\n".join(errors)
+    assert_true(n_skills == 4, f"expected 4 skills, saw {n_skills}")
+    # alpha parses cleanly: block scalar read as text, not "|" (the bug).
+    assert_true(not any(str(long_desc_alpha)[:20] in e and "alpha" in e for e in errors),
+                "alpha must parse without errors (block-scalar description read correctly)")
+    assert_true(not any("duplicate normalized description" in w for w in warnings),
+                "no duplicate-description finding may be reported as a warning")
+    # beta duplicates alpha: the true duplicate MUST fire (as an error).
+    assert_true(any("duplicate normalized description" in e and "beta" in e for e in errors),
+                "true duplicate of multi-line description must be detected")
+    # gamma: unclosed frontmatter fires.
+    assert_true(any("missing closing YAML frontmatter" in e and "gamma" in e for e in errors),
+                "unclosed frontmatter must be detected")
+    # delta: short-description warning fires; delta is NOT a false duplicate.
+    assert_true(any("description is too short" in w and "delta" in w for w in warnings),
+                "short-description warning must fire for delta")
+    assert_true(not any("duplicate normalized description" in e and "delta" in e for e in errors),
+                "delta must not be a false duplicate")
+    # Every fixture warns about missing tests (no tests/ dir).
+    assert_true(sum(1 for w in warnings if "no tests/*.yaml" in w) == 4,
+                "each fixture without tests/ must warn exactly once")
+
+    if failures:
+        print("SELF-TEST FAILED:")
+        for failure in failures:
+            print(f"  - {failure}")
+        print(f"  (errors={len(errors)}, warnings={len(warnings)})")
+        for message in errors:
+            print(f"    ERROR: {message}")
+        for message in warnings:
+            print(f"    WARN: {message}")
+        return 1
+    print(f"SELF-TEST PASS: parser + duplicate detection verified ({len(errors)} errors, {len(warnings)} warnings on fixtures)")
+    return 0
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser(description="Check Lean skill structure")
+    parser.add_argument("--strict", action="store_true", help="treat warnings as errors")
+    parser.add_argument("--self-test", action="store_true",
+                        help="run the parser/duplicate regression suite on temp fixtures and exit")
+    args = parser.parse_args()
+
+    if args.self_test:
+        return self_test()
+
+    root = Path(__file__).resolve().parents[1]
+    errors, warnings, n_skills = run_checks(root)
+
+    print(f"Lean skill structure: {n_skills} skill(s) checked")
+    for message in warnings:
+        print(f"WARN: {message}")
+    for message in errors:
+        print(f"ERROR: {message}")
+
+    if errors or (args.strict and warnings):
+        print(f"FAILED: {len(errors)} error(s), {len(warnings)} warning(s)")
+        return 1
+
+    print(f"PASS: {len(warnings)} warning(s)")
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

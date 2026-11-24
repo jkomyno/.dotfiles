@@ -1,6 +1,6 @@
 {
   "env": {
-    "CLAUDE_CODE_REPL": "true"
+    "CLAUDE_CODE_EXPERIMENTAL_CODE_MODE": "1"
   },
   "attribution": {
     "commit": "",
@@ -115,6 +115,43 @@
           }
         ]
       }
+    ],
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "[ ! -f '/Users/jkomyno/.claude/skills/impeccable/scripts/impeccable' ] || '/Users/jkomyno/.claude/skills/impeccable/scripts/impeccable' hook",
+            "timeout": 5,
+            "statusMessage": "Preparing build session"
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "[ ! -f '/Users/jkomyno/.claude/skills/impeccable/scripts/impeccable' ] || '/Users/jkomyno/.claude/skills/impeccable/scripts/impeccable' hook",
+            "timeout": 5,
+            "statusMessage": "Checking UI changes"
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "[ ! -f '/Users/jkomyno/.claude/skills/impeccable/scripts/impeccable' ] || '/Users/jkomyno/.claude/skills/impeccable/scripts/impeccable' hook",
+            "timeout": 30,
+            "statusMessage": "Design deep pass"
+          }
+        ]
+      }
     ]
   },
   "statusLine": {
@@ -133,14 +170,18 @@
   "effortLevel": "medium",
   "modelSettings": {
     "claude-opus-5-5": {
-      "effortLevel": "high"
+      "effortLevel": "medium"
     },
     "claude-fable-5-1": {
       "effortLevel": "high"
     },
     "claude-fable-5-2": {
       "effortLevel": "medium"
+    },
+    "claude-sonnet-5-5": {
+      "effortLevel": "high"
     }
   },
-  "skipDangerousModePermissionPrompt": true
+  "skipDangerousModePermissionPrompt": true,
+  "description": "Impeccable design detector: immediate-tier checks after Edit/Write on UI files, full-rule deep pass on Stop."
 }

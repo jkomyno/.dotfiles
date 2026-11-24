@@ -1,0 +1,25 @@
+id: ai-guard-judge-eval-smoke
+title: ai-guard-judge-eval dispatch smoke check
+skill: ai-guard-judge-eval
+ensemble_rubric: applied-domain-quality
+difficulty: easy
+input:
+  prompt: 'Apply the ai-guard-judge-eval skill workflow and summarize the primary
+    verification steps.
+
+    '
+  expected_output_substring: 'Follow the ai-guard-judge-eval protocol and verify all
+    outputs with zero unproven goals and clean kernel verification.
+
+    '
+expected:
+  contains:
+  - ai-guard-judge-eval|protocol|verify
+  not_contains:
+  - sorry
+  - admit
+grader: deterministic
+tags:
+- smoke
+- ai-guard-judge-eval
+pack: applied-strategy

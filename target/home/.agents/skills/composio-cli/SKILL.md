@@ -15,6 +15,7 @@ description: Help users operate the published Composio CLI to find the right too
 3. If `execute` says the toolkit is not connected, run `composio link <toolkit>` and retry.
 4. If the arguments are unclear, run `composio execute <slug> --get-schema` or `--dry-run` before guessing.
 5. Reach for `composio search "<task>"` only when the slug is unknown. `search` accepts one or more queries, so batch related discovery work into a single command when useful.
+6. If a command exits 75, the failure was temporary and running it again cannot act twice: wait a moment and run the same command again. If a failed `execute` result has `"retry": "check-first"`, the tool may already have run: check before running it again.
 
 ## `execute` - Run A Tool
 
@@ -82,11 +83,14 @@ Use `link` when `execute` reports that a toolkit is not connected, or when the u
 
 ```bash
 composio link gmail
-composio link googlecalendar --no-browser
+composio link googlecalendar --no-browser --no-wait
 ```
 
 Key flags:
+- `--no-wait`: Print the authorization URL as JSON (`redirect_url`) and return at once instead of waiting for the authorization.
 - `--alias`: Assign an alias to the connected account. Required when creating an additional account for the same toolkit.
+
+- When the user has to open the page themselves, run `link` with `--no-wait`, show them the `redirect_url`, and wait for them to say they approved. Without `--no-wait` the command blocks until the authorization completes, so the URL reaches the user only if they can see the command's output.
 
 - Retry the original `execute` command after linking succeeds.
 
@@ -140,4 +144,4 @@ composio login    # authenticate if whoami fails
 
 If the user is stuck on top-level commands or needs fallback inspection commands, load [references/troubleshooting.md](references/troubleshooting.md).
 
-If the user explicitly asks about developer projects, auth configs, connected accounts, triggers, logs, orgs, or projects, load [references/composio-dev.md](references/composio-dev.md). `composio dev` is not the default end-user path.
+If the user explicitly asks about developer projects, auth configs, connected accounts, triggers, logs, orgs, or projects, load [references/composio-dev.md](references/composio-dev.md). `composio dev` is not the default end-user path. In a developer project, run tools with `composio dev playground-execute`, not `composio execute`.

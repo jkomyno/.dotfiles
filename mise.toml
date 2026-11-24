@@ -10,6 +10,9 @@ includes = ["tasks"]
 "~/.zshrc" = { source = "target/home/.zshrc", mode = "symlink" }
 "~/.agents/AGENTS.md" = { source = "target/home/.agents/AGENTS.md", mode = "symlink" }
 "~/.agents/skills" = { source = "target/home/.agents/skills", mode = "symlink" }
+"~/.local/share/lean4-skills" = { source = "target/home/.local/share/lean4-skills", mode = "symlink" }
+"~/.local/share/proof-skills" = { source = "target/home/.local/share/proof-skills", mode = "symlink" }
+"~/.agents/trait-seeds" = { source = "target/home/.agents/trait-seeds", mode = "symlink" }
 "~/.claude/CLAUDE.md" = { source = "target/home/.claude/CLAUDE.md", mode = "symlink" }
 "~/.claude/hooks/guard-rm.py" = { source = "target/home/.claude/hooks/guard-rm.py", mode = "symlink" }
 "~/.claude/hooks/block-claude-attribution.sh" = { source = "target/home/.claude/hooks/block-claude-attribution.sh", mode = "symlink" }
@@ -24,6 +27,8 @@ includes = ["tasks"]
 "~/.local/bin/rust-cache-maintenance" = { source = "target/home/.local/bin/rust-cache-maintenance", mode = "symlink" }
 "~/.pi/agent/AGENTS.md" = { source = "target/home/.agents/AGENTS.md", mode = "symlink" }
 "~/.pi/agent/settings.json" = { source = "target/home/.pi/agent/settings.json", mode = "symlink" }
+"~/.pi/agent/mcp.json" = { source = "target/home/.pi/agent/mcp.json", mode = "symlink" }
+"~/.pi/agent/models.json" = { source = "target/home/.pi/agent/models.json", mode = "symlink" }
 "~/.pi/agent/claude-bridge.json" = { source = "target/home/.pi/agent/claude-bridge.json", mode = "symlink" }
 "~/.pi/agent/extensions/subagent" = { source = "target/home/.pi/agent/extensions/subagent", mode = "symlink" }
 "~/.pi/agent/agents" = { source = "target/home/.pi/agent/agents", mode = "symlink" }
@@ -62,7 +67,10 @@ includes = ["tasks"]
 "~/.config/ghostty/config" = { source = "target/home/.config/ghostty/config", mode = "symlink" }
 "~/.config/ghui/config.json" = { source = "target/home/.config/ghui/config.json", mode = "copy" }
 "~/.config/hunk/config.toml" = { source = "target/home/.config/hunk/config.toml", mode = "symlink" }
+"~/.config/mise/splash-profile.sh" = { source = "target/home/.config/mise/splash-profile.sh", mode = "symlink" }
 "~/.config/mise/config.toml" = { source = "target/home/.config/mise/config.toml", mode = "symlink" }
+"~/.config/mise/splash-enabled.toml" = { source = "target/home/.config/mise/splash-enabled.toml", mode = "symlink" }
+"~/.config/mise/splash-disabled.toml" = { source = "target/home/.config/mise/splash-disabled.toml", mode = "symlink" }
 "~/.config/mise/miserc.toml" = { source = ".miserc.toml", mode = "symlink" }
 "~/.config/mise/mise.lock" = { source = "target/home/.config/mise/mise.lock", mode = "symlink" }
 "~/.config/zed/settings.json" = { source = "target/home/.config/zed/settings.json", mode = "symlink" }

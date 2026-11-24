@@ -37,8 +37,6 @@ setup_plan=(
   "task|install:common:agents|install/common/agents.sh"
   "task|install:common:amp|install/common/amp.sh"
   "task|install:common:vscode-extensions|install/common/vscode-extensions.sh"
-  "task|install:common:ollama-models|install/common/ollama-models.sh"
-  "task|install:common:mlx|install/common/mlx.sh"
   "task|install:macos:defaults|install/macos/common/defaults.sh"
 )
 
@@ -58,8 +56,6 @@ optional_steps=(
   "install:common:agents"
   "install:common:amp"
   "install:common:vscode-extensions"
-  "install:common:ollama-models"
-  "install:common:mlx"
 )
 
 step_is_optional() {

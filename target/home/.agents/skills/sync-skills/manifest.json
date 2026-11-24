@@ -8,6 +8,14 @@
       "repo": "https://github.com/vercel-labs/skills.git",
       "path": "skills/find-skills"
     },
+    "explain-interface": {
+      "repo": "https://github.com/jakubkrehel/skills.git",
+      "path": "skills/explain-interface"
+    },
+    "inference-optimisation": {
+      "repo": "https://github.com/sybil-solutions/inference-optimisation-skill.git",
+      "path": "skills/inference-optimisation"
+    },
     "create-cli": {
       "repo": "https://github.com/steipete/agent-scripts.git",
       "path": "skills/create-cli"

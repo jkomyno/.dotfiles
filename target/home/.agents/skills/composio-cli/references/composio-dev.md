@@ -12,6 +12,18 @@ If later commands complain about missing developer project context, come back to
 composio dev init -y --no-browser
 ```
 
+## Run Tools In A Developer Project
+
+Top-level `composio execute` and `composio link` act on your own account, in your consumer project. To run a tool inside a developer project, as its playground test user or the user given by `--user-id`, use `composio dev playground-execute`. It takes the same `-d`, `--get-schema`, and `--dry-run` flags as `execute`.
+
+If it reports that the toolkit is not connected for that user, connect it with `composio dev connected-accounts link <toolkit>`, then retry.
+
+```bash
+composio dev playground-execute GMAIL_SEND_EMAIL --get-schema
+composio dev playground-execute GMAIL_SEND_EMAIL -d '{ recipient_email: "a@b.com", subject: "Hello", body: "World" }'
+composio dev connected-accounts link gmail
+```
+
 ## Inspect Toolkits And Versions
 
 Use toolkit commands to inspect developer-scoped capabilities:
@@ -63,9 +75,9 @@ composio dev logs triggers
 
 Use these commands when the user needs to confirm or change the active developer scope:
 
-If the user only wants to connect and execute tools as an end user, return to the top-level workflow instead of staying in `composio dev`.
+If the user wants to act on their own account rather than in a developer project, return to the top-level workflow instead of staying in `composio dev`.
 
 ```bash
-composio dev orgs list
+composio orgs list
 composio dev projects list
 ```

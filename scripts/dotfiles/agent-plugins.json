@@ -31,6 +31,11 @@
       "name": "linear",
       "transport": "http",
       "url": "https://mcp.linear.app/mcp"
+    },
+    {
+      "name": "marked",
+      "transport": "http",
+      "url": "https://marked.dev/api/mcp"
     }
   ],
   "codex": {

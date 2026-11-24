@@ -1,0 +1,181 @@
+name: eval-smoke
+
+# Deterministic contract evaluation suite + Glicko-2 rating sanity and
+# regression gates (no external API calls).
+#
+# Hard-gates the PR if any skill contract case fails, if any case's score
+# drops below its committed baseline value, or if Glicko-2 replay regresses.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  skill-conformance:
+    name: Skill corpus conformance + DAG + cross-link audit
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          submodules: false
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+
+      - name: Install PyYAML
+        run: python -m pip install --upgrade pip pyyaml
+
+      - name: Run skill-audit/check_conformance.py (fail-on any)
+        run: |
+          python3 scripts/skill-audit/check_conformance.py \
+            --json ./_skill-audit.json \
+            --md   ./_skill-audit.md \
+            --fail-on any
+
+      - name: Upload skill-audit report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: skill-audit-report
+          path: |
+            ./_skill-audit.json
+            ./_skill-audit.md
+          if-no-files-found: warn
+          retention-days: 30
+
+  smoke:
+    name: Deterministic skill contract eval suite (baseline gate)
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          submodules: false
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+
+      - name: Install PyYAML
+        run: python -m pip install --upgrade pip pyyaml
+
+      - name: Run deterministic contract eval suite
+        run: |
+          python3 scripts/eval/run_eval.py \
+            --cases 'scripts/eval/cases/*.yaml' \
+            --out ./_eval-out \
+            --grader deterministic
+
+      - name: Diff against committed baseline
+        run: |
+          python3 scripts/eval/baseline.py \
+            --run-dir ./_eval-out \
+            --baseline scripts/eval/baselines/smoke/baseline.json \
+            --mode diff
+
+      - name: Upload eval report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: eval-smoke-report
+          path: ./_eval-out/
+          if-no-files-found: warn
+          retention-days: 30
+
+  glicko2:
+    name: Glicko-2 sanity tests (Glickman 2012 section 5)
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          submodules: false
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+
+      - name: Install PyYAML
+        run: python -m pip install --upgrade pip pyyaml
+
+      - name: Run Glicko-2 sanity tests
+        run: python3 scripts/elo/glicko2_test.py
+
+      - name: Smoke-run Glicko-2 on sample_matches.csv
+        run: |
+          python3 scripts/elo/glicko2.py \
+            --matches scripts/elo/sample_matches.csv \
+            --out ./_glicko2-out
+
+      - name: Smoke-run Glicko-2 on live matches CSVs (if any)
+        run: |
+          shopt -s nullglob
+          for f in scripts/elo/matches/*.csv; do
+            echo "::group::Glicko-2 on $f"
+            python3 scripts/elo/glicko2.py --matches "$f" --out "./_glicko2-live-$(basename "$f" .csv)"
+            echo "::endgroup::"
+          done
+        shell: bash
+
+      - name: ELO regression gate (vs baseline_ratings.json)
+        run: |
+          shopt -s nullglob
+          latest_csv=""
+          latest_size=0
+          for f in scripts/elo/matches/*-live.csv; do
+            size=$(wc -l < "$f")
+            if [ "$size" -gt "$latest_size" ]; then
+              latest_size=$size
+              latest_csv=$f
+            fi
+          done
+          if [ -z "$latest_csv" ]; then
+            echo "No live matches CSV found -- regression gate skipped."
+            exit 0
+          fi
+          echo "Regression-gating against $latest_csv ($latest_size rows)"
+          python3 scripts/elo/glicko2.py --matches "$latest_csv" --out ./_glicko2-regression-check
+          python3 scripts/elo/check_regression.py \
+            --current ./_glicko2-regression-check/ratings.json
+        shell: bash
+
+      - name: Per-rubric ELO regression gate (vs baseline_ratings_per_rubric.json)
+        run: |
+          shopt -s nullglob
+          latest_csv=""
+          latest_size=0
+          for f in scripts/elo/matches/*-live.csv; do
+            size=$(wc -l < "$f")
+            if [ "$size" -gt "$latest_size" ]; then
+              latest_size=$size
+              latest_csv=$f
+            fi
+          done
+          if [ -z "$latest_csv" ]; then
+            echo "No live matches CSV found -- per-rubric gate skipped."
+            exit 0
+          fi
+          mkdir -p ./_per-rubric-check
+          python3 scripts/elo/per_rubric_elo.py \
+            --matches "$latest_csv" \
+            --cases scripts/eval/cases \
+            --out ./_per-rubric-check/
+          python3 scripts/elo/check_per_rubric_regression.py \
+            --archive ./_per-rubric-check/
+        shell: bash
+
+      - name: Upload Glicko-2 report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: glicko2-report
+          path: ./_glicko2-out/
+          if-no-files-found: warn
+          retention-days: 30

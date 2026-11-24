@@ -2233,27 +2233,26 @@ url = "https://github.com/docker/sbx-releases/releases/download/v0.54.0/DockerSa
 url_api = "https://api.github.com/repos/docker/sbx-releases/releases/assets/754497751"
 
 [[tools."github:earendil-works/pi"]]
-version = "1.5.2"
+version = "1.6.0"
 backend = "github:earendil-works/pi"
 specifiers = ["latest"]
 
 [tools."github:earendil-works/pi"."platforms.linux-arm64"]
-checksum = "sha256:42805cd5615952fcbbfc9c56b04f8feb84395134952e169a6cdc8d7676975666"
+checksum = "sha256:5404547b9739be596d50ae7142c52535899e8e7dd37a7bace9be593e0355b468"
 checksum_source = "mise-versions"
-url = "https://github.com/earendil-works/pi/releases/download/v1.5.2/pi-linux-arm64.tar.gz"
-url_api = "https://api.github.com/repos/earendil-works/pi/releases/assets/731292536"
+url = "https://github.com/earendil-works/pi/releases/download/v1.6.0/pi-linux-arm64.tar.gz"
+url_api = "https://api.github.com/repos/earendil-works/pi/releases/assets/771562443"
 
 [tools."github:earendil-works/pi"."platforms.linux-x64"]
-checksum = "sha256:811c6f2c9e7aaee252b5404252e556fb713aa209c1f7f924226aa77d4ef70cb5"
+checksum = "sha256:ef77dbe4379b3bdeb425a1e1b862fa3c915c255000dfe4965c98eee96a5765d1"
 checksum_source = "mise-versions"
-url = "https://github.com/earendil-works/pi/releases/download/v1.5.2/pi-linux-x64.tar.gz"
-url_api = "https://api.github.com/repos/earendil-works/pi/releases/assets/731292534"
+url = "https://github.com/earendil-works/pi/releases/download/v1.6.0/pi-linux-x64.tar.gz"
+url_api = "https://api.github.com/repos/earendil-works/pi/releases/assets/771562455"
 
 [tools."github:earendil-works/pi"."platforms.macos-arm64"]
-checksum = "sha256:56b5e194d485ced555667b8ba3276157a8272e9ecde9e001e428af80985bdd9b"
-checksum_source = "mise-versions"
-url = "https://github.com/earendil-works/pi/releases/download/v1.5.2/pi-darwin-arm64.tar.gz"
-url_api = "https://api.github.com/repos/earendil-works/pi/releases/assets/731292526"
+checksum = "sha256:6429287b7ae98d726ec577815d14fd680e7c587e89ecc5153b4a145dc4adba33"
+url = "https://github.com/earendil-works/pi/releases/download/v1.6.0/pi-darwin-arm64.tar.gz"
+url_api = "https://api.github.com/repos/earendil-works/pi/releases/assets/771562449"
 
 [[tools."github:jkomyno/uniku"]]
 version = "0.9.1"
@@ -2279,6 +2278,29 @@ url_api = "https://api.github.com/repos/jkomyno/uniku/releases/assets/753894813"
 checksum = "sha256:43df1659bf4e60861354a77694bbd31ffdcae6ba639f53f24dd2748c64a60c9d"
 url = "https://github.com/jkomyno/uniku/releases/download/uniku-cli-v0.9.1/uniku-darwin-arm64.tar.gz"
 url_api = "https://api.github.com/repos/jkomyno/uniku/releases/assets/753894812"
+
+[[tools."github:leanprover/lean4"]]
+version = "4.36.0"
+backend = "github:leanprover/lean4"
+specifiers = ["latest"]
+
+[tools."github:leanprover/lean4"."platforms.linux-arm64"]
+checksum = "sha256:35471998152191ef809418ce5bf61f8fc5f209e5e3be05b48bdc4949fdb3e726"
+checksum_source = "mise-versions"
+url = "https://github.com/leanprover/lean4/releases/download/v4.36.0/lean-4.36.0-linux_aarch64.tar.zst"
+url_api = "https://api.github.com/repos/leanprover/lean4/releases/assets/755416453"
+
+[tools."github:leanprover/lean4"."platforms.linux-x64"]
+checksum = "sha256:2b7ab1ed8b92d2e6abfaf41344823b510064dbc9c0260cac73eb496ab2dea6eb"
+checksum_source = "mise-versions"
+url = "https://github.com/leanprover/lean4/releases/download/v4.36.0/lean-4.36.0-linux.tar.zst"
+url_api = "https://api.github.com/repos/leanprover/lean4/releases/assets/755416458"
+
+[tools."github:leanprover/lean4"."platforms.macos-arm64"]
+checksum = "sha256:49acada8749ad1343eff1224a3d2510ac61ed53363d37b5e738e8c587e7deabd"
+checksum_source = "mise-versions"
+url = "https://github.com/leanprover/lean4/releases/download/v4.36.0/lean-4.36.0-darwin_aarch64.tar.zst"
+url_api = "https://api.github.com/repos/leanprover/lean4/releases/assets/755416456"
 
 [[tools."github:rtk-ai/rtk"]]
 version = "1.2.0"
@@ -2541,28 +2563,6 @@ aube = { path = "locks/npm-pnpm/12.21.0", digest = "sha256:88abd0fe69fc177b866bb
 backend = "npm:pnpm"
 specifiers = ["12"]
 
-[[tools.ollama]]
-version = "0.40.16"
-backend = "aqua:ollama/ollama"
-specifiers = ["latest"]
-
-[tools.ollama."platforms.linux-arm64"]
-checksum = "sha256:e45b8e6dcb86cb9f3057396351655079c9a4879b4ced2678c9350d375dcbc224"
-checksum_source = "mise-versions"
-url = "https://github.com/ollama/ollama/releases/download/v0.40.16/ollama-linux-arm64.tar.zst"
-url_api = "https://api.github.com/repos/ollama/ollama/releases/assets/729375654"
-
-[tools.ollama."platforms.linux-x64"]
-checksum = "sha256:87bfafb2acbc89b2e6a1be0a9043de6aa75fb450696f86bc426e65fc448f788d"
-checksum_source = "mise-versions"
-url = "https://github.com/ollama/ollama/releases/download/v0.40.16/ollama-linux-amd64.tar.zst"
-url_api = "https://api.github.com/repos/ollama/ollama/releases/assets/729375561"
-
-[tools.ollama."platforms.macos-arm64"]
-checksum = "sha256:a743717494315da7cd352982b805f6b992d4b4452ca117fd5fbf86c4ee46fca0"
-url = "https://github.com/ollama/ollama/releases/download/v0.40.16/ollama-darwin.tgz"
-url_api = "https://api.github.com/repos/ollama/ollama/releases/assets/729375443"
-
 [[tools."pipx:huggingface_hub"]]
 version = "2.4.0"
 backend = "pipx:huggingface_hub"
@@ -2571,6 +2571,12 @@ uv = { path = "locks/pipx-huggingface-hub/2.4.0~a0403339", digest = "sha256:a26d
 
 [tools."pipx:huggingface_hub".options]
 python = "3.14"
+
+[[tools."pipx:lean-lsp-mcp"]]
+version = "0.33.0"
+backend = "pipx:lean-lsp-mcp"
+specifiers = ["latest"]
+uv = { path = "locks/pipx-lean-lsp-mcp/0.33.0", digest = "sha256:32ef9b47a9f28e2c35492f746611eac235b542ce14901437911b0d2240aa6074" }
 
 [[tools."pipx:nox"]]
 version = "2026.10.20"

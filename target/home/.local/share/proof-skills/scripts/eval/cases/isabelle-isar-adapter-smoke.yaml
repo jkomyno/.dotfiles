@@ -1,0 +1,22 @@
+skill: isabelle-isar-adapter
+description: Smoke test verifying routing, workflow, and handbook link for @isabelle-isar-adapter.
+id: isabelle-isar-adapter-smoke
+title: Smoke test verifying routing, workflow, and handbook link for @isabelle-isar-adapter.
+ensemble_rubric: lean-proof-quality
+difficulty: easy
+input:
+  prompt: 'Apply the @isabelle-isar-adapter workflow and consult references/cards/isabelle-isar-adapter-tables.md
+    and references/handbooks/isabelle-isar-adapter-handbook.md.
+
+    '
+  expected_output_substring: 'Follow the @isabelle-isar-adapter protocol via references/cards/isabelle-isar-adapter-tables.md
+    and verify all outputs cleanly.
+
+    '
+expected:
+  contains:
+  - isabelle\-isar\-adapter|protocol|verify
+  not_contains:
+  - \bsorry\b
+  - \badmit\b
+grader: deterministic

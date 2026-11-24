@@ -1,10 +1,13 @@
 min_version = "2026.11.8"
+include = ["{{ exec(command='sh \"$(dirname \"' ~ config_source ~ '\")/splash-profile.sh\"') }}"]
 
 [tools]
 # Select mbx before Rust's ~/.cargo/bin, which can contain an older Cargo install.
 # The Rust tool's mr_boxington option supplies Cargo wrapping natively.
 mr-boxington = "latest"
 # Programming languages
+# https://lean-lang.org - theorem prover and programming language
+"github:leanprover/lean4" = "latest"
 # Track npm independently from the older version bundled with Node.
 "npm:npm" = "12"
 # https://github.com/pnpm/pnpm - fast, disk-efficient JavaScript package manager
@@ -37,6 +40,8 @@ ruff = "latest"
 ty = "latest"
 # https://nox.thea.codes - Python task automation driven by noxfile.py sessions
 "pipx:nox" = "latest"
+# https://github.com/oOo0oOo/lean-lsp-mcp - Lean language server tools for agents
+"pipx:lean-lsp-mcp" = "latest"
 # https://github.com/huggingface/huggingface_hub - Hugging Face Hub CLI (`hf`); huggingface-cli is deprecated
 # PyYAML has no Python 3.15 wheel; isolate hf on Python 3.14 for locked installs.
 "pipx:huggingface_hub" = { version = "latest", python = "3.14" }
@@ -137,11 +142,6 @@ ast-grep = "latest"
 # install/common/amp.sh provisioning script, like Claude Code (install/common/claude.sh).
 
 # Local LLM tooling
-# https://github.com/ollama/ollama - run large language models locally; `ollama serve` hosts the API
-ollama = "latest"
-# mlx-lm (`mlx_lm.server`, the MLX-first OpenAI-compatible local LLM runtime) is NOT a mise
-# tool: it is Apple-Silicon-only, so it is installed via `uv tool` by the guarded
-# install/common/mlx.sh provisioning script rather than this cross-platform manifest.
 
 # Terminal recording
 # https://github.com/agentstation/vhs - charmbracelet/vhs fork with SVG output; scripted terminal
