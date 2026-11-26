@@ -1,0 +1,68 @@
+[tools]
+# Track npm independently from the older version bundled with Node.
+"npm:npm" = "12"
+# Keep the latest patch from both majors, with 26 selected by default.
+node = ["26", "24"]
+# Upgrade pip independently from the version bundled with each Python release.
+python = { version = "3.15", postinstall = "python -m pip install --upgrade pip" }
+# https://github.com/oven-sh/bun - JavaScript runtime, package manager, and bundler
+bun = "latest"
+# https://github.com/astral-sh/uv - fast Python package and virtualenv manager
+uv = "latest"
+# https://github.com/astral-sh/ruff - fast Python linter and formatter
+ruff = "latest"
+# https://github.com/astral-sh/ty - Python type checker
+ty = "latest"
+# https://github.com/cli/cli - GitHub's official command-line tool
+gh = "latest"
+# https://github.com/dandavison/delta - syntax-highlighting, side-by-side Git diff pager
+delta = "latest"
+# https://github.com/git-lfs/git-lfs - Git extension for versioning large files
+git-lfs = "latest"
+# https://github.com/modem-dev/hunk - review-first terminal diff viewer
+hunk = "latest"
+# macOS lacks timeout; Linux already provides it through system coreutils.
+# Expose only timeout from GNU coreutils, preserving macOS's other utilities.
+"conda:coreutils" = { version = "latest", os = ["macos"], postinstall = 'find "$MISE_TOOL_INSTALL_PATH/.mise-bins" -mindepth 1 ! -name timeout -delete' }
+# https://github.com/tmux/tmux - terminal multiplexer; config in target/home/.config/tmux
+tmux = "latest"
+# https://github.com/starship/starship - cross-shell prompt
+starship = "latest"
+# https://github.com/casey/just - command runner for project-local recipes (justfiles)
+just = "latest"
+# https://github.com/BurntSushi/ripgrep - fast recursive text search
+ripgrep = "latest"
+# https://github.com/sharkdp/fd - fast, user-friendly file search
+fd = "latest"
+# https://github.com/sharkdp/bat - cat clone with syntax highlighting and git integration
+bat = "latest"
+# https://github.com/junegunn/fzf - command-line fuzzy finder
+fzf = "latest"
+# https://github.com/neovim/neovim - programmable terminal editor; config in target/home/.config/nvim
+neovim = "latest"
+# https://github.com/openai/codex - OpenAI Codex CLI coding agent;
+# global config and shared-agent adapter tracked in target/home/.codex
+"npm:@openai/codex" = "latest"
+# https://keyshroud.dev - encrypted local vault and masked secret injection
+"npm:keyshroud" = "latest"
+# https://github.com/earendil-works/pi (https://pi.dev) - Pi, a minimal extensible coding agent;
+# The standalone release includes its runtime, so project Node pins cannot break Pi.
+# Global config and skills wiring tracked in target/home/.pi.
+"github:earendil-works/pi" = "latest"
+# https://github.com/rtk-ai/rtk - rewrites agent shell commands into token-efficient equivalents;
+# required by the Claude Code PreToolUse hook in target/home/.claude/hooks/rtk-rewrite.sh
+"github:rtk-ai/rtk" = "latest"
+# https://github.com/sirmalloc/ccstatusline - Claude Code status line renderer;
+# wired up via statusLine in target/home/.claude/settings.json, configured by target/home/.config/ccstatusline
+"npm:ccstatusline" = "latest"
+# https://github.com/ryoppippi/ccusage - Claude Code usage/cost reporter; feeds the
+# first status line via the custom-command widget in target/home/.config/ccstatusline/settings.json
+"npm:ccusage" = "latest"
+# https://paseo.sh - run local coding agents (Claude Code, Codex, pi) from the phone/web app;
+# the always-on daemon uses a tracked LaunchAgent on macOS and user unit on Linux
+# loaded by install/common/paseo.sh, with remote access through SSH forwarding
+"npm:@getpaseo/cli" = "latest"
+# https://tryglen.com - shared team memory and transcript handoff CLI for coding agents
+"npm:@tryglen/cli" = { version = "latest", trust_policy_excludes = ["@tryglen/cli@0.37.0"] }
+# https://github.com/jqlang/jq - command-line JSON processor
+jq = "latest"

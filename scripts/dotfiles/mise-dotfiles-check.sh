@@ -57,13 +57,10 @@ parse_args() {
 }
 
 run_mise_dotfiles() {
-  local mise_cmd="$1"
-  shift
-
-  env \
-    HOME="${check_home}" \
-    MISE_TRUSTED_CONFIG_PATHS="${DOTFILES_ROOT}${MISE_TRUSTED_CONFIG_PATHS:+:${MISE_TRUSTED_CONFIG_PATHS}}" \
-    "${mise_cmd}" -C "${DOTFILES_ROOT}" bootstrap dotfiles "$@"
+  env HOME="${check_home}" XDG_CONFIG_HOME="${check_home}/.config" \
+    XDG_STATE_HOME="${check_home}/.local/state" XDG_CACHE_HOME="${check_home}/.cache" \
+    XDG_DATA_HOME="${check_home}/.local/share" DOTFILES_SELECTION=full \
+    "${SCRIPT_DIR}/dotfiles.sh" "$@"
 }
 
 verify_symlink() {
@@ -150,7 +147,10 @@ verify_json() {
 }
 
 verify_agent_skill_links() {
-  verify_symlink ".agents/skills" "target/home/.agents/skills"
+  if [[ -L "${check_home}/.agents/skills" || ! -d "${check_home}/.agents/skills" ]]; then
+    error "shared skills must be a directory with per-skill links"
+    return 1
+  fi
 
   if [[ -L "${check_home}/.claude/skills" || ! -d "${check_home}/.claude/skills" ]]; then
     error "Claude skills must remain a real directory for host-specific entries"
@@ -182,7 +182,7 @@ verify_agent_skill_links() {
     return 1
   fi
 
-  verify_symlink ".claude/skills/sync-skills" "target/home/.agents/skills/sync-skills"
+  [[ "${check_home}/.claude/skills/sync-skills" -ef "${DOTFILES_ROOT}/target/home/.agents/skills/sync-skills" ]]
 
   if [[ ! -f "${check_home}/.claude/skills/sync-skills/SKILL.md" ]]; then
     error "Claude skill links do not expose sync-skills"
@@ -204,7 +204,7 @@ run_claude_skill_links() {
   shift
   env \
     HOME="${target_home}" \
-    DOTFILES="${DOTFILES_ROOT}" \
+    DOTFILES="${DOTFILES_ROOT}" DOTFILES_SELECTION=full \
     bash "${SCRIPT_DIR}/claude-skill-links.sh" "$@"
 }
 
@@ -251,10 +251,11 @@ verify_unrelated_directory_link_is_preserved() {
 verify_dotfiles() {
   verify_symlink ".local/bin/pstack-skill" "target/home/.local/bin/pstack-skill"
   verify_no_template_delimiters ".zprofile"
-  verify_symlink ".claude/settings.json" "target/home/.claude/settings.json"
+  [[ ! -L "${check_home}/.claude/settings.json" ]]
   verify_no_template_delimiters ".ssh/config"
   verify_json ".claude/settings.json"
-  verify_symlink ".pi/agent/settings.json" "target/home/.pi/agent/settings.json"
+  verify_json ".pi/agent/settings.json"
+  [[ ! -L "${check_home}/.pi/agent/settings.json" ]]
   verify_symlink ".pi/agent/extensions/subagent" "target/home/.pi/agent/extensions/subagent"
   verify_symlink ".pi/agent/agents" "target/home/.pi/agent/agents"
   verify_agent_skill_links
@@ -279,7 +280,7 @@ verify_dotfiles() {
     verify_absent ".config/sccache/config"
     verify_symlink ".config/mise/config.linux.toml" "target/home/.config/mise/config.linux.toml"
     verify_symlink ".config/mise/mise.linux.lock" "target/home/.config/mise/mise.linux.lock"
-    verify_symlink ".config/systemd/user/paseo.service" "target/home/.config/systemd/user/paseo.service"
+    verify_symlink ".config/systemd/user/paseo.service" "target/home/.config/systemd/user/paseo-mise.service"
     verify_symlink ".config/systemd/user/rust-cache-maintenance.service" "target/home/.config/systemd/user/rust-cache-maintenance.service"
     verify_symlink ".config/systemd/user/rust-cache-maintenance.timer" "target/home/.config/systemd/user/rust-cache-maintenance.timer"
     verify_absent "Library"
@@ -307,8 +308,7 @@ main() {
   parse_args "$@"
   trap cleanup EXIT
 
-  local mise_cmd
-  mise_cmd="$(mise_bin)" || {
+  mise_bin >/dev/null || {
     error "mise is missing"
     return 127
   }
@@ -317,15 +317,14 @@ main() {
   seed_local_claude_skill
 
   log "Checking repository mise bootstrap dotfiles status against temporary HOME"
-  run_mise_dotfiles "${mise_cmd}" status
+  run_mise_dotfiles status
 
   log "Checking repository mise bootstrap dotfiles dry-run against temporary HOME"
-  run_mise_dotfiles "${mise_cmd}" apply --dry-run
+  run_mise_dotfiles apply --dry-run
 
   log "Applying repository mise bootstrap dotfiles into temporary HOME"
-  run_mise_dotfiles "${mise_cmd}" apply --yes
   verify_check_mode
-  run_claude_skill_links "${check_home}"
+  run_mise_dotfiles apply --yes
   run_claude_skill_links "${check_home}" --check
   verify_dotfiles
   verify_legacy_directory_link_migration

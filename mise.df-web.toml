@@ -1,0 +1,6 @@
+[dotfiles]
+"~/.config/fish/functions/pb.fish" = { source = "target/home/.config/fish/functions/pb.fish", mode = "symlink" }
+"~/.config/fish/functions/pnpm.fish" = { source = "target/home/.config/fish/functions/pnpm.fish", mode = "symlink" }
+"~/.config/zsh/aliases.d/pnpm.zsh" = { source = "target/home/.config/zsh/aliases.d/pnpm.zsh", mode = "symlink" }
+"~/.config/fish/functions/p.fish" = { source = "target/home/.config/fish/functions/p.fish", mode = "symlink" }
+"~/.config/fish/functions/pt.fish" = { source = "target/home/.config/fish/functions/pt.fish", mode = "symlink" }

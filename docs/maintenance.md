@@ -1,6 +1,7 @@
 # Local software maintenance
 
-`just update mise` updates declared tools and refreshes the shared lockfile.
+`just update mise` installs active tools from the shared and Linux locks.
+Maintainers use `just versions-update` to refresh the complete catalog.
 The standalone mise bootstrap version is pinned in `install/common/mise.sh`;
 run that script with `--binary-only` after changing the pin.
 The managed configuration requires mise 2026.11.8 or newer. Keep its
@@ -61,18 +62,50 @@ ceiling. A smaller budget can require recompilation. See the
 
 `just audit-home` inventories mappings, undeclared home entries, and broken
 links without exporting file contents. `just audit-home --json` provides a
-snapshot for comparison. Use `mise bootstrap dotfiles status` to check rendered
+snapshot for comparison. Use `scripts/dotfiles/dotfiles.sh status` to check rendered
 templates as well as links and copies.
 
 Review undeclared entries by ownership. Keep portable preferences under
 `target/home` and map individual files. Keep authentication, private machine
 settings, caches, histories, and generated state local. Some files contain
-both: the live Codex configuration adds project trust and plugin state to the
-copied defaults. A differing copy is a prompt for field-level review, not a
-reason to force-apply the source.
+both. The agent reconciler manages selected MCP servers, hooks, plugins and
+Pi package sources while retaining local project trust and provider settings.
 
 Application launch metadata and shell history are incomplete. A missing
 Spotlight timestamp or shell command is not proof of nonuse; libraries may
 be required by another installed package. For skills, count actual invocation
 or explicit reads, exclude startup catalogs, and record history coverage and
 installation dates before proposing retirement.
+
+## Work VM rollout
+
+1. Keep an SSH session open. Open a second one and record `command -v node go python3`, `getent passwd "$USER"`, and `systemctl --user show paseo.service -p FragmentPath -p MainPID -p ExecStart`. Record the current daemon home, registration and loopback health locally. Keep provider credentials on the host.
+2. Run `just setup-plan --profile work --with go`. Review differing targets, host instructions, active skills, Pi extensions and the existing unit. Back up only the paths you plan to adopt, including symlinks, with `cp -a` into a private directory. For one reviewed native file, use `DOTFILES_SELECTION='work go' scripts/dotfiles/dotfiles.sh apply --force --yes "$HOME/path"`. Identity migration also requires `DOTFILES_MIGRATE_IDENTITY=1`.
+3. Run `bash setup.sh --profile work --with go`. The default work setup keeps the current SSH and Git identity and login shell. Sign into agents separately. On Bash hosts, review the existing startup files and add the following to the interactive startup path once:
+
+   ```bash
+   export PATH="$HOME/.local/bin:$PATH"
+   eval "$(mise activate bash)"
+   ```
+
+4. Verify a fresh SSH login and `mise which node`, `mise which go`, `codex --version`, `claude --version` and `pi --version`. Noninteractive SSH commands can use `~/.local/bin/mise exec -- node --version`. Check `just update mise` and `git status --short` in the checkout.
+5. Migrate Paseo independently. Existing Linux links to the earlier unit source keep their original contents across the pull. The reviewed target selects the separate `paseo-mise.service` source. Keep the original unit and environment file, daemon home and image Node available. Review and apply just the replacement:
+
+   ```sh
+   DOTFILES_MIGRATE_PASEO=1 scripts/dotfiles/dotfiles.sh apply --force --yes "$HOME/.config/systemd/user/paseo.service"
+   DOTFILES_MIGRATE_PASEO=1 bash install/common/paseo.sh
+   systemctl --user show paseo.service -p MainPID -p ExecStart
+   ss -lntp | grep ':6767'
+   curl -fsS http://127.0.0.1:6767/api/health
+   ~/.local/bin/mise exec -- paseo daemon status
+   ```
+
+   Inspect `/proc/<pid>/exe` for the daemon and workers after a stop/start. Verify the existing host registration and provider discovery from the paired client. To roll back, stop the new unit, replace its symlink with the backed-up unit, restore any changed environment file, then run `systemctl --user daemon-reload` and restore its previous enabled/running state. Revert the reviewed Bash snippet and restore the prior profile selection if needed. Keep OS Python, image Node and Go, shell, networking and system services installed.
+
+### Rehearsal results
+
+On 2026-11-26, `setup.sh --profile work --with go` completed on an isolated Ubuntu 24.04 arm64 VM. Mise resolved 34 tool installations. A second SSH session kept Bash and resolved Node 26.13.1, Go 1.27.4, npm 12.2.2 and pnpm 12.21.0 through mise. The distribution's Node 18.19.1 and Go 1.22.2 remained available under `/usr/bin`.
+
+Setup preserved the original service PID, SSH and Git configuration, Shelley instruction link and pre-existing Pi extension. Both `just update mise` and `just update` completed with a clean checkout and identical source lock checksums. GitHub briefly rate-limited the Neovim plugin's release lookup during the first install. Retrying after the rate limit reset installed the locked release.
+
+The independent Paseo cutover used the pinned CLI's `daemon run` command. The rollback restored the prior unit. After a stop/start, the managed unit returned HTTP 200 at `/api/health`, retained its server ID, and ran its Node processes from mise. Paseo reported Claude, Codex and Pi available without a provider sign-in or pairing a client.

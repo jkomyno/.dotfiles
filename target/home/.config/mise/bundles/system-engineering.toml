@@ -1,0 +1,46 @@
+[tools]
+# Select mbx before Rust's ~/.cargo/bin, which can contain an older Cargo install.
+# The Rust tool's mr_boxington option supplies Cargo wrapping natively.
+mr-boxington = "latest"
+# https://lean-lang.org - theorem prover and programming language
+"github:leanprover/lean4" = "latest"
+# mr_boxington wraps plain Cargo commands through Mr Boxington (mbx): a shared,
+# content-addressed compilation cache across projects and worktrees with
+# budgeted collection of managed target/ directories (docs: mr-boxington.jdx.dev).
+rust = { version = "stable", targets = "wasm32-unknown-unknown", mr_boxington = true }
+erlang = "29.1.2"
+elixir = "1.20.5-otp-29"
+# https://nox.thea.codes - Python task automation driven by noxfile.py sessions
+"pipx:nox" = "latest"
+# https://github.com/oOo0oOo/lean-lsp-mcp - Lean language server tools for agents
+"pipx:lean-lsp-mcp" = "latest"
+# https://github.com/cargo-bins/cargo-binstall - installs Rust binaries from prebuilt releases
+cargo-binstall = "latest"
+# https://github.com/wasm-bindgen/wasm-bindgen - Rust and JavaScript WebAssembly bindings
+"cargo:wasm-bindgen-cli" = "0.2.130"
+# https://github.com/EmbarkStudios/cargo-deny - lints Rust dependency graphs: advisories, licenses, bans, sources
+"cargo:cargo-deny" = "latest"
+# https://github.com/rustsec/rustsec - audits Cargo.lock against the RustSec advisory database
+"cargo:cargo-audit" = "latest"
+# https://github.com/aws/aws-cli - AWS command-line interface
+aws-cli = "latest"
+# https://github.com/DopplerHQ/cli - secrets and environment configuration CLI
+doppler = "latest"
+# https://codeberg.org/mergiraf/mergiraf - syntax-aware Git merge driver
+"cargo:mergiraf" = "latest"
+# https://github.com/koalaman/shellcheck - static analysis for shell scripts
+shellcheck = "latest"
+# https://github.com/mvdan/sh - shell parser, formatter, and interpreter
+shfmt = "latest"
+# https://github.com/eza-community/eza - modern ls replacement
+"cargo:eza" = "latest"
+# https://github.com/ast-grep/ast-grep - AST-based code search and rewrite
+ast-grep = "latest"
+# https://github.com/docker/sbx-releases - Docker Sandboxes CLI for isolated AI agent microVMs
+"github:docker/sbx-releases" = "latest"
+# https://github.com/tamasfe/taplo - TOML formatter and language server
+taplo = "latest"
+# https://github.com/crate-ci/typos - source-code spell checker
+typos = "latest"
+liquibase = "5.0.4"
+actionlint = "1.7.12"

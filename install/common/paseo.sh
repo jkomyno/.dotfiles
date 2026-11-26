@@ -108,8 +108,7 @@ ensure_plist() {
   [[ -f "${PLIST}" ]] && return 0
   [[ -x "${MISE_BIN}" ]] || return 1
   log "Deploying the paseo LaunchAgent"
-  MISE_AUTO_ENV=true MISE_TRUSTED_CONFIG_PATHS="${DOTFILES_ROOT}" \
-    "${MISE_BIN}" -C "${DOTFILES_ROOT}" bootstrap dotfiles apply "${PLIST}" --yes >/dev/null 2>&1 || true
+  "${DOTFILES_ROOT}/scripts/dotfiles/dotfiles.sh" apply "${PLIST}" --yes >/dev/null 2>&1 || true
   [[ -f "${PLIST}" ]]
 }
 
@@ -144,8 +143,7 @@ ensure_systemd_unit() {
   [[ -e "${SYSTEMD_UNIT}" || -L "${SYSTEMD_UNIT}" ]] && return 0
   [[ -x "${MISE_BIN}" ]] || return 1
   log "Deploying the paseo systemd user unit"
-  MISE_AUTO_ENV=true MISE_TRUSTED_CONFIG_PATHS="${DOTFILES_ROOT}" \
-    "${MISE_BIN}" -C "${DOTFILES_ROOT}" bootstrap dotfiles apply "${SYSTEMD_UNIT}" --yes >/dev/null 2>&1 || true
+  "${DOTFILES_ROOT}/scripts/dotfiles/dotfiles.sh" apply "${SYSTEMD_UNIT}" --yes >/dev/null 2>&1 || true
   [[ -e "${SYSTEMD_UNIT}" || -L "${SYSTEMD_UNIT}" ]]
 }
 
@@ -197,6 +195,14 @@ linux_main() {
     return 0
   fi
 
+  if [[ "$(bash "${DOTFILES_ROOT}/target/home/.config/mise/dotfiles-profile.sh" profile)" != full &&
+        "${DOTFILES_MIGRATE_PASEO:-0}" != 1 ]]; then
+    if [[ ! "${SYSTEMD_UNIT}" -ef "${DOTFILES_ROOT}/target/home/.config/systemd/user/paseo-mise.service" ]] ||
+       systemctl --user is-active --quiet "${SYSTEMD_UNIT_NAME}"; then
+      log "Keeping the existing Paseo service; set DOTFILES_MIGRATE_PASEO=1 for a reviewed restart"
+      return 0
+    fi
+  fi
   ensure_lingering
   systemctl --user daemon-reload
   systemctl --user enable --now "${SYSTEMD_UNIT_NAME}"

@@ -85,7 +85,7 @@ case "${MODE}" in
 esac
 
 # install
-if [[ -z "${DOTFILES_ENABLE_NOPASSWD_SUDO:-}" && ! -t 0 ]]; then
+if [[ "${DOTFILES_ENABLE_NOPASSWD_SUDO:-0}" != 1 && ( "${DOTFILES_STAGED_SETUP:-0}" == 1 || ! -t 0 ) ]]; then
   # Guard the staged-setup path: skip silently unless explicitly opted in, so a
   # normal provisioning run never flips a machine to passwordless sudo behind the
   # user's back.

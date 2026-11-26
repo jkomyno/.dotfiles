@@ -1,0 +1,4 @@
+[tools]
+# https://github.com/huggingface/huggingface_hub - Hugging Face Hub CLI (`hf`); huggingface-cli is deprecated
+# PyYAML has no Python 3.15 wheel; isolate hf on Python 3.14 for locked installs.
+"pipx:huggingface_hub" = { version = "latest", python = "3.14" }

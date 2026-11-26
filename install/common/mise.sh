@@ -12,7 +12,6 @@ readonly DEFAULT_MISE_BOOTSTRAP_VERSION="v2026.11.8"
 readonly MISE_BOOTSTRAP_VERSION="${MISE_BOOTSTRAP_VERSION:-${DEFAULT_MISE_BOOTSTRAP_VERSION}}"
 readonly MISE_INSTALL_PATH="${MISE_INSTALL_PATH:-${HOME}/.local/bin/mise}"
 readonly MISE_INSTALLER_URL="https://github.com/jdx/mise/releases/download/${MISE_BOOTSTRAP_VERSION}/install.sh"
-readonly DEFAULT_MISE_MINIMUM_RELEASE_AGE="${MISE_MINIMUM_RELEASE_AGE:-0s}"
 install_tools="true"
 dry_run="false"
 
@@ -80,25 +79,9 @@ install_mise() {
 }
 
 install_configured_tools() {
-  local args=()
-
-  if "${MISE_INSTALL_PATH}" install --help | grep -q -- '--minimum-release-age'; then
-    args=(--yes --minimum-release-age "${DEFAULT_MISE_MINIMUM_RELEASE_AGE}")
-  else
-    args=(--yes --before "${DEFAULT_MISE_MINIMUM_RELEASE_AGE}")
-  fi
-
-  if [[ "${dry_run}" == "true" ]]; then
-    args+=(--dry-run)
-  fi
-
-  log "Installing mise tools"
-  PATH="$(dirname "${MISE_INSTALL_PATH}"):${PATH}" \
-    MISE_DEFAULT_CONFIG_FILENAME="config.toml" \
-    MISE_IGNORED_CONFIG_PATHS="${HOME}/.config/mise/config.toml:${DOTFILES_ROOT}/mise.toml:${DOTFILES_ROOT}/mise.linux.toml:${DOTFILES_ROOT}/mise.macos.toml${MISE_IGNORED_CONFIG_PATHS:+:${MISE_IGNORED_CONFIG_PATHS}}" \
-    MISE_AUTO_ENV=true \
-    MISE_TRUSTED_CONFIG_PATHS="${DOTFILES_ROOT}/target/home/.config/mise${MISE_TRUSTED_CONFIG_PATHS:+:${MISE_TRUSTED_CONFIG_PATHS}}" \
-    "${MISE_INSTALL_PATH}" -C "${DOTFILES_ROOT}/target/home/.config/mise" install "${args[@]}"
+  local sync=--sync
+  if [[ "${dry_run}" == true ]]; then sync=--sync-check; fi
+  env MISE_INSTALL_PATH="${MISE_INSTALL_PATH}" bash "${DOTFILES_ROOT}/scripts/dotfiles/versions.sh" "${sync}"
 }
 
 check_platform() {

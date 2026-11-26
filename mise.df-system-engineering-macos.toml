@@ -1,0 +1,3 @@
+[dotfiles]
+"~/Library/Application Support/mbx/config.toml" = { source = "target/home/.config/mbx/config.toml", mode = "symlink" }
+"~/Library/LaunchAgents/com.jkomyno.rust-cache-maintenance.plist" = { source = "target/home/Library/LaunchAgents/com.jkomyno.rust-cache-maintenance.plist", mode = "template" }

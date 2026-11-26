@@ -1,0 +1,3 @@
+[dotfiles]
+"~/.local/share/qBittorrent/nova3/engines/one337x.py" = { source = "target/home/Library/Application Support/qBittorrent/nova3/engines/one337x.py", mode = "symlink" }
+"~/.local/share/qBittorrent/nova3/engines/thepiratebay.py" = { source = "target/home/Library/Application Support/qBittorrent/nova3/engines/thepiratebay.py", mode = "symlink" }

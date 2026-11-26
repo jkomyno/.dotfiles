@@ -137,7 +137,10 @@ main() {
   check_mise_tasks
   check_mise_installer_env
   "${SCRIPT_DIR}/mise-setup-staged.sh" --check
-  "${SCRIPT_DIR}/mise-setup-staged.sh" --check --only install:common:git-signing >/dev/null
+  "${SCRIPT_DIR}/mise-setup-staged.sh" --check --profile full --only install:common:git-signing >/dev/null
+  local work_plan
+  work_plan="$("${SCRIPT_DIR}/mise-setup-staged.sh" --check --profile work --with go 2>&1)"
+  grep -Fq 'bundles: essentials web go' <<<"${work_plan}"
   "${SCRIPT_DIR}/mise-setup-staged.sh" --plan --from install:common:mise --until install:common:git-signing >/dev/null
 }
 

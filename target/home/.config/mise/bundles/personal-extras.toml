@@ -1,0 +1,14 @@
+[tools]
+# https://github.com/kitlangton/ghui - GitHub pull request TUI
+"npm:@kitlangton/ghui" = { version = "latest", trust_policy_excludes = ["@kitlangton/ghui@0.9.1"] }
+# https://github.com/agentstation/vhs - charmbracelet/vhs fork with SVG output; scripted terminal
+# demo recordings for READMEs. The registry short name `vhs` resolves to the upstream
+# charmbracelet build, so the fork is pinned through the github backend explicitly.
+"github:agentstation/vhs" = "latest"
+# https://github.com/FFmpeg/FFmpeg - audio and video processing toolkit.
+# Conda provides prebuilt ffmpeg packages for supported macOS and Linux targets.
+"conda:ffmpeg" = "latest"
+# https://github.com/jkomyno/uniku - unique ID generator CLI, compatible with every modern JS runtime;
+# version_prefix restricts "latest" to uniku-cli-v* release tags, since the repo also
+# tags unrelated library releases (e.g. bare "0.0.12", "@uniku/cli@0.0.12")
+"github:jkomyno/uniku" = { version = "latest", version_prefix = "uniku-cli-v" }

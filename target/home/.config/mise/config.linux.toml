@@ -1,4 +1,5 @@
+include = ["{% set dir = config_source | canonicalize | dirname | quote %}{{ exec(command='bash ' ~ dir ~ '/dotfiles-profile.sh include personal-extras.linux') }}"]
+
 [tools]
-# Linux release archives are available through Aqua for fish and ttyd.
+# Linux release archives are available through Aqua for fish.
 "aqua:fish-shell/fish-shell" = "latest"
-"aqua:tsl0922/ttyd" = "latest"

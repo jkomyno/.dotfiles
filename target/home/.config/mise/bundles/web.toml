@@ -1,0 +1,9 @@
+[tools]
+# https://github.com/pnpm/pnpm - fast, disk-efficient JavaScript package manager
+"npm:pnpm" = "12"
+# https://github.com/denoland/deno - secure JavaScript and TypeScript runtime
+deno = "latest"
+# https://github.com/slackapi/slack-cli - create, develop, and deploy Slack apps
+"aqua:slackapi/slack-cli" = { version = "latest", os = ["macos", "linux/x64"] }
+# https://github.com/vercel-labs/agent-browser - browser automation CLI for AI agents
+"npm:agent-browser" = "latest"

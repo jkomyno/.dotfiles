@@ -84,8 +84,19 @@ assert_absent() {
   fi
 }
 
-run_safe_staged_subset() {
-  HOME="${smoke_home}" \
+run_safe_staged_subset() (
+  # This fixture can inherit mise shims and a signed-in gh from the workstation.
+  # Test the staged GH invocation without installing tools or contacting GitHub.
+  gh() {
+    case "$*" in
+      'config set git_protocol ssh --host github.com') touch "${HOME}/gh-configured" ;;
+      'auth status --hostname github.com') return 1 ;;
+      *) printf 'unexpected gh command in smoke test\n' >&2; return 1 ;;
+    esac
+  }
+  export -f gh
+  DOTFILES_SELECTION=full MISE_LOCKED=1 MISE_AUTO_INSTALL=0 MISE_NOT_FOUND_AUTO_INSTALL=0 MISE_EXEC_AUTO_INSTALL=0 \
+    HOME="${smoke_home}" \
     XDG_CACHE_HOME="${smoke_home}/.cache" \
     XDG_CONFIG_HOME="${smoke_home}/.config" \
     XDG_DATA_HOME="${smoke_home}/.local/share" \
@@ -97,12 +108,13 @@ run_safe_staged_subset() {
       --only install:common:git-signing \
       --only install:common:gh \
       >/dev/null
-}
+)
 
 verify_smoke_home() {
   assert_exists "${smoke_home}/.zprofile"
   assert_exists "${smoke_home}/.ssh/config"
   assert_exists "${smoke_home}/.config/gh/config.yml"
+  assert_exists "${smoke_home}/gh-configured"
   assert_exists "${smoke_home}/.config/mise/config.toml"
   assert_exists "${smoke_home}/.config/git/config"
   assert_exists "${smoke_home}/.config/git/config-composio"

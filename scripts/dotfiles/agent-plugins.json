@@ -48,5 +48,21 @@
     "plugins": [
       "compound-engineering@compound-engineering-plugin"
     ]
+  },
+  "pluginRequirements": {
+    "frontend-design@claude-plugins-official": {
+      "bundle": "web"
+    },
+    "interface-design@interface-design": {
+      "bundle": "web"
+    },
+    "rust-analyzer-lsp@claude-plugins-official": {
+      "bundle": "system-engineering",
+      "command": "rust-analyzer"
+    },
+    "clangd-lsp@claude-plugins-official": {
+      "bundle": "system-engineering",
+      "command": "clangd"
+    }
   }
 }

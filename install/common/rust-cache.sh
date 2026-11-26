@@ -59,8 +59,7 @@ deploy_dotfile() {
   local destination="$1"
   [[ -e "${destination}" || -L "${destination}" ]] && return 0
   [[ -x "${MISE_BIN}" ]] || return 1
-  MISE_AUTO_ENV=true MISE_TRUSTED_CONFIG_PATHS="${DOTFILES_ROOT}" \
-    "${MISE_BIN}" -C "${DOTFILES_ROOT}" bootstrap dotfiles apply "${destination}" --yes >/dev/null 2>&1 || true
+  "${DOTFILES_ROOT}/scripts/dotfiles/dotfiles.sh" apply "${destination}" --yes >/dev/null 2>&1 || true
   [[ -e "${destination}" || -L "${destination}" ]]
 }
 
@@ -176,6 +175,9 @@ macos_main() {
 }
 
 main() {
+  if [[ "${MODE}" != remove ]] && ! bash "${DOTFILES_ROOT}/target/home/.config/mise/dotfiles-profile.sh" has system-engineering; then
+    log "Rust cache maintenance requires the system-engineering bundle"; return 0
+  fi
   case "${MODE}" in
     preview | run)
       ensure_cleaner || die "maintenance command is unavailable"

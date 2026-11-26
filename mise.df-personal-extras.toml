@@ -1,0 +1,7 @@
+[dotfiles]
+"~/.config/ghostty/config" = { source = "target/home/.config/ghostty/config", mode = "symlink" }
+"~/.config/zed/settings.json" = { source = "target/home/.config/zed/settings.json", mode = "symlink" }
+"~/.agents/trait-seeds" = { source = "target/home/.agents/trait-seeds", mode = "symlink" }
+"~/.pi/agent/prompts/bro.md" = { source = "target/home/.pi/agent/prompts/bro.md", mode = "symlink" }
+"~/.pi/agent/prompts/potetomode.md" = { source = "target/home/.pi/agent/prompts/potetomode.md", mode = "symlink" }
+"~/.config/ghui/config.json" = { source = "target/home/.config/ghui/config.json", mode = "copy" }

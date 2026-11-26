@@ -94,23 +94,22 @@ list_bundle_packages() {
 }
 
 list_mise_tools() {
-  local raw line in_tools=false
-  while IFS= read -r raw || [[ -n "${raw}" ]]; do
-    line="$(trim "${raw%%#*}")"
-    [[ -z "${line}" ]] && continue
-    if [[ "${line}" =~ ^\[tools\]$ ]]; then
-      in_tools=true
-      continue
-    fi
-    if [[ "${line}" =~ ^\[.*\]$ ]]; then
-      in_tools=false
-      continue
-    fi
-    if [[ "${in_tools}" == true && "${line}" =~ ^\"?([^\"=]+)\"?[[:space:]]*= ]]; then
-      trim "${BASH_REMATCH[1]}"
-      printf '\n'
-    fi
-  done < "${DOTFILES_MISE_CONFIG}"
+  # The source audit covers every macOS bundle even on an essentials host.
+  python3 - "${DOTFILES_MISE_DIR}" <<'PYTHON'
+import pathlib
+import sys
+try:
+    import tomllib
+except ImportError:
+    from pip._vendor import tomli as tomllib
+
+root = pathlib.Path(sys.argv[1])
+paths = sorted((root / "bundles").glob("*.toml")) + [root / "splash-enabled.toml"]
+for path in paths:
+    if not path.name.endswith(".linux.toml"):
+        for tool in tomllib.loads(path.read_text()).get("tools", {}):
+            print(tool)
+PYTHON
 }
 
 # nanobrew mirrors Homebrew's on-disk layout under its own prefix, so an
@@ -165,14 +164,17 @@ main() {
   local formulae_file="${DOTFILES_ROOT}/install/macos/common/nanobrew-formulae.Brewfile"
   local issues=0
 
+  profile_resolve
+  profile_report
   log "Validating package ownership"
   validate_bundle "${casks_file}" "cask" || issues=$((issues + $?))
   validate_bundle "${formulae_file}" "brew" || issues=$((issues + $?))
 
-  local duplicates
+  local duplicates source_tools
+  source_tools="$(list_mise_tools)" || return 1
   duplicates="$(
     {
-      list_mise_tools | sed 's/^/mise\t/'
+      printf '%s\n' "${source_tools}" | sed 's/^/mise\t/'
       list_bundle_packages "${formulae_file}" | awk -F '\t' '{print "nanobrew-formula\t" $2}'
       list_bundle_packages "${casks_file}" | awk -F '\t' '{print "nanobrew-cask\t" $2}'
     } | awk -F '\t' '
@@ -190,6 +192,14 @@ main() {
     if ((issues == 0)); then
       log "Package bundle syntax is valid"
     fi
+    return "${issues}"
+  fi
+
+  log "Active mise tools"
+  run_source_mise ls --current
+
+  if [[ "${DOTFILES_PROFILE}" != full ]]; then
+    info "Skipping macOS desktop package checks for ${DOTFILES_PROFILE}"
     return "${issues}"
   fi
 

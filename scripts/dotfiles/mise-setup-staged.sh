@@ -8,6 +8,8 @@ source "${SCRIPT_DIR}/lib.sh"
 
 mode="run"
 force_dotfiles="false"
+requested_profile=""
+extra_bundles=()
 filter_from_index=1
 filter_until_index=0
 from_filter=""
@@ -29,12 +31,12 @@ setup_plan=(
   "task|install:linux:login-shell|install/linux/common/login-shell.sh"
   "task|install:common:mise|install/common/mise.sh"
   "task|install:common:rust-cache|install/common/rust-cache.sh"
-  "task|install:common:paseo|install/common/paseo.sh"
   "task|install:common:git|install/common/git.sh"
   "task|install:common:git-signing|install/common/git-signing.sh"
   "task|install:common:gh|install/common/gh.sh"
   "task|install:common:claude|install/common/claude.sh"
   "task|install:common:agents|install/common/agents.sh"
+  "task|install:common:paseo|install/common/paseo.sh"
   "task|install:common:amp|install/common/amp.sh"
   "task|install:common:vscode-extensions|install/common/vscode-extensions.sh"
   "task|install:macos:defaults|install/macos/common/defaults.sh"
@@ -74,6 +76,8 @@ Usage: scripts/dotfiles/mise-setup-staged.sh [options]
 Run the staged mise setup sequence for this repository.
 
 Options:
+  --profile NAME      Select essentials, work or full for this run.
+  --with BUNDLE       Add a bundle to an explicit profile (repeatable).
   --plan              Print the planned task order without running it.
   --check             Validate the staged setup plan without running it.
   --force-dotfiles    Pass --force to `mise bootstrap dotfiles apply`.
@@ -91,6 +95,16 @@ USAGE
 parse_args() {
   while [[ $# -gt 0 ]]; do
     case "$1" in
+      --profile)
+        [[ -z "${requested_profile}" && -n "${2:-}" ]] || { error "specify --profile once with a name"; exit 2; }
+        requested_profile="$2"
+        shift
+        ;;
+      --with)
+        [[ -n "${2:-}" ]] || { error "--with needs a bundle"; exit 2; }
+        extra_bundles+=("$2")
+        shift
+        ;;
       --plan)
         mode="plan"
         ;;
@@ -237,6 +251,18 @@ step_selected() {
   local index="$1"
   local name="$2"
 
+  case "${name}" in
+    install:linux:*) is_linux || return 1 ;;
+    install:macos:*) is_macos || return 1 ;;
+  esac
+  case "${name}" in
+    install:common:ssh|install:common:git|install:common:git-signing|install:common:gh) profile_identity || return 1 ;;
+    install:common:paseo) [[ "${setup_paseo}" == true ]] || return 1 ;;
+    install:common:rust-cache) profile_has system-engineering || return 1 ;;
+    install:macos:sudoers-nopasswd) [[ "${DOTFILES_PROFILE}" == full && "${DOTFILES_ENABLE_NOPASSWD_SUDO:-0}" == 1 ]] || return 1 ;;
+    install:macos:command-line-tools|install:linux:packages) ;;
+    install:macos:*|install:linux:login-shell|install:common:vscode-extensions|install:common:amp) [[ "${DOTFILES_PROFILE}" == full ]] || return 1 ;;
+  esac
   ((index >= filter_from_index && index <= filter_until_index)) || return 1
 
   if ((${#only_filters[@]} > 0)) && ! matches_any_step_ref "${index}" "${name}" "${only_filters[@]}"; then
@@ -255,6 +281,7 @@ run_repo_mise() {
   mise_cmd="$(mise_bin)" || return 127
 
   env \
+    MISE_CEILING_PATHS="$(dirname -- "${DOTFILES_ROOT}")" \
     MISE_TRUSTED_CONFIG_PATHS="${DOTFILES_ROOT}/mise.toml:${DOTFILES_ROOT}${MISE_TRUSTED_CONFIG_PATHS:+:${MISE_TRUSTED_CONFIG_PATHS}}" \
     "${mise_cmd}" -C "${DOTFILES_ROOT}" "$@"
 }
@@ -265,7 +292,7 @@ run_repo_mise_dotfiles() {
     args+=(--force)
   fi
 
-  run_repo_mise bootstrap dotfiles "${args[@]}"
+  "${SCRIPT_DIR}/dotfiles.sh" "${args[@]}"
 }
 
 print_plan() {
@@ -375,6 +402,8 @@ run_plan() {
       dotfiles)
         log "Applying mise bootstrap dotfiles"
         run_repo_mise_dotfiles
+        # New services and login shells must see the selection during tool installation.
+        if [[ "${DOTFILES_ACTIVATE_PROFILE:-0}" == 1 ]]; then profile_save; fi
         ;;
       *)
         error "unknown plan entry kind: ${kind}"
@@ -387,11 +416,20 @@ run_plan() {
 
 main() {
   parse_args "$@"
+  [[ -n "${requested_profile}" || ${#extra_bundles[@]} -eq 0 ]] || { error "--with requires --profile"; exit 2; }
+  profile_resolve "${requested_profile}" ${extra_bundles[@]+"${extra_bundles[@]}"}
+  profile_report
+  export DOTFILES_STAGED_SETUP=1 MISE_LOCKED=1
+  setup_paseo=false
+  if profile_paseo; then setup_paseo=true; fi
   configure_step_filters
 
   case "${mode}" in
     plan)
       print_plan
+      if step_selected "$(step_index_for_ref mise:bootstrap:dotfiles:apply)" mise:bootstrap:dotfiles:apply; then
+        "${SCRIPT_DIR}/dotfiles.sh" apply --dry-run
+      fi
       ;;
     check)
       check_plan

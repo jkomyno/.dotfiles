@@ -1,0 +1,5 @@
+[dotfiles]
+"~/.ssh/config" = { source = "target/home/.ssh/config", mode = "template" }
+"~/.config/git/config" = { source = "target/home/.config/git/config", mode = "symlink" }
+"~/.config/git/config-composio" = { source = "target/home/.config/git/config-composio", mode = "symlink" }
+"~/.config/gh/config.yml" = { source = "target/home/.config/gh/config.yml", mode = "copy" }

@@ -37,6 +37,9 @@ The mise-managed target-shaped source tree is:
 Useful first-run variants:
 
 ```sh
+# Bootstrap a headless work machine with Go.
+curl -fsSL https://raw.githubusercontent.com/jkomyno/.dotfiles/main/setup.sh | bash -s -- --profile work --with go
+
 # Do not rename this Mac during bootstrap.
 DOTFILES_SKIP_COMPUTER_NAME=1 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/jkomyno/.dotfiles/main/setup.sh)"
 
@@ -154,7 +157,7 @@ A few tools need a long-lived process that survives logout and reboot. On macOS,
 | **Rust cache maintenance** | scheduled user job | `install:common:rust-cache` | `just rust-cache` | managed mbx cache |
 
 - **tailscaled** is a root system daemon installed by Homebrew (`tailscaled install-system-daemon`); it needs sudo once and is not a mise tool. See [Remote Access](#remote-access-tailscale-screen-sharing-and-paseo).
-- **paseo** uses [`sh.paseo.daemon.plist`](./target/home/Library/LaunchAgents/sh.paseo.daemon.plist) on macOS and [`paseo.service`](./target/home/.config/systemd/user/paseo.service) on Linux. See [Remote Access](#remote-access-tailscale-screen-sharing-and-paseo).
+- **paseo** uses [`sh.paseo.daemon.plist`](./target/home/Library/LaunchAgents/sh.paseo.daemon.plist) on macOS and [`paseo.service`](./target/home/.config/systemd/user/paseo-mise.service) on Linux. See [Remote Access](#remote-access-tailscale-screen-sharing-and-paseo).
 - **Rust cache maintenance** uses Mr Boxington (`mbx`) to share compilations and manage workspace `target` symlinks. It collects inactive build data by age, storage budget, and free disk space. A daily native trigger also runs `mbx gc` between builds. Inspect usage with `mise exec -- mbx cache stats` and policy with `mise exec -- mbx settings ls`; preview collection before changing budgets. Never delete a managed `target` directly or run `cargo clean`; use `mbx clean` for one workspace. macOS uses [`com.jkomyno.rust-cache-maintenance.plist`](./target/home/Library/LaunchAgents/com.jkomyno.rust-cache-maintenance.plist); Linux uses [`rust-cache-maintenance.timer`](./target/home/.config/systemd/user/rust-cache-maintenance.timer).
 
   ```sh
@@ -186,7 +189,7 @@ Shell scripts live in three trees, and each tree has one job:
 
 ## Tool Ownership
 
-[`target/home/.config/mise/config.toml`](./target/home/.config/mise/config.toml) is the shared source of truth for language runtimes and command-line development tools, including the prebuilt Conda ffmpeg package. [`config.linux.toml`](./target/home/.config/mise/config.linux.toml) adds Linux-only fish and ttyd tools. The staged setup uses `mise bootstrap dotfiles apply` to expose the active profile under `~/.config/mise/`.
+[`target/home/.config/mise/config.toml`](./target/home/.config/mise/config.toml) is the shared source of truth for language runtimes and command-line development tools, including the prebuilt Conda ffmpeg package. [`config.linux.toml`](./target/home/.config/mise/config.linux.toml) adds Linux-only fish and ttyd tools. The staged setup uses the profile-aware dotfiles helper to expose the active profile under `~/.config/mise/`.
 
 Git and GitHub configuration lives under [`target/home/.config/git`](./target/home/.config/git) and [`target/home/.config/gh/config.yml`](./target/home/.config/gh/config.yml). GitHub CLI authentication state is intentionally not tracked; `gh` stores tokens in the system credential store and `~/.config/gh/hosts.yml`. Bootstrap generates an Ed25519 SSH key when no keypair exists, and the GitHub setup script uploads the public key as a signing key once `gh` is authenticated.
 
@@ -200,12 +203,12 @@ On macOS, mise installs GNU coreutils (`conda:coreutils`) and exposes only `time
 
 Coding-agent configuration follows a shared-canonical-plus-adapters layout inspired by [shunk031/dotfiles](https://github.com/shunk031/dotfiles):
 
-- [`target/home/.agents`](./target/home/.agents) is the shared layer, deployed to `~/.agents`. `AGENTS.md` holds instructions common to every harness, and `skills/` holds both first-party skills and vendored third-party skills as real files. Each third-party skill is mapped to its upstream repository in [`sync-skills/manifest.json`](./target/home/.agents/skills/sync-skills/manifest.json); the `sync-skills` skill (inspired by dmmulroy's `sync-pocock-skills`) updates vendored copies from upstream while re-applying local modifications stored as patch files.
-- [`target/home/.claude`](./target/home/.claude) deploys Claude Code's global `settings.json`, `CLAUDE.md` (which imports `~/.agents/AGENTS.md`), and hooks. Claude's `~/.claude/skills` remains a real, host-owned directory because plugins and local tools install their own skills there; [`scripts/dotfiles/claude-skill-links.sh`](./scripts/dotfiles/claude-skill-links.sh) adds per-skill links into the shared `~/.agents/skills` tree without replacing those host-owned entries. The plugins that `settings.json` enables are made reproducible by [`install/common/agents.sh`](./install/common/agents.sh), which reads [`scripts/dotfiles/agent-plugins.json`](./scripts/dotfiles/agent-plugins.json) and registers each marketplace and installs each plugin. It runs during staged setup and on `just update plugins`, and skips gracefully when the `claude` CLI is not installed yet.
-- [`target/home/.codex`](./target/home/.codex) deploys a curated `~/.codex/config.toml` and `AGENTS.md` (which defers to `~/.agents/AGENTS.md`). The Codex CLI itself is provisioned via mise (`npm:@openai/codex`). Codex needs no skill symlinks: it scans `~/.agents/skills/` natively (its own `~/.codex/skills/` location is deprecated upstream). Codex plugins declared in [`scripts/dotfiles/agent-plugins.json`](./scripts/dotfiles/agent-plugins.json) are also converged by `install/common/agents.sh`.
-- [`target/home/.pi`](./target/home/.pi) deploys pi's `~/.pi/agent/settings.json` and a first-party `subagent` extension (`~/.pi/agent/extensions/subagent`) whose agents are the markdown files in `~/.pi/agent/agents`; mise installs the standalone pi release (`github:earendil-works/pi`), which includes its runtime and works independently of project Node versions. Pi auto-discovers `~/.agents/skills`, so no per-skill wiring is needed.
+- [`target/home/.agents`](./target/home/.agents) contains the shared instructions and source files for first-party and vendored skills. The [skill catalog](./scripts/dotfiles/agent-skills.json) selects which directories are linked into the host’s `~/.agents/skills`. Each third-party skill is mapped to its upstream repository in [`sync-skills/manifest.json`](./target/home/.agents/skills/sync-skills/manifest.json); the `sync-skills` skill (inspired by dmmulroy's `sync-pocock-skills`) updates vendored copies from upstream while re-applying local modifications stored as patch files.
+- [`target/home/.claude`](./target/home/.claude) supplies the selected fields for Claude Code’s global `settings.json`, plus `CLAUDE.md` (which imports `~/.agents/AGENTS.md`), and hooks. Claude's `~/.claude/skills` remains a real, host-owned directory because plugins and local tools install their own skills there; [`scripts/dotfiles/claude-skill-links.sh`](./scripts/dotfiles/claude-skill-links.sh) adds per-skill links into the shared `~/.agents/skills` tree without replacing those host-owned entries. The plugins that `settings.json` enables are made reproducible by [`install/common/agents.sh`](./install/common/agents.sh), which reads [`scripts/dotfiles/agent-plugins.json`](./scripts/dotfiles/agent-plugins.json) and registers each marketplace and installs each plugin. It runs during staged setup and on `just update plugins`, and skips gracefully when the `claude` CLI is not installed yet.
+- [`target/home/.codex`](./target/home/.codex) supplies the initial `~/.codex/config.toml`, reconciles managed MCP servers on later applies, and deploys `AGENTS.md` (which defers to `~/.agents/AGENTS.md`). The Codex CLI itself is provisioned via mise (`npm:@openai/codex`). Codex needs no skill symlinks: it scans `~/.agents/skills/` natively (its own `~/.codex/skills/` location is deprecated upstream). Codex plugins declared in [`scripts/dotfiles/agent-plugins.json`](./scripts/dotfiles/agent-plugins.json) are also converged by `install/common/agents.sh`.
+- [`target/home/.pi`](./target/home/.pi) supplies Pi’s managed package sources and a first-party `subagent` extension (`~/.pi/agent/extensions/subagent`) whose agents are the markdown files in `~/.pi/agent/agents`; mise installs the standalone pi release (`github:earendil-works/pi`), which includes its runtime and works independently of project Node versions. Pi auto-discovers `~/.agents/skills`, so no per-skill wiring is needed.
 
-All three harnesses (Claude Code, Codex, pi) read the same first-party and vendored skills from `~/.agents/skills`. Plugin-delivered skills are host-specific; to expose a skill to every harness, vendor it into `~/.agents/skills` via `sync-skills`.
+All three harnesses (Claude Code, Codex, pi) read the same first-party and vendored skills from `~/.agents/skills`. Plugin-delivered skills are host-specific; to expose a skill to every harness on a profile, vendor it in the source tree and add it to that bundle’s catalog.
 
 The first-party [`traits-review`](./target/home/.agents/skills/traits-review/SKILL.md) skill checks history-derived coding preferences in the current agent session, with no separate model API. See [Traits from coding history](./docs/traits.md) for the shared seeds, subscription-based workflow, and review limits.
 
@@ -268,9 +271,9 @@ Every keybinding and shell shortcut this repo configures — tmux, Neovim/LazyVi
 Most changes touch three things: the tracked source, the ownership manifest, and
 the check that proves the manifest still works. Keep those in the same change.
 
-- **Managed dotfiles:** edit files under [`target/home`](./target/home), then add or update the matching `[dotfiles]` entry in [`mise.toml`](./mise.toml), [`mise.macos.toml`](./mise.macos.toml), or [`mise.linux.toml`](./mise.linux.toml). For copy or template targets, update [`scripts/dotfiles/mise-dotfiles-check.sh`](./scripts/dotfiles/mise-dotfiles-check.sh) when the rendered content matters. Verify with `just dotfiles-check`; use `mise bootstrap dotfiles apply --dry-run` to preview the current `$HOME`.
+- **Managed dotfiles:** edit files under [`target/home`](./target/home), then add or update the matching `[dotfiles]` entry in [`mise.toml`](./mise.toml), [`mise.macos.toml`](./mise.macos.toml), or [`mise.linux.toml`](./mise.linux.toml). Use `mise.df-<bundle>.toml` and `mise.df-<bundle>-<os>.toml` for optional targets. For copy or template targets, update [`scripts/dotfiles/mise-dotfiles-check.sh`](./scripts/dotfiles/mise-dotfiles-check.sh) when the rendered content matters. Verify with `just dotfiles-check`; use `just diff` to preview the current `$HOME`.
 - **Setup steps:** put first-run machine logic in [`install/`](./install), add a thin wrapper under [`tasks/`](./tasks), and wire the order in [`scripts/dotfiles/mise-setup-staged.sh`](./scripts/dotfiles/mise-setup-staged.sh). Inspect it with `just setup-plan`. Document new prerequisites or options, then verify with `just tasks-check` and `just setup-smoke`.
-- **Tools and apps:** put portable language runtimes and CLI tools in [`target/home/.config/mise/config.toml`](./target/home/.config/mise/config.toml). Put Linux-only tools in [`config.linux.toml`](./target/home/.config/mise/config.linux.toml). Put macOS GUI apps and fonts in [`install/macos/common/nanobrew-casks.Brewfile`](./install/macos/common/nanobrew-casks.Brewfile). Use [`install/macos/common/nanobrew-formulae.Brewfile`](./install/macos/common/nanobrew-formulae.Brewfile) only when mise has no practical backend. Verify ownership with `just packages`; use `just versions` or `just versions-update` for lockfiles.
+- **Tools and apps:** put portable language runtimes and CLI tools in [`target/home/.config/mise/config.toml`](./target/home/.config/mise/config.toml). Use its bundle fragments for declarations. Put Linux-only tools in the platform config or its includes in [`config.linux.toml`](./target/home/.config/mise/config.linux.toml). Put macOS GUI apps and fonts in [`install/macos/common/nanobrew-casks.Brewfile`](./install/macos/common/nanobrew-casks.Brewfile). Use [`install/macos/common/nanobrew-formulae.Brewfile`](./install/macos/common/nanobrew-formulae.Brewfile) only when mise has no practical backend. Verify ownership with `just packages`; use `just versions` or `just versions-update` for lockfiles.
 - **Agent configuration:** put shared instructions and vendored skills under [`target/home/.agents`](./target/home/.agents). Declare Claude and Codex plugin installation in [`scripts/dotfiles/agent-plugins.json`](./scripts/dotfiles/agent-plugins.json), and keep Claude's enabled plugin IDs in [`target/home/.claude/settings.json`](./target/home/.claude/settings.json) synchronized. Verify with `just dotfiles-check`, `just update-check plugins`, and JSON validation for edited JSON files.
 - **Bootstrap and machine state:** treat [`setup.sh`](./setup.sh), [`install/common/mise.sh`](./install/common/mise.sh), and [`install/macos/common/defaults.sh`](./install/macos/common/defaults.sh) as real machine mutators. Start with non-mutating proof: `just setup-plan`, `just setup-smoke`, `just git-signing-check`, and `bash -n` for changed shell scripts. Use a separate macOS account or VM for a full first-run bootstrap.
 
@@ -294,6 +297,31 @@ just dotfiles-check     # validate the active mise dotfiles profile in a tempora
 just setup-smoke        # run the safe staged setup subset in a temporary HOME
 ```
 
+### Select a machine profile
+
+A machine with no saved selection uses `full`. On a headless work machine, preview and apply from the checkout:
+
+```sh
+just setup-plan --profile work --with go
+bash setup.sh --profile work --with go
+```
+
+| Profile | Included bundles |
+| --- | --- |
+| `essentials` | Shell and development basics, Claude Code, Codex, Pi, Paseo, and shared coding skills |
+| `work` | Essentials and web development |
+| `full` | Every bundle and the personal workstation setup |
+
+Repeat `--with` to add `web`, `go`, `system-engineering`, or `machine-learning`. The `full` profile also includes `personal-extras`.
+After the managed files apply, explicit setup saves the selection in `~/.config/dotfiles/profile`. Run setup again to switch.
+SSH shells, services and updates use that file. Projects can still use `mise -E ci` and local version pins.
+Selecting fewer bundles narrows future installs and the managed skill view. Installed tools and optional files stay on disk.
+macOS desktop provisioning (apps, fonts, extensions and defaults) currently runs under `full`.
+
+Use `just diff`, `just update self`, or the staged setup to select optional native mise maps and reconcile agent settings.
+A raw mise apply loads only the base and automatic OS maps. Maintain shared versions with `just versions-update` on a full-catalog checkout.
+See [the work VM rollout and rollback procedure](docs/maintenance.md#work-vm-rollout).
+
 Every recipe is backed by a plain script under [`scripts/dotfiles`](./scripts/dotfiles), so a fresh machine without `just` can run the same checks directly, for example:
 
 ```sh
@@ -308,7 +336,7 @@ just versions-update
 bash scripts/dotfiles/versions.sh --write
 ```
 
-`versions-update` preserves configured version ranges such as `node = "24"` and refreshes the shared [`mise.lock`](./target/home/.config/mise/mise.lock) for Linux and macOS, x64 and arm64. On Linux, it also refreshes [`mise.linux.lock`](./target/home/.config/mise/mise.linux.lock). Use `scripts/dotfiles/versions.sh --write --bump` only when you intentionally want to change requested versions.
+`versions-update` preserves configured version ranges such as `node = "24"` and refreshes the shared [`mise.lock`](./target/home/.config/mise/mise.lock) for Linux and macOS, x64 and arm64. It also refreshes [`mise.linux.lock`](./target/home/.config/mise/mise.linux.lock). Use `scripts/dotfiles/versions.sh --write --bump` only when you intentionally want to change requested versions.
 
 ### Updating everything
 
@@ -318,7 +346,7 @@ One command updates every managed layer, or just one component:
 just update              # mise tools, casks, formulae, VS Code extensions, agent plugins, skills report, dotfiles apply
 just update-check        # non-mutating preview of the same
 
-just update mise         # upgrade mise-managed CLIs/runtimes and refresh the lockfile
+just update mise         # install selected CLIs/runtimes from the pulled locks
 just update casks        # converge and upgrade GUI apps and fonts (nanobrew)
 just update plugins      # update Claude/Codex plugins and Pi extensions
 just update vscode       # install managed VS Code extensions that are missing
@@ -338,8 +366,7 @@ To pull repo changes on an already-provisioned machine:
 
 ```sh
 cd ~/work/me/.dotfiles
-git pull --ff-only
-mise bootstrap dotfiles apply --yes
+just update self
 ```
 
 The managed [`mise.toml`](./mise.toml) uses mise's stable `dotfiles` commands
@@ -360,8 +387,8 @@ just setup-smoke
 To inspect what mise bootstrap dotfiles would do against the current `$HOME` without applying:
 
 ```sh
-mise bootstrap dotfiles status
-mise bootstrap dotfiles apply --dry-run
+scripts/dotfiles/dotfiles.sh status
+just diff
 ```
 
 For end-to-end bootstrap testing (`setup.sh`, staged setup tasks, package bundles, and SSH key generation), use an isolated environment. A second macOS account or VM covers macOS. A disposable Debian 12 or Ubuntu 24.04 VM covers Linux.

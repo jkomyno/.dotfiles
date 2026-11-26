@@ -1,0 +1,4 @@
+[dotfiles]
+"~/.config/mbx/config.toml" = { source = "target/home/.config/mbx/config.toml", mode = "symlink" }
+"~/.config/systemd/user/rust-cache-maintenance.service" = { source = "target/home/.config/systemd/user/rust-cache-maintenance.service", mode = "symlink" }
+"~/.config/systemd/user/rust-cache-maintenance.timer" = { source = "target/home/.config/systemd/user/rust-cache-maintenance.timer", mode = "symlink" }

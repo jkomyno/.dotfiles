@@ -1,0 +1,2 @@
+[dotfiles]
+"~/.config/systemd/user/paseo.service" = { source = "target/home/.config/systemd/user/paseo-mise.service", mode = "symlink" }

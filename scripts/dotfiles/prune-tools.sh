@@ -20,22 +20,10 @@ esac
 
 # Scope collection to tools we declare. Ad hoc installations stay installed.
 # mise also preserves versions selected by tracked projects and running processes.
+profile_resolve
+profile_report
+configured="$(run_source_mise ls --current --json | python3 -c 'import json, sys; print("\n".join(sorted(json.load(sys.stdin))))')"
 tools=()
-while IFS= read -r tool; do tools+=("${tool}"); done < <(
-  python3 - "${DOTFILES_MISE_DIR}" <<'PY'
-import pathlib
-import sys
-import tomllib
-
-root = pathlib.Path(sys.argv[1])
-files = [root / "config.toml"]
-if sys.platform.startswith("linux"):
-    files.append(root / "config.linux.toml")
-names = set()
-for path in files:
-    names.update(tomllib.loads(path.read_text()).get("tools", {}))
-print("\n".join(sorted(names)))
-PY
-)
+while IFS= read -r tool; do [[ -z "${tool}" ]] || tools+=("${tool}"); done <<<"${configured}"
 [[ ${#tools[@]} -gt 0 ]] || { error "no managed tool declarations found"; exit 1; }
-"$(mise_bin)" prune --tools ${args[@]+"${args[@]}"} "${tools[@]}"
+run_source_mise prune --tools ${args[@]+"${args[@]}"} "${tools[@]}"

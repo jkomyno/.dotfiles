@@ -1,0 +1,5 @@
+[dotfiles]
+"~/.local/share/lean4-skills" = { source = "target/home/.local/share/lean4-skills", mode = "symlink" }
+"~/.local/share/proof-skills" = { source = "target/home/.local/share/proof-skills", mode = "symlink" }
+"~/.local/bin/pstack-skill" = { source = "target/home/.local/bin/pstack-skill", mode = "symlink" }
+"~/.local/bin/rust-cache-maintenance" = { source = "target/home/.local/bin/rust-cache-maintenance", mode = "symlink" }

@@ -257,30 +257,32 @@ dotfiles_archive_url() {
 }
 
 clone_dotfiles_checkout() {
-  if [[ -e "${DOTFILES_CHECKOUT_DIR}" ]]; then
-    if is_empty_dir "${DOTFILES_CHECKOUT_DIR}"; then
-      rmdir "${DOTFILES_CHECKOUT_DIR}"
+  local destination="${1:-${DOTFILES_CHECKOUT_DIR}}"
+  if [[ -e "${destination}" ]]; then
+    if is_empty_dir "${destination}"; then
+      rmdir "${destination}"
     else
       return 1
     fi
   fi
 
-  log "Cloning dotfiles from ${DOTFILES_REPO_URL} into ${DOTFILES_CHECKOUT_DIR}"
+  log "Cloning dotfiles from ${DOTFILES_REPO_URL} into ${destination}"
 
-  git clone --single-branch "${DOTFILES_REPO_URL}" "${DOTFILES_CHECKOUT_DIR}"
+  git clone --single-branch "${DOTFILES_REPO_URL}" "${destination}"
 }
 
 download_dotfiles_archive() {
+  local destination="${1:-${DOTFILES_CHECKOUT_DIR}}"
   local archive_url
   archive_url="$(dotfiles_archive_url)" || {
     die "git is unavailable and DOTFILES_REPO_URL cannot be converted to an archive URL; set DOTFILES_ARCHIVE_URL"
   }
 
-  if [[ -e "${DOTFILES_CHECKOUT_DIR}" ]]; then
-    if is_empty_dir "${DOTFILES_CHECKOUT_DIR}"; then
-      rmdir "${DOTFILES_CHECKOUT_DIR}"
+  if [[ -e "${destination}" ]]; then
+    if is_empty_dir "${destination}"; then
+      rmdir "${destination}"
     else
-      die "cannot download archive into non-empty checkout: ${DOTFILES_CHECKOUT_DIR}"
+      die "cannot download archive into non-empty checkout: ${destination}"
     fi
   fi
 
@@ -293,7 +295,7 @@ download_dotfiles_archive() {
   log "Downloading dotfiles archive from ${archive_url}"
   curl -fsSL "${archive_url}" -o "${archive_file}"
   tar -xzf "${archive_file}" -C "${extract_dir}" --strip-components 1
-  mv "${extract_dir}" "${DOTFILES_CHECKOUT_DIR}"
+  mv "${extract_dir}" "${destination}"
   rm -rf "${tmp_dir}"
 }
 
@@ -327,7 +329,6 @@ update_dotfiles_checkout() {
 }
 
 prepare_dotfiles_checkout() {
-  prepare_dotfiles_parent
 
   if checkout_is_git; then
     dotfiles_checkout_kind="git"
@@ -342,14 +343,29 @@ prepare_dotfiles_checkout() {
     return
   fi
 
-  if has_working_git; then
-    clone_dotfiles_checkout || die "checkout path is not empty and is not a dotfiles source tree: ${DOTFILES_CHECKOUT_DIR}"
-    dotfiles_checkout_kind="git"
-    return
+  if [[ -e "${DOTFILES_CHECKOUT_DIR}" ]] && ! is_empty_dir "${DOTFILES_CHECKOUT_DIR}"; then
+    die "checkout path is not empty and is not a dotfiles source tree: ${DOTFILES_CHECKOUT_DIR}"
   fi
-
-  download_dotfiles_archive
-  dotfiles_checkout_kind="archive"
+  # Streamed bootstrap obtains the selector from the same revision as setup.
+  # Validate in scratch space before creating the host checkout or installing.
+  local staging
+  staging="$(mktemp -d)"
+  if has_working_git; then
+    dotfiles_checkout_kind=git
+    clone_dotfiles_checkout "${staging}/checkout"
+  else
+    dotfiles_checkout_kind=archive
+    download_dotfiles_archive "${staging}/checkout"
+  fi
+  if ! (source "${staging}/checkout/target/home/.config/mise/dotfiles-profile.sh" &&
+        profile_resolve "$@"); then
+    rm -rf "${staging}"
+    die "invalid machine selection"
+  fi
+  prepare_dotfiles_parent
+  if is_empty_dir "${DOTFILES_CHECKOUT_DIR}"; then rmdir "${DOTFILES_CHECKOUT_DIR}"; fi
+  mv "${staging}/checkout" "${DOTFILES_CHECKOUT_DIR}"
+  rmdir "${staging}"
 }
 
 ensure_mise() {
@@ -403,22 +419,22 @@ promote_archive_checkout_to_git() {
 }
 
 run_mise_setup() {
-  prepare_dotfiles_checkout
-
   local mise_cmd
   mise_cmd="$(ensure_mise)"
-  export PATH="$(dirname -- "${mise_cmd}"):${PATH}"
+  PATH="$(dirname -- "${mise_cmd}"):${PATH}"
+  export PATH
 
-  # First-run provisioning owns the managed config files. Tools installed
-  # earlier in the staged order (notably fish) auto-create default stubs such as
-  # ~/.config/fish/config.fish, and `mise bootstrap dotfiles apply` refuses to overwrite
-  # existing whole-file targets without --force — which would strand a fresh
-  # machine before any dotfile is deployed. Force by default so setup converges
-  # in one pass; set DOTFILES_SETUP_FORCE_DOTFILES=0 to keep the refuse-on-
-  # conflict behavior. Maintenance (`just update self`) never forces.
+  # A clean full bootstrap can replace stubs created by earlier installers.
+  # Re-running setup or selecting a work machine requires explicit force.
   local -a setup_args=()
-  if [[ "${DOTFILES_SETUP_FORCE_DOTFILES:-1}" != "0" ]]; then
+  if [[ "${DOTFILES_SETUP_FORCE_DOTFILES:-0}" == 1 ]]; then
     setup_args+=(--force-dotfiles)
+  elif [[ -z "${DOTFILES_SETUP_FORCE_DOTFILES+x}" && "${DOTFILES_PROFILE}" == full && "${new_checkout}" == true ]]; then
+    local initial_status
+    initial_status="$(bash "${DOTFILES_CHECKOUT_DIR}/scripts/dotfiles/dotfiles.sh" status --json)"
+    if ! grep -Eq '"state": "(applied|differs|tracked)"' <<<"${initial_status}"; then
+      setup_args+=(--force-dotfiles)
+    fi
   fi
 
   # Expand a possibly-empty array in a way that is safe under `set -u` on the
@@ -455,9 +471,42 @@ main() {
   printf '%s\n' "${DOTFILES_LOGO}"
   require_command curl
 
+  local requested="" selector new_checkout=true
+  local -a additions=()
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      --profile) [[ -z "${requested}" && -n "${2:-}" ]] || die "--profile needs one name"; requested="$2"; shift ;;
+      --with) [[ -n "${2:-}" ]] || die "--with needs a bundle"; additions+=("$2"); shift ;;
+      --force-dotfiles) DOTFILES_SETUP_FORCE_DOTFILES=1 ;;
+      -h|--help) printf '%s\n' 'setup.sh [--profile essentials|work|full] [--with BUNDLE]... [--force-dotfiles]'; return ;;
+      *) die "unknown argument: $1" ;;
+    esac
+    shift
+  done
+  [[ -n "${requested}" || ${#additions[@]} == 0 ]] || die "--with requires --profile"
+  selector="${DOTFILES_CHECKOUT_DIR}/target/home/.config/mise/dotfiles-profile.sh"
+  if [[ -n "${BASH_SOURCE[0]:-}" && -f "${BASH_SOURCE[0]}" ]]; then
+    selector="$(dirname -- "${BASH_SOURCE[0]}")/target/home/.config/mise/dotfiles-profile.sh"
+  fi
+  local existing
+  for existing in "${DOTFILES_CHECKOUT_DIR}" "${HOME}/.config/mise" "${HOME}/.ssh/config" \
+    "${HOME}/.agents" "${HOME}/.claude" "${HOME}/.codex" "${HOME}/.pi" "${HOME}/.config/git/config"; do
+    if [[ -e "${existing}" || -L "${existing}" ]]; then new_checkout=false; break; fi
+  done
+  if [[ ! -f "${selector}" ]]; then selector="${DOTFILES_CHECKOUT_DIR}/target/home/.config/mise/dotfiles-profile.sh"; fi
+  if [[ -f "${selector}" ]]; then
+    # shellcheck source=target/home/.config/mise/dotfiles-profile.sh
+    source "${selector}"
+    profile_resolve "${requested}" ${additions[@]+"${additions[@]}"}
+  fi
+  prepare_dotfiles_checkout "${requested}" ${additions[@]+"${additions[@]}"}
+  source "${DOTFILES_CHECKOUT_DIR}/target/home/.config/mise/dotfiles-profile.sh"
+  profile_resolve "${requested}" ${additions[@]+"${additions[@]}"}
+  profile_report
   keepalive_sudo
-  configure_macos_computer_name
+  if [[ "${DOTFILES_PROFILE}" == full ]]; then configure_macos_computer_name; fi
 
+  if [[ -n "${requested}" ]]; then export DOTFILES_ACTIVATE_PROFILE=1; fi
   run_mise_setup
   persist_repo_mise_trust
 

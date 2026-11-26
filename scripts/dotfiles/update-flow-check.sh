@@ -34,6 +34,10 @@ prepare_fixture() {
     "${fixture_root}/repo/scripts/dotfiles" \
     "${fixture_root}/repo/install/common"
 
+  mkdir -p "${fixture_root}/repo/target/home/.config/mise"
+  cp "${DOTFILES_MISE_DIR}/dotfiles-profile.sh" "${fixture_root}/repo/target/home/.config/mise/"
+  cp "${SCRIPT_DIR}/dotfiles.sh" "${fixture_root}/repo/scripts/dotfiles/"
+  write_executable "${fixture_root}/repo/scripts/dotfiles/claude-skill-links.sh" '#!/usr/bin/env bash' 'exit 0'
   cp "${SCRIPT_DIR}/update.sh" "${fixture_root}/repo/scripts/dotfiles/update.sh"
   cp "${SCRIPT_DIR}/lib.sh" "${fixture_root}/repo/scripts/dotfiles/lib.sh"
 
@@ -91,7 +95,7 @@ check_standalone_self() {
 check_all_order() {
   : >"${fixture_log}"
   run_update all
-  assert_before "versions:--write" "mise:-C ${fixture_root}/repo bootstrap dotfiles apply --yes"
+  assert_before "versions:--sync" "mise:-C ${fixture_root}/repo bootstrap dotfiles apply --yes"
   assert_before "mise:-C ${fixture_root}/repo bootstrap dotfiles apply --yes" "agents:--update"
 }
 

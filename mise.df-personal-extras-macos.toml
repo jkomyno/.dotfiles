@@ -1,0 +1,13 @@
+[dotfiles]
+"~/Library/Application Support/qBittorrent/nova3/engines/one337x.py" = { source = "target/home/Library/Application Support/qBittorrent/nova3/engines/one337x.py", mode = "symlink" }
+"~/Library/Application Support/qBittorrent/nova3/engines/thepiratebay.py" = { source = "target/home/Library/Application Support/qBittorrent/nova3/engines/thepiratebay.py", mode = "symlink" }
+"~/.handy/settings_store.json" = { source = "target/home/.handy/settings_store.json", mode = "copy" }
+"~/Library/Application Support/com.pais.handy/settings_store.json" = { source = "target/home/.handy/settings_store.json", mode = "copy" }
+"~/.local/bin/coffee" = { source = "target/home/.local/bin/coffee", mode = "symlink" }
+"~/.local/bin/dsp" = { source = "target/home/.local/bin/dsp", mode = "symlink" }
+"~/.local/share/dsp/README.md" = { source = "target/home/.local/share/dsp/README.md", mode = "symlink" }
+"~/.local/share/dsp/monitor.py" = { source = "target/home/.local/share/dsp/monitor.py", mode = "symlink" }
+"~/.config/fish/conf.d/nanobrew.fish" = { source = "target/home/.config/fish/conf.d/nanobrew.fish", mode = "symlink" }
+"~/.config/fish/conf.d/macos-apps.fish" = { source = "target/home/.config/fish/conf.d/macos-apps.fish", mode = "symlink" }
+"~/.config/fish/functions/ct.fish" = { source = "target/home/.config/fish/functions/ct.fish", mode = "symlink" }
+"~/.config/zsh/aliases.d/coffee.zsh" = { source = "target/home/.config/zsh/aliases.d/coffee.zsh", mode = "symlink" }

@@ -19,6 +19,7 @@ version = "1.7.7"
 backend = "aqua:tsl0922/ttyd"
 
 [tools."aqua:tsl0922/ttyd"."platforms.linux-arm64"]
+checksum = "sha256:b38acadd89d1d396a0f5649aa52c539edbad07f4bc7348b27b4f4b7219dd4165"
 url = "https://github.com/tsl0922/ttyd/releases/download/1.7.7/ttyd.aarch64"
 url_api = "https://api.github.com/repos/tsl0922/ttyd/releases/assets/159377644"
 

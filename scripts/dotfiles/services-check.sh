@@ -212,6 +212,22 @@ check_one_service() {
   grep -Fq -- "--user disable --now ${unit}" "${MOCK_SYSTEMCTL_LOG}"
 }
 
+check_work_service() {
+  local unit="${check_home}/.config/systemd/user/paseo.service"
+  printf '[Unit]\nDescription=Enrolled work host\n' >"${unit}"
+  printf 'active\n' >"${MOCK_SYSTEMCTL_STATE}"
+  : >"${MOCK_SYSTEMCTL_LOG}"
+
+  MOCK_UNAME=Linux DOTFILES_SELECTION=work run_service "install/common/paseo.sh" >/dev/null
+  grep -Fxq 'Description=Enrolled work host' "${unit}"
+  assert_state active
+  if grep -Eq -- 'daemon-reload|--now|restart|disable' "${MOCK_SYSTEMCTL_LOG}"; then
+    error "work provisioning changed the enrolled Paseo service"
+    return 1
+  fi
+  rm -- "${unit}"
+}
+
 main() {
   trap cleanup EXIT
   check_home="$(mktemp -d)"
@@ -226,6 +242,7 @@ main() {
   write_systemd_mocks
   write_launchd_mocks
   check_rust_cache_installer
+  check_work_service
 
   # paseo.sh only drives systemctl on Linux (main() branches
   # on `uname -s`; Darwin uses launchctl/a tracked LaunchAgent instead), so the
@@ -238,13 +255,13 @@ main() {
   check_one_service \
     "install/common/paseo.sh" \
     "paseo.service" \
-    "target/home/.config/systemd/user/paseo.service"
+    "target/home/.config/systemd/user/paseo-mise.service"
 
   MOCK_SYSTEMCTL_AVAILABLE=0 run_service "install/common/paseo.sh" >/dev/null 2>&1
 
   if command -v systemd-analyze >/dev/null 2>&1; then
     systemd-analyze --user verify \
-      "${DOTFILES_ROOT}/target/home/.config/systemd/user/paseo.service" \
+      "${DOTFILES_ROOT}/target/home/.config/systemd/user/paseo-mise.service" \
       "${DOTFILES_ROOT}/target/home/.config/systemd/user/rust-cache-maintenance.service" \
       "${DOTFILES_ROOT}/target/home/.config/systemd/user/rust-cache-maintenance.timer"
   fi

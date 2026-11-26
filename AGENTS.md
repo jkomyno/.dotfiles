@@ -15,9 +15,9 @@
 
 ## Tool Ownership
 
-- Put language runtimes and CLI developer tools in `target/home/.config/mise/config.toml`.
-- `mise.toml` contains shared mappings. `mise.macos.toml` and `mise.linux.toml` contain platform-specific mappings.
-- Put Linux-only mise tools in `target/home/.config/mise/config.linux.toml`.
+- Put language runtimes and CLI developer tools in the bundle fragments included by `target/home/.config/mise/config.toml`.
+- `mise.toml` contains shared mappings. `mise.macos.toml` and `mise.linux.toml` contain platform-specific mappings. Optional mappings belong in `mise.df-<bundle>[-<os>].toml`.
+- Declare Linux-only mise tools in `config.linux.toml` or its bundle-specific includes.
 - Put GUI apps and fonts in `install/macos/common/nanobrew-casks.Brewfile`.
 - Keep `install/macos/common/nanobrew-formulae.Brewfile` empty unless a required package has no practical mise backend.
 - Do not duplicate a CLI between mise and nanobrew.

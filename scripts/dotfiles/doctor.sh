@@ -130,6 +130,8 @@ check_required_files() {
     "target/home/.config/zsh/plugins.zsh"
     "target/home/.config/zsh/session.d/tmux.zsh"
     "scripts/dotfiles/mise-dotfiles-check.sh"
+    "scripts/dotfiles/dotfiles.sh"
+    "target/home/.config/mise/dotfiles-profile.sh"
     "scripts/dotfiles/update-flow-check.sh"
     "scripts/dotfiles/claude-skill-links.sh"
     "scripts/dotfiles/mise-setup-staged.sh"
@@ -176,6 +178,19 @@ check_agent_skill_files() {
       hard_fail "target/home/.agents/skills/${skill}/SKILL.md is missing"
     fi
   done < <(find "${DOTFILES_ROOT}/target/home/.agents/skills" -maxdepth 1 -mindepth 1 -print | sort)
+
+  local catalog source_names
+  if ! catalog="$(DOTFILES_SELECTION=full "${SCRIPT_DIR}/claude-skill-links.sh" --list)"; then
+    hard_fail "could not load the full skill catalog"
+    return
+  fi
+  source_names="$(find "${DOTFILES_ROOT}/target/home/.agents/skills" -mindepth 2 -maxdepth 2 \
+    -name SKILL.md -type f | sed 's|/SKILL.md$||; s|.*/||' | LC_ALL=C sort)"
+  if [[ "${source_names}" == "${catalog}" ]]; then
+    pass "every source skill has one bundle owner"
+  else
+    hard_fail "full skill catalog differs from the source tree"
+  fi
 }
 
 check_git() {
@@ -217,7 +232,7 @@ check_shell_syntax() {
     fi
   done < <(
     {
-      printf '%s\n' "${DOTFILES_ROOT}/setup.sh"
+      printf '%s\n' "${DOTFILES_ROOT}/setup.sh" "${DOTFILES_MISE_DIR}/dotfiles-profile.sh"
       find "${DOTFILES_ROOT}/install" "${DOTFILES_ROOT}/scripts" "${DOTFILES_ROOT}/tasks" -type f -name '*.sh' 2>/dev/null
     } | sort -u
   )
@@ -276,7 +291,9 @@ check_mise() {
     hard_fail "source mise config is not loadable"
   fi
 
-  if run_source_mise_base lock --global --dry-run --platform "${DOTFILES_MISE_PLATFORMS}" --minimum-release-age "${DOTFILES_MISE_MINIMUM_RELEASE_AGE}" >/dev/null; then
+  if [[ "${DOTFILES_PROFILE}" != full ]]; then
+    pass "using the saved catalog locks for ${DOTFILES_PROFILE}"
+  elif run_source_mise_base lock --global --dry-run --platform "${DOTFILES_MISE_PLATFORMS}" --minimum-release-age "${DOTFILES_MISE_MINIMUM_RELEASE_AGE}" >/dev/null; then
     pass "source mise lock can be refreshed for ${DOTFILES_MISE_PLATFORMS}"
   else
     soft_fail "mise lock dry-run reported issues; rerun scripts/dotfiles/versions.sh for details"
@@ -299,7 +316,9 @@ check_platform_profile() {
     else
       hard_fail "Linux apt bootstrap dry-run failed"
     fi
-    if [[ -x /usr/bin/zsh ]]; then
+    if [[ "${DOTFILES_PROFILE}" != full ]]; then
+      pass "preserving the work host login shell"
+    elif [[ -x /usr/bin/zsh ]]; then
       if bash "${DOTFILES_ROOT}/install/linux/common/login-shell.sh" --dry-run >/dev/null; then
         pass "Linux login-shell dry-run passed"
       else
@@ -344,7 +363,7 @@ check_staged_setup_smoke() {
   fi
 
   local output
-  if output="$("${SCRIPT_DIR}/mise-setup-staged-smoke.sh" 2>&1)"; then
+  if output="$(DOTFILES_SELECTION=full "${SCRIPT_DIR}/mise-setup-staged-smoke.sh" 2>&1)"; then
     pass "staged setup smoke test passed"
   else
     printf '%s\n' "${output}" >&2
@@ -353,7 +372,7 @@ check_staged_setup_smoke() {
 }
 
 check_services() {
-  if "${SCRIPT_DIR}/services-check.sh" >/dev/null; then
+  if DOTFILES_SELECTION=full "${SCRIPT_DIR}/services-check.sh" >/dev/null; then
     pass "portable user-service checks passed"
   else
     hard_fail "portable user-service checks failed"
@@ -410,7 +429,7 @@ check_packages() {
     else
       soft_fail "macOS target is $(uname -m); provisioning scripts currently support arm64 only"
     fi
-    check_command nb warn
+    if [[ "${DOTFILES_PROFILE}" == full ]]; then check_command nb warn; fi
   elif is_linux; then
     pass "supported Linux target detected"
   else
@@ -419,6 +438,8 @@ check_packages() {
 }
 
 main() {
+  profile_resolve
+  profile_report
   log "Running dotfiles doctor for ${DOTFILES_ROOT}"
   printf 'system: os=%s arch=%s\n' "$(os_name)" "$(uname -m)"
 

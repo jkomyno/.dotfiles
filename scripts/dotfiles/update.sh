@@ -2,7 +2,7 @@
 # update.sh — one command to update every managed layer of these dotfiles.
 #
 # Components:
-#   mise      Upgrade mise-managed CLIs/runtimes and refresh the source lockfile.
+#   mise      Install active tools at their locked versions.
 #   casks     Converge and upgrade nanobrew GUI apps and fonts (macOS).
 #   formulae  Converge and upgrade nanobrew exceptional formulae (macOS).
 #   plugins   Register/update managed coding-agent marketplaces and Pi extensions.
@@ -14,7 +14,7 @@
 #   all       Everything above in a safe order (default).
 #
 # Each component mutates its own store, not just tracked files: `mise` upgrades
-# installed tools and refreshes the source lockfile, `casks`/`formulae` update
+# selected tools to their locked versions, `casks`/`formulae` update
 # installed apps, `plugins` updates managed agent plugin state under $HOME,
 # `skills` only reports. Only `self` re-applies managed dotfiles to $HOME (via
 # `mise bootstrap dotfiles apply`, which won't overwrite whole-file targets without --force).
@@ -101,11 +101,11 @@ update_mise() {
   # this repo uses: a bare "${tool_args[@]}" on an empty array aborts under set -u.
   local -a tool_args=("$@")
   if [[ "${CHECK_ONLY}" == true ]]; then
-    log "mise: checking outdated tools and lock refresh"
-    bash "$(versions_script)" --check ${tool_args[@]+"${tool_args[@]}"}
+    log "mise: previewing locked tool installation"
+    bash "$(versions_script)" --sync-check ${tool_args[@]+"${tool_args[@]}"}
   else
-    log "mise: upgrading tools and refreshing source lockfile"
-    bash "$(versions_script)" --write ${tool_args[@]+"${tool_args[@]}"}
+    log "mise: installing selected tools from source locks"
+    bash "$(versions_script)" --sync ${tool_args[@]+"${tool_args[@]}"}
   fi
 }
 
@@ -192,7 +192,11 @@ update_plugins() {
     log "plugins: registering marketplaces and updating enabled agent plugins"
     bash "${agents}" --update || rc=1
     log "plugins: updating Pi extensions"
-    run_source_mise exec "${PI_MISE_TOOL}" -- pi update --extensions || rc=1
+    if [[ "${DOTFILES_PROFILE}" == full ]]; then
+      run_source_mise exec "${PI_MISE_TOOL}" -- pi update --extensions || rc=1
+    else
+      sync_selected_pi_packages || rc=1
+    fi
   fi
   return "${rc}"
 }
@@ -213,7 +217,13 @@ update_vscode() {
 }
 
 update_skills() {
-  bash "${DOTFILES_ROOT}/target/home/.local/bin/pstack-skill" check || warn "skills: pstack upstream check failed"
+  if profile_has system-engineering; then
+    bash "${DOTFILES_ROOT}/target/home/.local/bin/pstack-skill" check || warn "skills: pstack upstream check failed"
+  fi
+  if [[ "${DOTFILES_PROFILE}" != full ]]; then
+    bash "${SCRIPT_DIR}/claude-skill-links.sh" --plan
+    return
+  fi
   local sync="${DOTFILES_ROOT}/target/home/.agents/skills/sync-skills/scripts/sync.sh"
   [[ -f "${sync}" ]] || {
     warn "skills: sync-skills not found"
@@ -228,8 +238,8 @@ update_skills() {
 }
 
 # self is two phases so `all` can pull BEFORE updating tools/plugins (so they
-# install from the freshest manifests) and apply AFTER (so refreshed lockfiles
-# and configs are deployed). The standalone `self` component runs both.
+# install from the freshest manifests) and apply AFTER (so fresh configs
+# are deployed). The standalone `self` component runs both.
 self_pull() {
   if [[ -n "$(git -C "${DOTFILES_ROOT}" status --porcelain 2>/dev/null)" ]]; then
     warn "self: working tree is dirty; skipping 'git pull' to avoid clobbering changes"
@@ -247,28 +257,12 @@ self_pull() {
 }
 
 self_apply() {
-  local mise_cmd
-  mise_cmd="$(mise_bin)" || {
-    warn "self: mise not available; cannot apply dotfiles"
-    return 1
-  }
-  local -a apply=(bootstrap dotfiles apply)
-  if [[ "${CHECK_ONLY}" == true ]]; then apply+=(--dry-run); else apply+=(--yes); fi
-  # A non-zero exit here is informational, not fatal: `--dry-run` returns non-zero
-  # when there are pending changes, and apply refuses to overwrite existing
-  # whole-file targets. Warn and continue rather than abort so the other managed
-  # layers still update.
-  if ! MISE_TRUSTED_CONFIG_PATHS="${DOTFILES_ROOT}/mise.toml${MISE_TRUSTED_CONFIG_PATHS:+:${MISE_TRUSTED_CONFIG_PATHS}}" \
-    "${mise_cmd}" -C "${DOTFILES_ROOT}" "${apply[@]}"; then
-    warn "self: mise bootstrap dotfiles reported pending changes or refused existing whole-file targets; inspect 'mise bootstrap dotfiles status', preserve live-only content, and force only reviewed targets"
-    return 1
-  fi
+  local mode=--yes
+  [[ "${CHECK_ONLY}" == true ]] && mode=--dry-run
+  "${SCRIPT_DIR}/dotfiles.sh" apply "${mode}"
 }
 
 restore_agent_adapters() {
-  # Codex appends marketplace/plugin state to its copy-mode config, so every
-  # standalone dotfiles re-apply must restore agent adapters afterward. The
-  # all-components path instead performs its full plugin update last.
   local agents="${DOTFILES_ROOT}/install/common/agents.sh"
   local -a agent_args=()
   [[ "${CHECK_ONLY}" == true ]] && agent_args+=(--check)
@@ -282,12 +276,16 @@ update_self() {
   local rc=0
   log "self: updating the checkout, re-applying dotfiles, and restoring agent adapters"
   self_pull || rc=1
-  self_apply || rc=1
+  self_apply || return 1
   restore_agent_adapters || rc=1
   return "${rc}"
 }
 
 run_component() {
+  case "$1" in
+    casks|formulae|vscode)
+      if [[ "${DOTFILES_PROFILE}" != full ]]; then info "$1: skipped (full profile only)"; return 0; fi ;;
+  esac
   case "$1" in
     mise) update_mise ;;
     codex) update_codex ;;
@@ -301,17 +299,19 @@ run_component() {
     all)
       # Pull the checkout first so every layer uses the freshest manifests, then
       # update tools/packages, report skill drift, and apply managed files. Agent
-      # plugins converge last because Codex stores marketplace/plugin state in
-      # ~/.codex/config.toml and the copy-mode dotfiles apply replaces that file.
+      # plugins converge after the managed settings are available.
       # Each step is fault-tolerant: one failure warns and the rest still run.
       self_pull || record_failure "update: self (pull) reported issues"
       update_mise || record_failure "update: mise component reported issues"
-      update_casks || record_failure "update: casks component reported issues"
-      update_formulae || record_failure "update: formulae component reported issues"
-      update_vscode || record_failure "update: vscode component reported issues"
+      run_component casks || record_failure "update: casks component reported issues"
+      run_component formulae || record_failure "update: formulae component reported issues"
+      run_component vscode || record_failure "update: vscode component reported issues"
       update_skills || record_failure "update: skills component reported issues"
-      self_apply || record_failure "update: self (apply) reported issues"
-      update_plugins || record_failure "update: plugins component reported issues"
+      if self_apply; then
+        update_plugins || record_failure "update: plugins component reported issues"
+      else
+        record_failure "update: self (apply) reported issues"
+      fi
       ;;
     *)
       error "unknown component: $1"
@@ -321,6 +321,9 @@ run_component() {
 }
 
 main() {
+  profile_resolve
+  profile_report
+  export MISE_LOCKED=1
   local mode="apply"
   [[ "${CHECK_ONLY}" == true ]] && mode="check"
   log "update (${mode}): ${COMPONENTS[*]}"

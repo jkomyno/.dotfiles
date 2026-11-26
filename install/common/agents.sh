@@ -139,6 +139,7 @@ sync_claude_skill_links() {
   if ! bash "${CLAUDE_SKILL_LINKS}" ${args[@]+"${args[@]}"}; then
     warn "Claude managed-skill links did not converge"
     FAILURES=$((FAILURES + 1))
+    report_failures
   fi
 }
 
@@ -217,28 +218,12 @@ codex_marketplace_entries() {
   jq -r '.codex.marketplaces[]? | [.name, .source] | @tsv' "${DATA_FILE}"
 }
 
-# `~/.codex/config.toml` is deployed by mise bootstrap dotfiles in `mode = "copy"`, and
-# Codex appends its machine-local [marketplaces.*]/[plugins.*] state there at
-# runtime. A re-apply (e.g. a forced first-run `mise bootstrap dotfiles apply`) re-copies
-# the curated seed and wipes that appended state, but leaves the marketplace
-# clone under ~/.codex/.tmp/marketplaces/<name> in place. In that desynced state
-# `codex plugin marketplace add` refuses with "already added from a different
-# source" and never repairs config.toml, so the marketplace stays out of scope
-# and plugin installs fail with "not found in marketplace". Clearing the stale
-# clone lets the add re-register the marketplace and rewrite config.toml.
 codex_marketplace_add() {
   local name="$1" source="$2"
-  # This runs only when the marketplace is not currently in scope (the add
-  # branch), so any clone left under ~/.codex/.tmp/marketplaces/<name> is
-  # orphaned: config.toml was redeployed by mise in copy mode and lost the
-  # [marketplaces.<name>] entry codex appends at runtime. Left in place, codex
-  # refuses the re-add with "already added from a different source" instead of
-  # repairing config. Clear it up front so the add cleanly re-registers the
-  # marketplace and rewrites config.toml.
   local stale="${CODEX_HOME:-${HOME}/.codex}/.tmp/marketplaces/${name}"
   if [[ -d "${stale}" ]]; then
-    warn "codex marketplace: clearing orphaned clone ${stale} before re-adding"
-    rm -rf -- "${stale}"
+    warn "codex marketplace: existing cache at ${stale}; review it before adding ${name}"
+    return 1
   fi
   "${CODEX}" plugin marketplace add "${source}"
 }
@@ -401,9 +386,10 @@ main() {
   [[ -f "${DATA_FILE}" ]] || die "missing plugin manifest: ${DATA_FILE}"
   [[ -f "${CLAUDE_SKILL_LINKS}" ]] || die "missing Claude skill-link helper: ${CLAUDE_SKILL_LINKS}"
 
-  sync_claude_skill_links
   activate_mise
   export PATH="${HOME}/.local/bin:${PATH}"
+
+  sync_claude_skill_links || return 1
 
   if ! command -v jq >/dev/null 2>&1; then
     warn "jq is not available yet; skipping agent plugin sync"
@@ -411,10 +397,21 @@ main() {
     return
   fi
 
-  remove_legacy_lattice_hooks
-  remove_claudegram_hooks
+  local configured_manifest
+  configured_manifest="$(mktemp)" || return 1
+  trap 'rm -f -- "${configured_manifest}"' RETURN
+  bash "${CLAUDE_SKILL_LINKS}" --plugins >"${configured_manifest}" || return 1
+  DATA_FILE="${configured_manifest}"
+
+  if [[ "$(bash "${ROOT}/target/home/.config/mise/dotfiles-profile.sh" profile)" == full ]]; then
+    remove_legacy_lattice_hooks
+    remove_claudegram_hooks
+  fi
   sync_claude
   sync_codex
+  if [[ "${DOTFILES_STAGED_SETUP:-0}" == 1 && "${MODE}" == install ]]; then
+    (source "${ROOT}/scripts/dotfiles/lib.sh" && sync_selected_pi_packages) || FAILURES=$((FAILURES + 1))
+  fi
 
   # Absent jq/agent CLIs already returned 0 above (a fresh machine is expected
   # to skip). A real command failure once a host CLI is present is a genuine

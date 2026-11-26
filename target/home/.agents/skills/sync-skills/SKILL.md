@@ -6,7 +6,7 @@ disable-model-invocation: true
 
 # Sync Vendored Skills
 
-Third-party skills are vendored into the dotfiles repository under `target/home/.agents/skills/<name>/` and deployed by mise to `~/.agents/skills/<name>/`. `manifest.json` in this skill's directory maps each vendored skill to its upstream repository and in-repo path. This skill keeps the vendored copies in sync with upstream while preserving deliberate local modifications as patch files.
+Third-party skills are vendored into the dotfiles repository under `target/home/.agents/skills/<name>/` and linked into `~/.agents/skills/<name>/` when their bundle is active. `manifest.json` in this skill's directory maps each vendored skill to its upstream repository and in-repo path. This skill keeps the vendored copies in sync with upstream while preserving deliberate local modifications as patch files.
 
 Inspired by dmmulroy's `sync-pocock-skills`, generalized to many upstreams.
 
@@ -67,7 +67,7 @@ Frontmatter values that should be preserved without turning into one-line text p
    `include` array to vendor only runtime-relevant files and directories from a
    repository root; omitted entries keep the existing copy-all behavior.
 2. Run `apply-upstream.sh <name> <upstream_skill_dir>` to vendor it under `target/home/.agents/skills/<name>/`.
-3. No manual Claude-specific symlink is needed: `bash "$DOTFILES/scripts/dotfiles/claude-skill-links.sh"` adds the managed skill link while preserving plugin and local-only entries in Claude's host-owned skills directory.
+3. Add the new skill to its bundle in `scripts/dotfiles/agent-skills.json`. The next profile-aware dotfile apply links selected skills into both the shared and Claude skill directories.
 
 ### 5. Verify and summarise
 

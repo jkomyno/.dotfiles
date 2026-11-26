@@ -53,6 +53,12 @@ jobs:
           sudo apt-get install -y zsh
           mise install aqua:fish-shell/fish-shell@4.8.1
 
+      - name: Check full and work dotfiles in temporary homes
+        run: |
+          just dotfiles-check
+          scripts/dotfiles/profile-check.sh
+          python3 -B scripts/dotfiles/agent-profile-check.py
+
       - name: Run doctor
         env:
           # mise resolves github:/npm: backends against the GitHub API; the

@@ -10,8 +10,7 @@
   paseo is a mise tool (npm:@getpaseo/cli). It is launched via `mise exec` with an
   explicit backend rather than a shim, because a shim is not always generated
   (e.g. on activate-mode machines) whereas `mise exec npm:@getpaseo/cli` always
-  resolves. `--foreground` is REQUIRED under launchd: without it the daemon forks
-  and the tracked process exits, sending KeepAlive into a respawn loop.
+  resolves. The daemon run command keeps the supervisor in the foreground.
   Paseo binds loopback by default; use SSH forwarding for remote access.
   Load/manage/pair it with `just paseo`.
 -->
@@ -24,22 +23,24 @@
   <array>
     <string>{{ env.HOME }}/.local/bin/mise</string>
     <string>exec</string>
+    <string>node</string>
     <string>npm:@getpaseo/cli</string>
     <string>--</string>
     <string>paseo</string>
     <string>daemon</string>
-    <string>start</string>
-    <string>--foreground</string>
-    <string>--listen</string>
-    <string>127.0.0.1:6767</string>
-    <string>--hostnames</string>
-    <string>true</string>
+    <string>run</string>
   </array>
 
   <key>EnvironmentVariables</key>
   <dict>
     <key>HOME</key>
     <string>{{ env.HOME }}</string>
+    <key>PASEO_LISTEN</key>
+    <string>127.0.0.1:6767</string>
+    <key>PASEO_HOSTNAMES</key>
+    <string>true</string>
+    <key>MISE_EXEC_AUTO_INSTALL</key>
+    <string>0</string>
     <key>PATH</key>
     <string>{{ env.HOME }}/.local/share/mise/shims:{{ env.HOME }}/.local/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin</string>
   </dict>

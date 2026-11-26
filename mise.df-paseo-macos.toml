@@ -1,0 +1,2 @@
+[dotfiles]
+"~/Library/LaunchAgents/sh.paseo.daemon.plist" = { source = "target/home/Library/LaunchAgents/sh.paseo.daemon.plist", mode = "template" }
